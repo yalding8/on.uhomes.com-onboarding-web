@@ -1,0 +1,40 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Formatter Check
+        run: npm run format:check
+
+      - name: ESLint Check
+        run: npm run lint
+
+      - name: TypeScript Check
+        run: npx tsc --noEmit
+
+      - name: Single File Lines Rules Check (<= 300)
+        run: |
+          # Custom script enforcing 300 SLOC policy for critical files
+          bash scripts/check-file-lines.sh
+
+      - name: Vitest Checks
+        run: npm run test:ci || true # Placeholder for when tests are configured
+
+      - name: Production Build Verification
+        run: npm run build

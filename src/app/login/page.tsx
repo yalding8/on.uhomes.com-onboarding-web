@@ -1,0 +1,200 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { Mail, ArrowRight, Loader2, ShieldCheck } from 'lucide-react'
+
+export default function LoginPage() {
+  const router = useRouter()
+  const supabase = createClient()
+
+  // State mgmt
+  const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [step, setStep] = useState<1 | 2>(1)
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  // Step 1: Request OTP -> supabase.auth.signInWithOtp()
+  const handleRequestOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      setErrorMessage('Please enter a valid email address.')
+      return
+    }
+
+    setErrorMessage('')
+    setStatus('loading')
+
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        // Redirection isn't strictly necessary with manual OTP, but keeping it cleanly disabled
+        shouldCreateUser: true, // Allow BD registration workflows for "new" accounts
+      },
+    })
+
+    if (error) {
+      setErrorMessage(error.message)
+      setStatus('error')
+      return
+    }
+
+    setStep(2)
+    setStatus('idle')
+  }
+
+  // Step 2: Verify OTP -> supabase.auth.verifyOtp()
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!otp || otp.length < 6) {
+      setErrorMessage('Please enter a valid 6-digit code.')
+      return
+    }
+
+    setErrorMessage('')
+    setStatus('loading')
+
+    const { error, data: { session } } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: 'email',
+    })
+
+    if (error || !session) {
+      setErrorMessage(error?.message || 'Verification failed. Please try again.')
+      setStatus('error')
+      return
+    }
+
+    setStatus('success')
+    // Middleware will intercept the next reload/navigation and correctly route the user 
+    // depending on their 3-state DB supplier association.
+    router.refresh() 
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg-secondary)] px-4 sm:px-6">
+      <div className="w-full max-w-md rounded-2xl bg-[var(--color-bg-primary)] p-8 shadow-xl relative overflow-hidden">
+        
+        {/* Brand Header */}
+        <div className="mb-8 text-center mt-2">
+          {/* We use a simple CSS red circle placeholder for brand if the logo isn't available yet */}
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-primary-light)] mb-4">
+            <Mail className="h-8 w-8 text-[var(--color-primary)] opacity-90" />
+          </div>
+          <h2 className="text-2xl font-semibold tracking-tight text-[var(--color-text-primary)]">
+            Welcome to uhomes
+          </h2>
+          <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+            Supplier Onboarding Platform
+          </p>
+        </div>
+
+        {/* Step 1: Email Input */}
+        {step === 1 && (
+          <form onSubmit={handleRequestOtp} className="space-y-6">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                Work Email Address
+              </label>
+              <div className="relative">
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  disabled={status === 'loading'}
+                  className="block w-full rounded-lg border border-[var(--color-border)] px-4 py-3 placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors disabled:opacity-50"
+                  placeholder="contact@example.property.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {errorMessage && (
+              <p className="text-[var(--color-primary)] text-sm">{errorMessage}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={status === 'loading'}
+              className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors disabled:opacity-70"
+            >
+              {status === 'loading' ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <>
+                  Continue with Email
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </button>
+            <p className="text-xs text-center text-[var(--color-text-muted)] pt-2">
+              By continuing, you agree to our Terms of Service.
+            </p>
+          </form>
+        )}
+
+        {/* Step 2: OTP Verification */}
+        {step === 2 && (
+          <form onSubmit={handleVerifyOtp} className="space-y-6">
+            <div className="text-center mb-6">
+              <ShieldCheck className="h-6 w-6 text-[var(--color-success)] mx-auto mb-2" />
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                We&apos;ve sent a 6-digit secure code to <br />
+                <span className="font-semibold text-[var(--color-text-primary)]">{email}</span>
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="otp" className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+                Verification Code
+              </label>
+              <input
+                id="otp"
+                type="text"
+                required
+                maxLength={6}
+                disabled={status === 'loading' || status === 'success'}
+                className="block w-full text-center tracking-[0.5em] text-lg rounded-lg border border-[var(--color-border)] px-4 py-3 placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors disabled:opacity-50"
+                placeholder="000000"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+              />
+            </div>
+
+            {errorMessage && (
+              <p className="text-[var(--color-primary)] text-sm text-center">{errorMessage}</p>
+            )}
+
+            <button
+              type="submit"
+              disabled={status === 'loading' || status === 'success' || otp.length < 6}
+              className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors disabled:opacity-70"
+            >
+              {status === 'loading' ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : status === 'success' ? (
+                'Verified'
+              ) : (
+                'Secure Login'
+              )}
+            </button>
+            
+            <div className="text-center">
+              <button 
+                type="button" 
+                onClick={() => setStep(1)}
+                className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
+              >
+                Use a different email address
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}
