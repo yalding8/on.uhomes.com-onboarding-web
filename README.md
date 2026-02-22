@@ -4,9 +4,12 @@
 
 ## 基础设施与选型
 
-- **框架**: Next.js 15+ (App Router)
-- **开发语言**: TypeScript
-- **状态与样式**: React / Tailwind CSS
+- **框架**: Next.js 16.x (App Router)
+- **开发语言**: TypeScript (严格模式)
+- **状态与样式**: React 19 / Tailwind CSS 4
+- **表单与验证**: react-hook-form + Zod
+- **图标库**: lucide-react
+- **测试**: Vitest
 - **部署环境**: Vercel
 - **后端 / 数据库**: Supabase (PostgreSQL + Auth + Edge Functions) - 提供稳定的邮箱验证码登录、关系型数据表操作及防范篡分的 Row Level Security
 
@@ -44,6 +47,7 @@ npm run dev
 | `/`                   | 引导展示落地页及获取合作的简易申请表单             | **公开访问** (供新用户触达)        |
 | `/login`              | 提供邮箱 OTP (One-Time Password) 验证的登录机制    | **公开访问**                       |
 | `/dashboard`          | 基于登录用户的态势数据承载，用于展示当前签约进度等 | **需登录状态（针对处于签约意向）** |
+| `/auth/confirm`       | Supabase Auth 邮件验证回调处理 (server route handler) | **系统内部**                       |
 
 > _注意：添加新的应用端路由后，请第一时间补充修改上方路由表格。_
 
