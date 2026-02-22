@@ -1,29 +1,41 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Building2, Mail, Phone, Globe, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Building2,
+  Mail,
+  Phone,
+  Globe,
+  ArrowRight,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
 
 // Schema corresponding exactly to PRD section 3.4
 const applicantSchema = z.object({
-  company_name: z.string().min(2, 'Company Name is required'),
-  contact_email: z.string().email('Valid work email is required'),
-  contact_phone: z.string().min(6, 'Valid phone number is required'),
-  city: z.string().min(2, 'City is required'),
-  country: z.string().min(2, 'Country is required'),
-  website_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
-})
+  company_name: z.string().min(2, "Company Name is required"),
+  contact_email: z.string().email("Valid work email is required"),
+  contact_phone: z.string().min(6, "Valid phone number is required"),
+  city: z.string().min(2, "City is required"),
+  country: z.string().min(2, "Country is required"),
+  website_url: z
+    .string()
+    .url("Please enter a valid URL")
+    .optional()
+    .or(z.literal("")),
+});
 
-type ApplicantFormValues = z.infer<typeof applicantSchema>
+type ApplicantFormValues = z.infer<typeof applicantSchema>;
 
 export function ApplicationForm() {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
-  const [submitError, setSubmitError] = useState('')
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const {
     register,
@@ -32,44 +44,44 @@ export function ApplicationForm() {
   } = useForm<ApplicantFormValues>({
     resolver: zodResolver(applicantSchema),
     defaultValues: {
-      company_name: '',
-      contact_email: '',
-      contact_phone: '',
-      city: '',
-      country: '',
-      website_url: '',
+      company_name: "",
+      contact_email: "",
+      contact_phone: "",
+      city: "",
+      country: "",
+      website_url: "",
     },
-  })
+  });
 
   const onSubmit = async (data: ApplicantFormValues) => {
-    setIsSubmitting(true)
-    setSubmitError('')
-    
+    setIsSubmitting(true);
+    setSubmitError("");
+
     try {
-      const response = await fetch('/api/apply', {
-        method: 'POST',
+      const response = await fetch("/api/apply", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
-      })
+      });
 
       if (!response.ok) {
-        const result = await response.json()
-        throw new Error(result.error || 'Failed to submit application')
+        const result = await response.json();
+        throw new Error(result.error || "Failed to submit application");
       }
-      
-      setIsSuccess(true)
+
+      setIsSuccess(true);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setSubmitError(err.message || 'An unexpected error occurred.')
+        setSubmitError(err.message || "An unexpected error occurred.");
       } else {
-        setSubmitError('An unexpected error occurred.')
+        setSubmitError("An unexpected error occurred.");
       }
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (isSuccess) {
     return (
@@ -77,29 +89,36 @@ export function ApplicationForm() {
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-success)]/10 mb-6">
           <CheckCircle2 className="h-8 w-8 text-[var(--color-success)]" />
         </div>
-        <h3 className="text-2xl font-semibold text-[var(--color-text-primary)] mb-4">Application Received!</h3>
+        <h3 className="text-2xl font-semibold text-[var(--color-text-primary)] mb-4">
+          Application Received!
+        </h3>
         <p className="text-[var(--color-text-secondary)] mb-8">
-          Thank you for showing interest in uhomes. Our Business Development team will review your application and contact you via email shortly.
+          Thank you for showing interest in uhomes. Our Business Development
+          team will review your application and contact you via email shortly.
         </p>
         <button
           onClick={() => {
-            setIsSuccess(false)
-            router.refresh()
+            setIsSuccess(false);
+            router.refresh();
           }}
           className="text-[var(--color-primary)] font-medium hover:text-[var(--color-primary-hover)] transition-colors"
         >
           Submit another application
         </button>
       </div>
-    )
+    );
   }
 
   return (
     <div className="w-full max-w-xl mx-auto bg-[var(--color-bg-primary)] rounded-2xl shadow-xl overflow-hidden border border-[var(--color-border)] text-left">
       <div className="bg-[var(--color-bg-secondary)] px-8 py-6 border-b border-[var(--color-border)]">
-        <h3 className="text-xl font-semibold text-[var(--color-text-primary)] text-center">Become a Supplier</h3>
-        <p className="text-sm text-[var(--color-text-secondary)] text-center mt-1">Fill out the form below to get early access.</p>
-        
+        <h3 className="text-xl font-semibold text-[var(--color-text-primary)] text-center">
+          Become a Supplier
+        </h3>
+        <p className="text-sm text-[var(--color-text-secondary)] text-center mt-1">
+          Fill out the form below to get early access.
+        </p>
+
         {submitError && (
           <div className="mt-4 p-3 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)] text-sm font-medium border border-[var(--color-primary)]/20 text-center">
             {submitError}
@@ -108,7 +127,6 @@ export function ApplicationForm() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="p-8 space-y-6">
-        
         {/* Company Name */}
         <div>
           <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
@@ -119,13 +137,17 @@ export function ApplicationForm() {
               <Building2 className="h-5 w-5 text-[var(--color-text-muted)]" />
             </div>
             <input
-              {...register('company_name')}
+              {...register("company_name")}
               disabled={isSubmitting}
-              className={`block w-full rounded-lg border ${errors.company_name ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+              className={`block w-full rounded-lg border ${errors.company_name ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
               placeholder="Your Property Management LLC"
             />
           </div>
-          {errors.company_name && <p className="text-[var(--color-primary)] text-xs mt-1">{errors.company_name.message}</p>}
+          {errors.company_name && (
+            <p className="text-[var(--color-primary)] text-xs mt-1">
+              {errors.company_name.message}
+            </p>
+          )}
         </div>
 
         {/* Email & Phone Grid */}
@@ -139,14 +161,18 @@ export function ApplicationForm() {
                 <Mail className="h-5 w-5 text-[var(--color-text-muted)]" />
               </div>
               <input
-                {...register('contact_email')}
+                {...register("contact_email")}
                 type="email"
                 disabled={isSubmitting}
-                className={`block w-full rounded-lg border ${errors.contact_email ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+                className={`block w-full rounded-lg border ${errors.contact_email ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
                 placeholder="hello@example.com"
               />
             </div>
-            {errors.contact_email && <p className="text-[var(--color-primary)] text-xs mt-1">{errors.contact_email.message}</p>}
+            {errors.contact_email && (
+              <p className="text-[var(--color-primary)] text-xs mt-1">
+                {errors.contact_email.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -158,14 +184,18 @@ export function ApplicationForm() {
                 <Phone className="h-5 w-5 text-[var(--color-text-muted)]" />
               </div>
               <input
-                {...register('contact_phone')}
+                {...register("contact_phone")}
                 type="tel"
                 disabled={isSubmitting}
-                className={`block w-full rounded-lg border ${errors.contact_phone ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+                className={`block w-full rounded-lg border ${errors.contact_phone ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
                 placeholder="+1 (555) 000-0000"
               />
             </div>
-            {errors.contact_phone && <p className="text-[var(--color-primary)] text-xs mt-1">{errors.contact_phone.message}</p>}
+            {errors.contact_phone && (
+              <p className="text-[var(--color-primary)] text-xs mt-1">
+                {errors.contact_phone.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -176,12 +206,16 @@ export function ApplicationForm() {
               City *
             </label>
             <input
-              {...register('city')}
+              {...register("city")}
               disabled={isSubmitting}
-              className={`block w-full rounded-lg border ${errors.city ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+              className={`block w-full rounded-lg border ${errors.city ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
               placeholder="e.g. London"
             />
-            {errors.city && <p className="text-[var(--color-primary)] text-xs mt-1">{errors.city.message}</p>}
+            {errors.city && (
+              <p className="text-[var(--color-primary)] text-xs mt-1">
+                {errors.city.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -193,29 +227,40 @@ export function ApplicationForm() {
                 <Globe className="h-5 w-5 text-[var(--color-text-muted)]" />
               </div>
               <input
-                {...register('country')}
+                {...register("country")}
                 disabled={isSubmitting}
-                className={`block w-full rounded-lg border ${errors.country ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+                className={`block w-full rounded-lg border ${errors.country ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
                 placeholder="e.g. United Kingdom"
               />
             </div>
-            {errors.country && <p className="text-[var(--color-primary)] text-xs mt-1">{errors.country.message}</p>}
+            {errors.country && (
+              <p className="text-[var(--color-primary)] text-xs mt-1">
+                {errors.country.message}
+              </p>
+            )}
           </div>
         </div>
 
         {/* Website (Optional) */}
         <div>
           <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-            Website URL <span className="text-[var(--color-text-muted)] font-normal">(Optional)</span>
+            Website URL{" "}
+            <span className="text-[var(--color-text-muted)] font-normal">
+              (Optional)
+            </span>
           </label>
           <input
-            {...register('website_url')}
+            {...register("website_url")}
             type="url"
             disabled={isSubmitting}
-            className={`block w-full rounded-lg border ${errors.website_url ? 'border-[var(--color-primary)]' : 'border-[var(--color-border)]'} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+            className={`block w-full rounded-lg border ${errors.website_url ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
             placeholder="https://www.example.com"
           />
-          {errors.website_url && <p className="text-[var(--color-primary)] text-xs mt-1">{errors.website_url.message}</p>}
+          {errors.website_url && (
+            <p className="text-[var(--color-primary)] text-xs mt-1">
+              {errors.website_url.message}
+            </p>
+          )}
         </div>
 
         <button
@@ -232,8 +277,7 @@ export function ApplicationForm() {
             </>
           )}
         </button>
-
       </form>
     </div>
-  )
+  );
 }
