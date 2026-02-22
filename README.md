@@ -25,11 +25,13 @@ npm run dev
 
 ## 环境变量 (.env.local)
 
-| 变量名称                        | 说明                                          |
-| :------------------------------ | :-------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                             |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端读取基础路由态数据 |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端安全请求       |
+| 变量名称                        | 说明                                                                   |
+| :------------------------------ | :--------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                                      |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端读取基础路由态数据                          |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端安全请求                                |
+| `ADMIN_SECRET`                  | BD 内部审批接口鉴权密钥，禁止对外暴露                                  |
+| `OPENSIGN_WEBHOOK_SECRET`       | OpenSign Webhook 签名验证密钥；本地 Mock 测试时设为 `TEST_SECRET_MOCK` |
 
 > _注意：每次新增涉及系统环境和应用部署的变量后，必须更新上表。_
 
