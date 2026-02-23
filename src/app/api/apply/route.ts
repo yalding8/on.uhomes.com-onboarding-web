@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     // Ensure we don't crash from duplicate inserts before an auth user binds
     // If the same email submits twice, we can log it separately or just update
     // Assuming this flows into the BD CRM for processing:
-    const { error } = await supabase.from("suppliers").insert([
+    const { error } = await supabase.from("applications").insert([
       {
         company_name: payload.company_name,
         contact_email: payload.contact_email,
@@ -30,14 +30,7 @@ export async function POST(request: Request) {
         city: payload.city,
         country: payload.country,
         website_url: payload.website_url || null,
-        status: "NEW",
-        // Note: user_id is missing because they haven't authenticated yet.
-        // It's allowed to be NULL/UUID unlinked prior to signing up,
-        // however our schema explicitly marks it as NOT NULL in init_schema.
-        // To fix this without altering db schema now, we can generate a temporary UUID
-        // and link them back once they auth, OR, for now, we'll assign the first admin's ID
-        // or just mock the successful response depending on the BD prepopulation rules.
-        user_id: crypto.randomUUID(),
+        status: "PENDING",
       },
     ]);
 

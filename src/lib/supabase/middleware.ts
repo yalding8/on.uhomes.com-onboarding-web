@@ -77,7 +77,8 @@ export async function updateSession(request: NextRequest) {
     const isPublicRoute =
       pathname === "/" ||
       pathname.startsWith("/login") ||
-      pathname.startsWith("/auth");
+      pathname.startsWith("/auth") ||
+      pathname.startsWith("/api/");
     if (!isPublicRoute) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
