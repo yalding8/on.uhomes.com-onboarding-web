@@ -14,7 +14,9 @@
 
   --color-border: #eeeeee;
   --color-success: #00b67a;
+  --color-success-light: #e6f9f1;
   --color-warning: #ffb400;
+  --color-warning-light: #fff8e6;
 }
 
 @layer base {

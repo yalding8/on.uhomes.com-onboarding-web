@@ -49,10 +49,13 @@ export async function updateSession(request: NextRequest) {
 
     const status = supplier?.status || "NEW";
 
-    // Condition 1: SIGNED User -> Direct redirection to pro.uhomes.com
-    // (We perform this immediately so signed users bypass all other logic)
+    // Condition 1: SIGNED User -> Can access /dashboard and /onboarding/*
+    // Redirect to /dashboard if visiting / or /login
     if (status === "SIGNED") {
-      return NextResponse.redirect("https://pro.uhomes.com");
+      if (pathname === "/" || pathname.startsWith("/login")) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+      // Allow /dashboard, /onboarding/*, /auth/* to pass through
     }
 
     // Condition 2: PENDING_CONTRACT -> Redirect to /dashboard if trying to access other pages

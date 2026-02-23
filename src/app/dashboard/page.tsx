@@ -1,99 +1,159 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
-import { ContractViewer } from "@/components/signing/ContractViewer";
+/**
+ * Dashboard — 供应商控制台。
+ * PENDING_CONTRACT: 显示合同签署入口。
+ * SIGNED: 显示 building 卡片列表 + 合同已签状态。
+ */
+
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import { ContractViewer } from '@/components/signing/ContractViewer';
+import { BuildingCard } from '@/components/onboarding/BuildingCard';
+import { FIELD_SCHEMA } from '@/lib/onboarding/field-schema';
+import { calculateScore } from '@/lib/onboarding/scoring-engine';
+import type { FieldValue } from '@/lib/onboarding/field-value';
+import type { BuildingStatus } from '@/lib/onboarding/status-engine';
 
 export default async function DashboardPage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // Readonly error handling in Server Components
-          }
-        },
-      },
-    },
-  );
+  const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[var(--color-bg-secondary)]">
-        <p className="text-[var(--color-text-primary)]">
-          Please login to access your dashboard.
-        </p>
-      </div>
-    );
-  }
-
-  // Fetch Supplier profile linked to this user identity
   const { data: supplier } = await supabase
-    .from("suppliers")
-    .select("id, company_name, status")
-    .eq("user_id", user.id)
+    .from('suppliers')
+    .select('id, company_name, status')
+    .eq('user_id', user.id)
     .single();
 
-  // Fetch pending active contracts for this supplier to power ContractViewer
-  let contract = null;
-  if (supplier?.id) {
-    const { data: contractData } = await supabase
-      .from("contracts")
-      .select("id, status, embedded_signing_url")
-      .eq("supplier_id", supplier.id)
-      .not("status", "eq", "CANCELED")
-      .order("created_at", { ascending: false })
+  if (!supplier) redirect('/');
+
+  // 获取合同（PENDING_CONTRACT 时需要）
+  let contract: { id: string; status: string; embedded_signing_url: string | null } | null = null;
+  if (supplier.status === 'PENDING_CONTRACT') {
+    const { data } = await supabase
+      .from('contracts')
+      .select('id, status, embedded_signing_url')
+      .eq('supplier_id', supplier.id)
+      .not('status', 'eq', 'CANCELED')
+      .order('created_at', { ascending: false })
       .limit(1)
       .single();
+    contract = data;
+  }
 
-    contract = contractData;
+  // SIGNED 用户：查询名下所有 buildings + onboarding 数据
+  let buildings: Array<{
+    id: string;
+    name: string;
+    address: string;
+    score: number;
+    missingCount: number;
+    status: BuildingStatus;
+  }> = [];
+
+  if (supplier.status === 'SIGNED') {
+    const { data: rawBuildings } = await supabase
+      .from('buildings')
+      .select('id, building_name, building_address, score, onboarding_status')
+      .eq('supplier_id', supplier.id)
+      .order('created_at', { ascending: false });
+
+    if (rawBuildings && rawBuildings.length > 0) {
+      const buildingIds = rawBuildings.map((b) => b.id);
+      const { data: onboardingRows } = await supabase
+        .from('building_onboarding_data')
+        .select('building_id, field_values')
+        .in('building_id', buildingIds);
+
+      const onboardingMap = new Map<string, Record<string, FieldValue>>();
+      for (const row of onboardingRows ?? []) {
+        onboardingMap.set(
+          row.building_id,
+          (row.field_values ?? {}) as Record<string, FieldValue>,
+        );
+      }
+
+      buildings = rawBuildings.map((b) => {
+        const fv = onboardingMap.get(b.id) ?? {};
+        const result = calculateScore(FIELD_SCHEMA, fv);
+        return {
+          id: b.id,
+          name: b.building_name ?? 'Unnamed Building',
+          address: b.building_address ?? '',
+          score: result.score,
+          missingCount: result.missingFields.length,
+          status: (b.onboarding_status ?? 'incomplete') as BuildingStatus,
+        };
+      });
+    }
   }
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] p-8">
-      <div className="max-w-4xl mx-auto bg-[var(--color-bg-secondary)] rounded-2xl border border-[var(--color-border)] overflow-hidden shadow-sm">
-        <div className="p-8 border-b border-[var(--color-border)]">
+    <div className="min-h-screen bg-[var(--color-bg-primary)] p-4 md:p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-[var(--color-bg-secondary)] rounded-2xl border border-[var(--color-border)] p-6 md:p-8">
           <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            Welcome, {supplier?.company_name || user.email}
+            Welcome, {supplier.company_name || user.email}
           </h1>
-          <p className="text-[var(--color-text-secondary)] mt-2">
-            This is your secure onboarding portal.
+          <p className="text-[var(--color-text-secondary)] mt-1">
+            Your onboarding portal
           </p>
         </div>
 
-        <div className="p-8">
-          <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-4">
-            Pending Actions
-          </h2>
+        {/* 合同签署区域 — PENDING_CONTRACT */}
+        {supplier.status === 'PENDING_CONTRACT' && (
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+              Pending Actions
+            </h2>
+            {contract ? (
+              <ContractViewer
+                contractId={contract.id}
+                signingUrl={contract.embedded_signing_url || '#'}
+                status={contract.status}
+              />
+            ) : (
+              <div className="p-4 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-border)]">
+                <p className="text-sm text-[var(--color-primary)] font-medium">
+                  Your partnership agreement is being prepared by our BD team.
+                  You will receive an email notification once it is available.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
-          {contract ? (
-            <ContractViewer
-              contractId={contract.id}
-              signingUrl={contract.embedded_signing_url || "#"}
-              status={contract.status}
-            />
-          ) : (
-            <div className="p-4 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-border)]">
-              <p className="text-sm text-[var(--color-primary)] font-medium">
-                Your partnership agreement is being prepared by our BD team. You
-                will receive an email notification once it is available for
-                signature.
-              </p>
-            </div>
-          )}
-        </div>
+        {/* Building 列表 — SIGNED */}
+        {supplier.status === 'SIGNED' && (
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
+              Your Properties
+            </h2>
+            {buildings.length > 0 ? (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {buildings.map((b) => (
+                  <BuildingCard
+                    key={b.id}
+                    buildingId={b.id}
+                    buildingName={b.name}
+                    address={b.address}
+                    score={b.score}
+                    missingCount={b.missingCount}
+                    status={b.status}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="p-6 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] text-center">
+                <p className="text-[var(--color-text-secondary)]">
+                  No properties yet. Your buildings will appear here once the
+                  data extraction pipeline completes.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
