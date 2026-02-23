@@ -1,6 +1,7 @@
 # AI 开发快速参考卡 (Quick Reference Card)
 
 ## 🚀 核心架构
+
 ```
 ✅ Next.js App Router (app/)
 ✅ Vercel 部署
@@ -11,21 +12,17 @@
 ```
 
 ## 🎨 UI 规范
+
 ```css
 /* 品牌色 - 仅限使用 */
---color-primary: #FF5A5F      /* 主要 CTA、状态强提示 */
---color-text-primary: #222222 /* 主标题文字 */
-
-/* 响应式断点 */
-< 768px      /* Mobile - Mobile-First */
-768-1024px   /* Tablet */
-> 1024px     /* Desktop */
-
-✅ 使用 globals.css 中的 CSS 变量
-❌ 禁止硬编码颜色值
+--color-primary: #ff5a5f /* 主要 CTA、状态强提示 */
+  --color-text-primary: #222222 /* 主标题文字 */ /* 响应式断点 */ < 768px
+  /* Mobile - Mobile-First */ 768-1024px /* Tablet */ > 1024px /* Desktop */ ✅
+  使用 globals.css 中的 CSS 变量 ❌ 禁止硬编码颜色值;
 ```
 
 ## 🔒 代码质量
+
 ```typescript
 ✅ 严格 TypeScript（禁止 any）
 ✅ 完整错误处理（try-catch）
@@ -34,6 +31,7 @@
 ```
 
 ## 📁 目录结构
+
 ```
 src/
 ├── app/          # 页面路由 (Next.js App Router)
@@ -44,12 +42,14 @@ src/
 ```
 
 ## 📝 文档同步
+
 ```
 新增路由 → 更新 README.md "核心页面路由" 表格
 新增环境变量 → 更新 README.md "环境变量" 表格
 ```
 
 ## 🧪 测试要求
+
 ```bash
 ✅ 单元测试（Vitest）
 ✅ 组件测试
@@ -59,6 +59,7 @@ src/
 ```
 
 ## 🔐 安全规范
+
 ```typescript
 ✅ 使用 Zod 进行数据验证
 ✅ 服务端使用 SUPABASE_SERVICE_ROLE_KEY
@@ -69,22 +70,24 @@ src/
 ```
 
 ## 📦 Supabase 使用
+
 ```typescript
 // 客户端组件
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+);
 
 // 服务端组件/Server Actions
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!, // 服务端专用
-  { auth: { autoRefreshToken: false, persistSession: false } }
-)
+  { auth: { autoRefreshToken: false, persistSession: false } },
+);
 ```
 
 ## 🎯 Commit 规范
+
 ```
 <type>(<scope>): <subject>
 
@@ -99,6 +102,7 @@ docs(readme): 更新环境变量说明
 ```
 
 ## ⚡ 性能优化
+
 ```typescript
 ✅ 使用服务端组件（Server Components）
 ✅ 图片使用 next/image 优化
@@ -107,14 +111,14 @@ docs(readme): 更新环境变量说明
 ```
 
 ## ♿ 可访问性
+
 ```html
-✅ 语义化 HTML 标签
-✅ 正确的 label 和 aria 属性
-✅ 键盘导航支持
-✅ 符合 WCAG 2.1 AA 对比度标准
+✅ 语义化 HTML 标签 ✅ 正确的 label 和 aria 属性 ✅ 键盘导航支持 ✅ 符合 WCAG
+2.1 AA 对比度标准
 ```
 
 ## 🌍 国际化
+
 ```typescript
 ✅ 文本提取到翻译文件
 ✅ 使用模板字符串处理动态内容
@@ -122,6 +126,7 @@ docs(readme): 更新环境变量说明
 ```
 
 ## 📊 监控
+
 ```typescript
 ✅ 集成错误监控（如 Sentry）
 ✅ 性能监控（加载时间、交互性能）
@@ -131,12 +136,14 @@ docs(readme): 更新环境变量说明
 ---
 
 **重要提醒**：
+
 1. 每次 coding 前务必查阅完整版 rules.md
 2. AI 生成代码必须经过人工审查
 3. 保持文档与代码同步更新
 4. 渐进式改进，避免大规模重构
 
 **规则文件位置**：
+
 - Qwen Code: .qwen/rules.md
 - Google Antigravity: AGENTS.md
 - Claude: CLAUDE.md
