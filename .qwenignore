@@ -1,0 +1,7 @@
+# .qwenignore
+
+# Ignore everything by default
+*
+
+# Except for the rules file
+!.qwen/rules.md
