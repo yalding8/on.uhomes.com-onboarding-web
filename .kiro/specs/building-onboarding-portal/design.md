@@ -71,7 +71,7 @@ sequenceDiagram
     WH->>API: 合同签署完成回调
     API->>DB: 更新合同状态为 SIGNED
     API->>EW: 并行触发 3 个提取任务
-    
+
     par PDF 解析
         EW->>API: POST /api/extraction/callback (pdf_result)
         API->>DB: 写入 building_onboarding_data
@@ -138,17 +138,20 @@ const FIELD_SCHEMA: FieldDefinition[] = [...]
 // src/lib/onboarding/scoring-engine.ts
 
 interface ScoreResult {
-  score: number;              // 0-100
-  totalWeight: number;        // 所有字段权重总和
-  filledWeight: number;       // 已填写字段权重之和
-  missingFields: string[];    // 缺失字段 key 列表
-  fieldDetails: Record<string, { filled: boolean; weight: number; category: FieldCategory }>;
+  score: number; // 0-100
+  totalWeight: number; // 所有字段权重总和
+  filledWeight: number; // 已填写字段权重之和
+  missingFields: string[]; // 缺失字段 key 列表
+  fieldDetails: Record<
+    string,
+    { filled: boolean; weight: number; category: FieldCategory }
+  >;
 }
 
 function calculateScore(
   fieldSchema: FieldDefinition[],
-  fieldValues: Record<string, FieldValue>
-): ScoreResult
+  fieldValues: Record<string, FieldValue>,
+): ScoreResult;
 ```
 
 ### 3. Gap Report 生成模块
@@ -162,7 +165,7 @@ interface GapReportItem {
   category: FieldCategory;
   weight: number;
   extractTier: ExtractTier;
-  suggestion: string;  // "需手动填写" | "需确认" | "可自动提取"
+  suggestion: string; // "需手动填写" | "需确认" | "可自动提取"
 }
 
 interface GapReport {
@@ -174,8 +177,8 @@ interface GapReport {
 
 function generateGapReport(
   fieldSchema: FieldDefinition[],
-  fieldValues: Record<string, FieldValue>
-): GapReport
+  fieldValues: Record<string, FieldValue>,
+): GapReport;
 ```
 
 ### 4. Extraction Pipeline 触发与回调
@@ -197,12 +200,15 @@ interface ExtractionTriggerPayload {
 
 interface ExtractionCallbackPayload {
   buildingId: string;
-  source: 'contract_pdf' | 'website_crawl' | 'google_sheets';
-  extractedFields: Record<string, {
-    value: unknown;
-    confidence: 'high' | 'medium' | 'low';
-  }>;
-  status: 'success' | 'partial' | 'failed';
+  source: "contract_pdf" | "website_crawl" | "google_sheets";
+  extractedFields: Record<
+    string,
+    {
+      value: unknown;
+      confidence: "high" | "medium" | "low";
+    }
+  >;
+  status: "success" | "partial" | "failed";
   errorMessage?: string;
 }
 ```
@@ -229,12 +235,12 @@ interface UpdateFieldsPayload {
 // src/lib/onboarding/field-value.ts
 interface FieldValue {
   value: unknown;
-  source: 'contract_pdf' | 'website_crawl' | 'google_sheets' | 'manual_input';
-  confidence: 'high' | 'medium' | 'low';
-  confirmedBy?: string;    // user_id of confirmer
-  confirmedAt?: string;    // ISO timestamp
-  updatedBy: string;       // user_id
-  updatedAt: string;       // ISO timestamp
+  source: "contract_pdf" | "website_crawl" | "google_sheets" | "manual_input";
+  confidence: "high" | "medium" | "low";
+  confirmedBy?: string; // user_id of confirmer
+  confirmedAt?: string; // ISO timestamp
+  updatedBy: string; // user_id
+  updatedAt: string; // ISO timestamp
 }
 ```
 
@@ -494,77 +500,77 @@ CREATE TRIGGER set_building_onboarding_data_updated_at
 
 ## Correctness Properties
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+_A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees._
 
 ### Property 1: 并行触发完整性
 
-*For any* 合同签署完成事件，触发提取后应恰好创建 3 个 extraction_jobs 记录（contract_pdf、website_crawl、google_sheets 各一个），且每个 job 的初始状态为 pending。
+_For any_ 合同签署完成事件，触发提取后应恰好创建 3 个 extraction_jobs 记录（contract_pdf、website_crawl、google_sheets 各一个），且每个 job 的初始状态为 pending。
 
 **Validates: Requirements 1.1**
 
 ### Property 2: 超时容错 — 部分结果可用性
 
-*For any* 一组提取任务状态组合（其中至少一个为 completed），当存在 timeout 状态的任务时，系统应使用已完成任务的数据继续后续流程（生成 Building_Record），且超时任务被标记为 timeout 状态。
+_For any_ 一组提取任务状态组合（其中至少一个为 completed），当存在 timeout 状态的任务时，系统应使用已完成任务的数据继续后续流程（生成 Building_Record），且超时任务被标记为 timeout 状态。
 
 **Validates: Requirements 1.5**
 
 ### Property 3: 多源数据融合优先级与来源追踪
 
-*For any* 字段和任意多源提取结果组合（contract_pdf、website_crawl、google_sheets），融合后的字段值应选择最高优先级来源（contract_pdf > google_sheets > website_crawl）的值，且融合后的每个字段都包含 source、confidence、updatedBy、updatedAt 元数据。
+_For any_ 字段和任意多源提取结果组合（contract_pdf、website_crawl、google_sheets），融合后的字段值应选择最高优先级来源（contract_pdf > google_sheets > website_crawl）的值，且融合后的每个字段都包含 source、confidence、updatedBy、updatedAt 元数据。
 
 **Validates: Requirements 1.6, 1.7**
 
 ### Property 4: Field Schema 结构完整性
 
-*For any* FieldDefinition in FIELD_SCHEMA，该定义应包含所有必需属性（key、label、category、type、weight、extractTier、required），且 weight 在 1-10 范围内，category 属于预定义的 10 个分类之一，extractTier 属于 A/B/C 之一。
+_For any_ FieldDefinition in FIELD_SCHEMA，该定义应包含所有必需属性（key、label、category、type、weight、extractTier、required），且 weight 在 1-10 范围内，category 属于预定义的 10 个分类之一，extractTier 属于 A/B/C 之一。
 
 **Validates: Requirements 2.1**
 
 ### Property 5: Gap Report 正确性
 
-*For any* field_schema 和 field_values 组合，生成的 Gap Report 中的缺失字段集合应恰好等于 field_schema 中定义但在 field_values 中不存在或值为空的字段集合。且每个缺失字段的 suggestion 应与其 extractTier 对应：C-tier → "需手动填写"，B-tier → "需确认"，A-tier → "可自动提取"。
+_For any_ field_schema 和 field_values 组合，生成的 Gap Report 中的缺失字段集合应恰好等于 field_schema 中定义但在 field_values 中不存在或值为空的字段集合。且每个缺失字段的 suggestion 应与其 extractTier 对应：C-tier → "需手动填写"，B-tier → "需确认"，A-tier → "可自动提取"。
 
 **Validates: Requirements 2.2, 2.3, 2.4**
 
 ### Property 6: 审计日志完整性
 
-*For any* 字段更新操作（包含操作人 ID、字段名、新值），系统应在 field_audit_logs 中创建一条记录，包含正确的 user_id、user_role、field_key、old_value（更新前的值）和 new_value（更新后的值），且 old_value 与更新前数据库中的值一致。
+_For any_ 字段更新操作（包含操作人 ID、字段名、新值），系统应在 field_audit_logs 中创建一条记录，包含正确的 user_id、user_role、field_key、old_value（更新前的值）和 new_value（更新后的值），且 old_value 与更新前数据库中的值一致。
 
 **Validates: Requirements 3.3, 8.2**
 
 ### Property 7: 角色权限隔离
 
-*For any* 用户和 building 组合，访问权限应满足：Supplier 仅能访问自己 supplier_id 关联的 building；BD_Staff 能访问其负责的供应商关联的所有 building；Data_Team 能访问所有 building。不满足条件的访问应返回空结果或拒绝。
+_For any_ 用户和 building 组合，访问权限应满足：Supplier 仅能访问自己 supplier_id 关联的 building；BD_Staff 能访问其负责的供应商关联的所有 building；Data_Team 能访问所有 building。不满足条件的访问应返回空结果或拒绝。
 
 **Validates: Requirements 3.4, 3.5, 3.6, 9.1, 9.2, 9.3**
 
 ### Property 8: 评分计算正确性
 
-*For any* field_schema 和 field_values 组合，Quality_Score 应等于 round(filledWeight / totalWeight × 100)，其中 filledWeight 是 field_values 中有值的字段对应权重之和，totalWeight 是 field_schema 中所有字段权重之和。结果应在 0-100 范围内。
+_For any_ field_schema 和 field_values 组合，Quality_Score 应等于 round(filledWeight / totalWeight × 100)，其中 filledWeight 是 field_values 中有值的字段对应权重之和，totalWeight 是 field_schema 中所有字段权重之和。结果应在 0-100 范围内。
 
 **Validates: Requirements 4.1, 4.3**
 
 ### Property 9: 状态阈值双向转换
 
-*For any* Building_Record，当 Quality_Score 从低于 80 变为 ≥80 时，onboarding_status 应变为 previewable；当 Quality_Score 从 ≥80 变为低于 80 时，onboarding_status 应回退为 incomplete。状态转换应与分数阈值严格对应。
+_For any_ Building_Record，当 Quality_Score 从低于 80 变为 ≥80 时，onboarding_status 应变为 previewable；当 Quality_Score 从 ≥80 变为低于 80 时，onboarding_status 应回退为 incomplete。状态转换应与分数阈值严格对应。
 
 **Validates: Requirements 4.4, 4.5**
 
 ### Property 10: 渲染数据完整性
 
-*For any* Building_Record 的渲染输出（预览卡片或 Dashboard 卡片），输出应包含 building_name、当前 Quality_Score 和 onboarding_status。对于预览页面，还应包含 building_address、price_range、cover_image 和 unit_types_summary（如果这些字段有值）。
+_For any_ Building_Record 的渲染输出（预览卡片或 Dashboard 卡片），输出应包含 building_name、当前 Quality_Score 和 onboarding_status。对于预览页面，还应包含 building_address、price_range、cover_image 和 unit_types_summary（如果这些字段有值）。
 
 **Validates: Requirements 5.2, 6.2**
 
 ### Property 11: Dashboard Building 列表一致性
 
-*For any* Supplier，Dashboard 返回的 building 列表应恰好等于数据库中该 Supplier 的 supplier_id 关联的所有 building 记录集合，不多不少。
+_For any_ Supplier，Dashboard 返回的 building 列表应恰好等于数据库中该 Supplier 的 supplier_id 关联的所有 building 记录集合，不多不少。
 
 **Validates: Requirements 6.1, 6.4**
 
 ### Property 12: 异步补充保护已确认字段
 
-*For any* 异步提取回调写入操作和任意 Building_Record，如果某字段的 confirmedBy 不为空（已被人工确认），则该字段的值在异步补充后应保持不变。仅 confirmedBy 为空的字段可被异步补充覆盖。
+_For any_ 异步提取回调写入操作和任意 Building_Record，如果某字段的 confirmedBy 不为空（已被人工确认），则该字段的值在异步补充后应保持不变。仅 confirmedBy 为空的字段可被异步补充覆盖。
 
 **Validates: Requirements 8.3**
 
@@ -572,28 +578,28 @@ CREATE TRIGGER set_building_onboarding_data_updated_at
 
 ### 提取管道错误处理
 
-| 错误场景 | 处理策略 |
-|:---------|:---------|
-| PDF 解析失败 | extraction_job 标记为 failed，记录 error_message，building 状态保持 extracting，通知 BD 手动处理 |
-| 网站爬取超时（>3min） | extraction_job 标记为 timeout，使用已有数据继续，后台异步重试一次 |
-| Google Sheets 无权限 | extraction_job 标记为 failed，Gap Report 中标注相关字段为"需手动填写" |
-| External Worker 不可达 | API 返回 503，前端展示"提取服务暂时不可用"，支持手动重试 |
+| 错误场景               | 处理策略                                                                                         |
+| :--------------------- | :----------------------------------------------------------------------------------------------- |
+| PDF 解析失败           | extraction_job 标记为 failed，记录 error_message，building 状态保持 extracting，通知 BD 手动处理 |
+| 网站爬取超时（>3min）  | extraction_job 标记为 timeout，使用已有数据继续，后台异步重试一次                                |
+| Google Sheets 无权限   | extraction_job 标记为 failed，Gap Report 中标注相关字段为"需手动填写"                            |
+| External Worker 不可达 | API 返回 503，前端展示"提取服务暂时不可用"，支持手动重试                                         |
 
 ### 数据编辑错误处理
 
-| 错误场景 | 处理策略 |
-|:---------|:---------|
+| 错误场景                     | 处理策略                                                        |
+| :--------------------------- | :-------------------------------------------------------------- |
 | 乐观锁冲突（version 不匹配） | 返回 409 Conflict，前端提示"数据已被其他用户修改，请刷新后重试" |
-| 字段值类型不匹配 | API 层 Zod 校验拒绝，返回 400 + 具体字段错误信息 |
-| RLS 权限拒绝 | Supabase 返回空结果或错误，前端展示"无权限访问此 building" |
+| 字段值类型不匹配             | API 层 Zod 校验拒绝，返回 400 + 具体字段错误信息                |
+| RLS 权限拒绝                 | Supabase 返回空结果或错误，前端展示"无权限访问此 building"      |
 
 ### 发布错误处理
 
-| 错误场景 | 处理策略 |
-|:---------|:---------|
+| 错误场景          | 处理策略                                                            |
+| :---------------- | :------------------------------------------------------------------ |
 | 主站 API 返回 4xx | 记录错误详情，状态保持 ready_to_publish，Dashboard 展示具体错误原因 |
-| 主站 API 返回 5xx | 记录错误，状态保持 ready_to_publish，自动重试最多 3 次（指数退避） |
-| 主站 API 超时 | 同 5xx 处理，额外记录超时时长 |
+| 主站 API 返回 5xx | 记录错误，状态保持 ready_to_publish，自动重试最多 3 次（指数退避）  |
+| 主站 API 超时     | 同 5xx 处理，额外记录超时时长                                       |
 
 ## Testing Strategy
 
@@ -607,20 +613,20 @@ CREATE TRIGGER set_building_onboarding_data_updated_at
 
 每个 Correctness Property 对应一个独立的属性测试文件/用例：
 
-| Property | 测试文件 | 生成器 |
-|:---------|:---------|:-------|
-| P1: 并行触发完整性 | `extraction-trigger.property.test.ts` | 随机 contract 签署事件 |
-| P2: 超时容错 | `extraction-timeout.property.test.ts` | 随机任务状态组合 |
-| P3: 多源融合优先级 | `data-merge.property.test.ts` | 随机多源字段值组合 |
-| P4: Field Schema 完整性 | `field-schema.property.test.ts` | 遍历 FIELD_SCHEMA 常量 |
-| P5: Gap Report 正确性 | `gap-report.property.test.ts` | 随机 field_values 子集 |
-| P6: 审计日志完整性 | `audit-log.property.test.ts` | 随机字段更新操作 |
-| P7: 角色权限隔离 | `role-access.property.test.ts` | 随机用户角色 + building 组合 |
-| P8: 评分计算正确性 | `scoring.property.test.ts` | 随机 field_values 子集 |
-| P9: 状态阈值转换 | `status-transition.property.test.ts` | 随机分数变化序列 |
-| P10: 渲染数据完整性 | `render-data.property.test.ts` | 随机 Building_Record |
-| P11: Dashboard 列表一致性 | `dashboard-list.property.test.ts` | 随机 Supplier + buildings |
-| P12: 异步补充保护 | `async-update-protection.property.test.ts` | 随机已确认/未确认字段组合 |
+| Property                  | 测试文件                                   | 生成器                       |
+| :------------------------ | :----------------------------------------- | :--------------------------- |
+| P1: 并行触发完整性        | `extraction-trigger.property.test.ts`      | 随机 contract 签署事件       |
+| P2: 超时容错              | `extraction-timeout.property.test.ts`      | 随机任务状态组合             |
+| P3: 多源融合优先级        | `data-merge.property.test.ts`              | 随机多源字段值组合           |
+| P4: Field Schema 完整性   | `field-schema.property.test.ts`            | 遍历 FIELD_SCHEMA 常量       |
+| P5: Gap Report 正确性     | `gap-report.property.test.ts`              | 随机 field_values 子集       |
+| P6: 审计日志完整性        | `audit-log.property.test.ts`               | 随机字段更新操作             |
+| P7: 角色权限隔离          | `role-access.property.test.ts`             | 随机用户角色 + building 组合 |
+| P8: 评分计算正确性        | `scoring.property.test.ts`                 | 随机 field_values 子集       |
+| P9: 状态阈值转换          | `status-transition.property.test.ts`       | 随机分数变化序列             |
+| P10: 渲染数据完整性       | `render-data.property.test.ts`             | 随机 Building_Record         |
+| P11: Dashboard 列表一致性 | `dashboard-list.property.test.ts`          | 随机 Supplier + buildings    |
+| P12: 异步补充保护         | `async-update-protection.property.test.ts` | 随机已确认/未确认字段组合    |
 
 ### 单元测试覆盖
 

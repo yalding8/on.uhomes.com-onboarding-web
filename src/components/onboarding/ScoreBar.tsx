@@ -5,21 +5,19 @@
 
 interface ScoreBarProps {
   score: number;
-  size?: 'sm' | 'md';
+  size?: "sm" | "md";
 }
 
-export function ScoreBar({ score, size = 'md' }: ScoreBarProps) {
+export function ScoreBar({ score, size = "md" }: ScoreBarProps) {
   const isReady = score >= 80;
-  const barColor = isReady
-    ? 'var(--color-success)'
-    : 'var(--color-warning)';
-  const height = size === 'sm' ? 'h-2' : 'h-3';
+  const barColor = isReady ? "var(--color-success)" : "var(--color-warning)";
+  const height = size === "sm" ? "h-2" : "h-3";
 
   return (
     <div className="flex items-center gap-3">
       <div
         className={`flex-1 ${height} rounded-full overflow-hidden`}
-        style={{ backgroundColor: 'var(--color-border)' }}
+        style={{ backgroundColor: "var(--color-border)" }}
         role="progressbar"
         aria-valuenow={score}
         aria-valuemin={0}

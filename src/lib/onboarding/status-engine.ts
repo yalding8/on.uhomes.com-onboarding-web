@@ -9,16 +9,20 @@
  */
 
 export type BuildingStatus =
-  | 'extracting'
-  | 'incomplete'
-  | 'previewable'
-  | 'ready_to_publish'
-  | 'published';
+  | "extracting"
+  | "incomplete"
+  | "previewable"
+  | "ready_to_publish"
+  | "published";
 
 const PREVIEWABLE_THRESHOLD = 80;
 
 /** 不受评分自动影响的终态 */
-const LOCKED_STATUSES: BuildingStatus[] = ['ready_to_publish', 'published', 'extracting'];
+const LOCKED_STATUSES: BuildingStatus[] = [
+  "ready_to_publish",
+  "published",
+  "extracting",
+];
 
 export function resolveStatus(
   currentStatus: BuildingStatus,
@@ -32,22 +36,22 @@ export function resolveStatus(
 
   // 从低于阈值升到达标 → previewable
   if (oldScore < PREVIEWABLE_THRESHOLD && newScore >= PREVIEWABLE_THRESHOLD) {
-    return 'previewable';
+    return "previewable";
   }
 
   // 从达标降到低于阈值 → incomplete
   if (oldScore >= PREVIEWABLE_THRESHOLD && newScore < PREVIEWABLE_THRESHOLD) {
-    return 'incomplete';
+    return "incomplete";
   }
 
   // 如果当前是 previewable 但新分数低于阈值（边界保护）
-  if (currentStatus === 'previewable' && newScore < PREVIEWABLE_THRESHOLD) {
-    return 'incomplete';
+  if (currentStatus === "previewable" && newScore < PREVIEWABLE_THRESHOLD) {
+    return "incomplete";
   }
 
   // 如果当前是 incomplete 但新分数达标（边界保护）
-  if (currentStatus === 'incomplete' && newScore >= PREVIEWABLE_THRESHOLD) {
-    return 'previewable';
+  if (currentStatus === "incomplete" && newScore >= PREVIEWABLE_THRESHOLD) {
+    return "previewable";
   }
 
   return currentStatus;

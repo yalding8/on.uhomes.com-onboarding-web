@@ -3,27 +3,35 @@
  * 按分类展示缺失字段及其建议操作。
  */
 
-import type { GapReport } from '@/lib/onboarding/gap-report';
-import { FIELD_CATEGORY_LABELS, type FieldCategory } from '@/lib/onboarding/field-schema';
+import type { GapReport } from "@/lib/onboarding/gap-report";
+import {
+  FIELD_CATEGORY_LABELS,
+  type FieldCategory,
+} from "@/lib/onboarding/field-schema";
 
 interface GapReportPanelProps {
   gapReport: GapReport;
 }
 
 const TIER_COLORS: Record<string, string> = {
-  '可自动提取': 'var(--color-success)',
-  '需确认': 'var(--color-warning)',
-  '需手动填写': 'var(--color-primary)',
+  可自动提取: "var(--color-success)",
+  需确认: "var(--color-warning)",
+  需手动填写: "var(--color-primary)",
 };
 
 export function GapReportPanel({ gapReport }: GapReportPanelProps) {
-  const categories = Object.keys(gapReport.missingByCategory) as FieldCategory[];
+  const categories = Object.keys(
+    gapReport.missingByCategory,
+  ) as FieldCategory[];
   const totalMissing = gapReport.totalFields - gapReport.filledFields;
 
   if (totalMissing === 0) {
     return (
       <div className="p-4 rounded-xl border border-[var(--color-border)] bg-[var(--color-success-light)]">
-        <p className="text-sm font-medium" style={{ color: 'var(--color-success)' }}>
+        <p
+          className="text-sm font-medium"
+          style={{ color: "var(--color-success)" }}
+        >
           所有字段已填写完成
         </p>
       </div>
@@ -51,13 +59,20 @@ export function GapReportPanel({ gapReport }: GapReportPanelProps) {
               </p>
               <ul className="space-y-1">
                 {items.map((item) => (
-                  <li key={item.fieldKey} className="flex items-center justify-between text-xs">
+                  <li
+                    key={item.fieldKey}
+                    className="flex items-center justify-between text-xs"
+                  >
                     <span className="text-[var(--color-text-primary)] truncate mr-2">
                       {item.label}
                     </span>
                     <span
                       className="shrink-0"
-                      style={{ color: TIER_COLORS[item.suggestion] ?? 'var(--color-text-muted)' }}
+                      style={{
+                        color:
+                          TIER_COLORS[item.suggestion] ??
+                          "var(--color-text-muted)",
+                      }}
                     >
                       {item.suggestion}
                     </span>

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * FieldEditor — 单个字段的编辑器。
@@ -6,10 +6,10 @@
  * 编辑后通过 onChange 回调通知父组件。
  */
 
-import { useState, useCallback } from 'react';
-import { SourceBadge } from './SourceBadge';
-import type { FieldDefinition } from '@/lib/onboarding/field-schema';
-import type { FieldValue, DataSource } from '@/lib/onboarding/field-value';
+import { useCallback } from "react";
+import { SourceBadge } from "./SourceBadge";
+import type { FieldDefinition } from "@/lib/onboarding/field-schema";
+import type { FieldValue, DataSource } from "@/lib/onboarding/field-value";
 
 interface FieldEditorProps {
   field: FieldDefinition;
@@ -18,8 +18,13 @@ interface FieldEditorProps {
   disabled?: boolean;
 }
 
-export function FieldEditor({ field, fieldValue, onChange, disabled }: FieldEditorProps) {
-  const currentValue = fieldValue?.value ?? '';
+export function FieldEditor({
+  field,
+  fieldValue,
+  onChange,
+  disabled,
+}: FieldEditorProps) {
+  const currentValue = fieldValue?.value ?? "";
   const source = fieldValue?.source as DataSource | undefined;
 
   return (
@@ -31,13 +36,17 @@ export function FieldEditor({ field, fieldValue, onChange, disabled }: FieldEdit
         >
           {field.label}
           {field.required && (
-            <span className="ml-0.5" style={{ color: 'var(--color-primary)' }}>*</span>
+            <span className="ml-0.5" style={{ color: "var(--color-primary)" }}>
+              *
+            </span>
           )}
         </label>
         {source && <SourceBadge source={source} />}
       </div>
       {field.description && (
-        <p className="text-xs text-[var(--color-text-muted)] mb-1.5">{field.description}</p>
+        <p className="text-xs text-[var(--color-text-muted)] mb-1.5">
+          {field.description}
+        </p>
       )}
       <FieldInput
         field={field}
@@ -62,10 +71,10 @@ function FieldInput({
   disabled?: boolean;
 }) {
   const inputClass =
-    'w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] disabled:opacity-50';
+    "w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] px-3 py-2 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 focus:border-[var(--color-primary)] disabled:opacity-50";
 
   switch (field.type) {
-    case 'boolean':
+    case "boolean":
       return (
         <BooleanInput
           id={`field-${field.key}`}
@@ -75,23 +84,25 @@ function FieldInput({
         />
       );
 
-    case 'select':
+    case "select":
       return (
         <select
           id={`field-${field.key}`}
           className={inputClass}
-          value={String(value ?? '')}
+          value={String(value ?? "")}
           onChange={(e) => onChange(e.target.value || null)}
           disabled={disabled}
         >
           <option value="">Select...</option>
           {field.options?.map((opt) => (
-            <option key={opt} value={opt}>{opt}</option>
+            <option key={opt} value={opt}>
+              {opt}
+            </option>
           ))}
         </select>
       );
 
-    case 'multi_select':
+    case "multi_select":
       return (
         <MultiSelectInput
           id={`field-${field.key}`}
@@ -102,43 +113,54 @@ function FieldInput({
         />
       );
 
-    case 'number':
+    case "number":
       return (
         <input
           id={`field-${field.key}`}
           type="number"
           className={inputClass}
-          value={value === null || value === undefined ? '' : String(value)}
-          onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
+          value={value === null || value === undefined ? "" : String(value)}
+          onChange={(e) =>
+            onChange(e.target.value ? Number(e.target.value) : null)
+          }
           disabled={disabled}
         />
       );
 
-    case 'url':
-    case 'email':
-    case 'phone':
+    case "url":
+    case "email":
+    case "phone":
       return (
         <input
           id={`field-${field.key}`}
-          type={field.type === 'url' ? 'url' : field.type === 'email' ? 'email' : 'tel'}
+          type={
+            field.type === "url"
+              ? "url"
+              : field.type === "email"
+                ? "email"
+                : "tel"
+          }
           className={inputClass}
-          value={String(value ?? '')}
+          value={String(value ?? "")}
           onChange={(e) => onChange(e.target.value || null)}
-          placeholder={field.type === 'url' ? 'https://...' : ''}
+          placeholder={field.type === "url" ? "https://..." : ""}
           disabled={disabled}
         />
       );
 
     default:
       // text, json, image_urls — 都用 textarea 或 text input
-      const isLong = field.type === 'json' || field.type === 'image_urls' ||
-        field.key.includes('policy') || field.key.includes('description');
+      const isLong =
+        field.type === "json" ||
+        field.type === "image_urls" ||
+        field.key.includes("policy") ||
+        field.key.includes("description");
       if (isLong) {
         return (
           <textarea
             id={`field-${field.key}`}
             className={`${inputClass} min-h-[80px] resize-y`}
-            value={String(value ?? '')}
+            value={String(value ?? "")}
             onChange={(e) => onChange(e.target.value || null)}
             disabled={disabled}
           />
@@ -149,7 +171,7 @@ function FieldInput({
           id={`field-${field.key}`}
           type="text"
           className={inputClass}
-          value={String(value ?? '')}
+          value={String(value ?? "")}
           onChange={(e) => onChange(e.target.value || null)}
           disabled={disabled}
         />
@@ -178,12 +200,14 @@ function BooleanInput({
       disabled={disabled}
       className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 disabled:opacity-50"
       style={{
-        backgroundColor: checked ? 'var(--color-success)' : 'var(--color-border)',
+        backgroundColor: checked
+          ? "var(--color-success)"
+          : "var(--color-border)",
       }}
     >
       <span
         className="pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200"
-        style={{ transform: checked ? 'translateX(1.25rem)' : 'translateX(0)' }}
+        style={{ transform: checked ? "translateX(1.25rem)" : "translateX(0)" }}
       />
     </button>
   );
@@ -213,7 +237,12 @@ function MultiSelectInput({
   );
 
   return (
-    <div id={id} className="flex flex-wrap gap-2" role="group" aria-label="Multi select options">
+    <div
+      id={id}
+      className="flex flex-wrap gap-2"
+      role="group"
+      aria-label="Multi select options"
+    >
       {options.map((opt) => {
         const selected = value.includes(opt);
         return (
@@ -224,9 +253,15 @@ function MultiSelectInput({
             disabled={disabled}
             className="px-3 py-1.5 text-xs rounded-full border transition-colors disabled:opacity-50"
             style={{
-              borderColor: selected ? 'var(--color-primary)' : 'var(--color-border)',
-              backgroundColor: selected ? 'var(--color-primary-light)' : 'var(--color-bg-primary)',
-              color: selected ? 'var(--color-primary)' : 'var(--color-text-secondary)',
+              borderColor: selected
+                ? "var(--color-primary)"
+                : "var(--color-border)",
+              backgroundColor: selected
+                ? "var(--color-primary-light)"
+                : "var(--color-bg-primary)",
+              color: selected
+                ? "var(--color-primary)"
+                : "var(--color-text-secondary)",
             }}
           >
             {opt}
