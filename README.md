@@ -1,58 +1,106 @@
 # on.uhomes.com Onboarding Platform
 
-本库是一个面向全球公寓供应商的自助式 B2B Onboarding 前台系统。旨在实现供应商合同签署到自动化生成 uhomes 房源展示信息的极速上线。
+面向全球公寓供应商的自助式 B2B Onboarding 前台系统。目标：供应商从签约到房源上架，全程 5 分钟内完成。
+
+## 开发进度
+
+| 阶段 | 内容 | 状态 |
+| :--- | :--- | :--- |
+| Task 1 | 基础设施：Next.js + Supabase + Vercel 初始化 | ✅ 完成 |
+| Task 2 | AI 跨平台规则：AGENTS.md / CLAUDE.md / .kiro/rules.md | ✅ 完成 |
+| Task 3 | 双层文档机制：README + docs/ | ✅ 完成 |
+| Task 4 | GitHub Actions CI/CD 质量门禁 | ✅ 完成 |
+| Task 5 | 品牌设计令牌注入（globals.css @theme） | ✅ 完成 |
+| Task 6 | Supabase 建表：applications / suppliers / contracts / buildings | ✅ 完成 |
+| Task 7 | Auth 认证 + 路由中间件（三态重定向） | ✅ 完成 |
+| Task 8 | P0 核心视图：Landing / Login / Dashboard / ContractViewer | ✅ 完成 |
+| Task 9 | 重型微服务：PDF 解析 + Playwright 爬虫 Worker | 🚧 待开发 |
+
+**当前里程碑**：合同签署全流程（申请 → BD 审批 → 邮件邀请 → OTP 登录 → 合同签署）已在 Supabase 真实环境中联调通过。
 
 ## 基础设施与选型
 
-- **框架**: Next.js 15+ (App Router)
-- **开发语言**: TypeScript
-- **状态与样式**: React / Tailwind CSS
-- **部署环境**: Vercel
-- **后端 / 数据库**: Supabase (PostgreSQL + Auth + Edge Functions) - 提供稳定的邮箱验证码登录、关系型数据表操作及防范篡分的 Row Level Security
+- **框架**: Next.js 16.x (App Router + Turbopack)
+- **开发语言**: TypeScript（严格模式，禁用 `any`）
+- **样式**: React 19 / Tailwind CSS 4
+- **表单与校验**: react-hook-form + Zod
+- **图标**: lucide-react
+- **测试**: Vitest
+- **部署**: Vercel（PR Preview + Edge Network）
+- **后端 / 数据库**: Supabase（PostgreSQL + Auth OTP + RLS）
 
 ## 快速开始
 
 ```bash
-# 1. 拷贝环境变量示例并填充你的真实 Key
+# 1. 拷贝环境变量并填入真实 Key
 cp .env.example .env.local
 
 # 2. 安装依赖
 npm install
 
-# 3. 本地启动服务（默认监听 http://localhost:3000）
+# 3. 本地启动（默认 http://localhost:3000）
 npm run dev
 ```
 
 ## 环境变量 (.env.local)
 
-| 变量名称                        | 说明                                                                   |
-| :------------------------------ | :--------------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                                      |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端读取基础路由态数据                          |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端安全请求                                |
-| `ADMIN_SECRET`                  | BD 内部审批接口鉴权密钥，禁止对外暴露                                  |
-| `OPENSIGN_WEBHOOK_SECRET`       | OpenSign Webhook 签名验证密钥；本地 Mock 测试时设为 `TEST_SECRET_MOCK` |
+| 变量名称 | 说明 |
+| :--- | :--- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取 |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 管理员 Key，仅限服务端使用 |
+| `ADMIN_SECRET` | BD 内部审批接口鉴权密钥，禁止对外暴露 |
+| `OPENSIGN_WEBHOOK_SECRET` | OpenSign Webhook 签名验证；本地 Mock 时设为 `TEST_SECRET_MOCK` |
 
-> _注意：每次新增涉及系统环境和应用部署的变量后，必须更新上表。_
+> 每次新增环境变量后，必须同步更新本表。
 
 ## 核心页面路由
 
-本工程采用强约束的 Next.js 约定的路由模式：
+| 路径 (`src/app/`) | 功能描述 | 访问权限 |
+| :--- | :--- | :--- |
+| `/` | 供应商招募 Landing Page + 申请表单 | 公开 |
+| `/login` | 邮箱 OTP 两步登录 | 公开 |
+| `/dashboard` | 供应商控制台：显示合同状态与签署入口 | 需登录（PENDING_CONTRACT） |
+| `/auth/confirm` | Supabase Auth 邮件回调处理 | 系统内部 |
 
-| 目录路径 (`src/app/`) | 页面功能描述                                       | 访问权限                           |
-| :-------------------- | :------------------------------------------------- | :--------------------------------- |
-| `/`                   | 引导展示落地页及获取合作的简易申请表单             | **公开访问** (供新用户触达)        |
-| `/login`              | 提供邮箱 OTP (One-Time Password) 验证的登录机制    | **公开访问**                       |
-| `/dashboard`          | 基于登录用户的态势数据承载，用于展示当前签约进度等 | **需登录状态（针对处于签约意向）** |
+> 新增或删除路由后，必须同步更新本表。
 
-> _注意：添加新的应用端路由后，请第一时间补充修改上方路由表格。_
+## API 路由
 
-## 技术栈与设计令牌控制
+| 路径 | 方法 | 鉴权方式 | 说明 |
+| :--- | :--- | :--- | :--- |
+| `/api/apply` | POST | 无（公开） | 供应商提交申请，写入 `applications` 表 |
+| `/api/admin/approve-supplier` | POST | `x-admin-secret` Header | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录 |
+| `/api/webhooks/opensign` | POST | `x-opensign-signature` Header | 接收 OpenSign 签署完成回调，更新合同状态 |
 
-本项目将使用 `primary (#FF5A5F)` 渲染主核心视觉交互。禁止脱离 `tailwind.config.ts` 设计规范配置非关联的固定 hex 色系。所有移动端和桌面端（分 `< 768px`, `768 - 1024px`, `> 1024px` 断点）共享统一的样式封装。
+## Demo 流程（本地）
+
+```bash
+# ① 供应商提交申请
+curl -X POST http://localhost:3000/api/apply \
+  -H "Content-Type: application/json" \
+  -d '{"company_name":"Demo LLC","contact_email":"you@example.com","contact_phone":"+1 555 0000","city":"Toronto","country":"Canada"}'
+
+# ② BD 审批（从 Supabase applications 表获取 application_id）
+curl -X POST http://localhost:3000/api/admin/approve-supplier \
+  -H "Content-Type: application/json" \
+  -H "x-admin-secret: demo-secret" \
+  -d '{"application_id":"<uuid>"}'
+
+# ③ 供应商收邮件 → 点链接登录 → /dashboard → 点击 "Sign Contract (Mock)"
+```
+
+## 数据库表结构
+
+| 表名 | 说明 |
+| :--- | :--- |
+| `applications` | 公开申请暂存表，无需 Auth 用户关联 |
+| `suppliers` | 已审批的供应商身份表，关联 `auth.users` |
+| `contracts` | 合同流转表，支持 OpenSign 签署追踪 |
+| `buildings` | 楼宇房源数据表（Task 9 爬虫回写目标） |
 
 ## 文档索引
 
-- `docs/ARCHITECTURE.md`
-- `docs/API_REFERENCE.md`
-- `AGENTS.md` / `CLAUDE.md` / `.kiro/rules.md` (AI 跨工具协作约定的执行强规卡点)
+- `docs/ARCHITECTURE.md` — 架构决策与系统交互链路
+- `docs/API_REFERENCE.md` — 接口通信规范
+- `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
