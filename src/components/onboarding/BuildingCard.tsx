@@ -3,9 +3,9 @@
  * 展示名称、ScoreBar、缺失字段数、状态标签，点击导航至编辑页。
  */
 
-import Link from 'next/link';
-import { ScoreBar } from './ScoreBar';
-import type { BuildingStatus } from '@/lib/onboarding/status-engine';
+import Link from "next/link";
+import { ScoreBar } from "./ScoreBar";
+import type { BuildingStatus } from "@/lib/onboarding/status-engine";
 
 interface BuildingCardProps {
   buildingId: string;
@@ -16,31 +16,34 @@ interface BuildingCardProps {
   status: BuildingStatus;
 }
 
-const STATUS_CONFIG: Record<BuildingStatus, { label: string; color: string; bg: string }> = {
+const STATUS_CONFIG: Record<
+  BuildingStatus,
+  { label: string; color: string; bg: string }
+> = {
   extracting: {
-    label: '数据提取中',
-    color: 'var(--color-text-muted)',
-    bg: 'var(--color-bg-secondary)',
+    label: "数据提取中",
+    color: "var(--color-text-muted)",
+    bg: "var(--color-bg-secondary)",
   },
   incomplete: {
-    label: '待完善',
-    color: 'var(--color-warning)',
-    bg: 'var(--color-primary-light)',
+    label: "待完善",
+    color: "var(--color-warning)",
+    bg: "var(--color-primary-light)",
   },
   previewable: {
-    label: '可预览',
-    color: 'var(--color-success)',
-    bg: 'var(--color-success-light)',
+    label: "可预览",
+    color: "var(--color-success)",
+    bg: "var(--color-success-light)",
   },
   ready_to_publish: {
-    label: '待发布',
-    color: 'var(--color-primary)',
-    bg: 'var(--color-primary-light)',
+    label: "待发布",
+    color: "var(--color-primary)",
+    bg: "var(--color-primary-light)",
   },
   published: {
-    label: '已发布',
-    color: 'var(--color-success)',
-    bg: 'var(--color-success-light)',
+    label: "已发布",
+    color: "var(--color-success)",
+    bg: "var(--color-success-light)",
   },
 };
 

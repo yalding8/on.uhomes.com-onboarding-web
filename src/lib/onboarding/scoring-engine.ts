@@ -5,9 +5,9 @@
  * 范围: 0-100 整数
  */
 
-import type { FieldDefinition, FieldCategory } from './field-schema';
-import type { FieldValue } from './field-value';
-import { hasValue } from './field-value';
+import type { FieldDefinition, FieldCategory } from "./field-schema";
+import type { FieldValue } from "./field-value";
+import { hasValue } from "./field-value";
 
 export interface FieldDetail {
   filled: boolean;
@@ -50,9 +50,8 @@ export function calculateScore(
     };
   }
 
-  const score = totalWeight === 0
-    ? 0
-    : Math.round((filledWeight / totalWeight) * 100);
+  const score =
+    totalWeight === 0 ? 0 : Math.round((filledWeight / totalWeight) * 100);
 
   return { score, totalWeight, filledWeight, missingFields, fieldDetails };
 }

@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
 /**
  * OnboardingForm — Building Onboarding 编辑表单容器（Client Component）。
  * 管理字段编辑状态，debounce 自动保存到 PATCH API。
  */
 
-import { useState, useCallback, useRef } from 'react';
-import { FieldGroup } from './FieldGroup';
-import { ScoreBar } from './ScoreBar';
-import { GapReportPanel } from './GapReportPanel';
+import { useState, useCallback, useRef } from "react";
+import { FieldGroup } from "./FieldGroup";
+import { ScoreBar } from "./ScoreBar";
+import { GapReportPanel } from "./GapReportPanel";
 import {
   ALL_CATEGORIES,
   getFieldsByCategory,
   type FieldCategory,
-} from '@/lib/onboarding/field-schema';
-import type { FieldValue } from '@/lib/onboarding/field-value';
-import type { ScoreResult } from '@/lib/onboarding/scoring-engine';
-import type { GapReport } from '@/lib/onboarding/gap-report';
-import type { BuildingStatus } from '@/lib/onboarding/status-engine';
+} from "@/lib/onboarding/field-schema";
+import type { FieldValue } from "@/lib/onboarding/field-value";
+import type { ScoreResult } from "@/lib/onboarding/scoring-engine";
+import type { GapReport } from "@/lib/onboarding/gap-report";
+import type { BuildingStatus } from "@/lib/onboarding/status-engine";
 
 interface OnboardingFormProps {
   buildingId: string;
@@ -53,17 +53,17 @@ export function OnboardingForm({
       setError(null);
       try {
         const res = await fetch(`/api/buildings/${buildingId}/fields`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ fields: { [key]: value }, version }),
         });
 
         if (res.status === 409) {
-          setError('数据已被其他用户修改，请刷新页面');
+          setError("数据已被其他用户修改，请刷新页面");
           return;
         }
         if (!res.ok) {
-          setError('保存失败，请重试');
+          setError("保存失败，请重试");
           return;
         }
 
@@ -74,7 +74,7 @@ export function OnboardingForm({
         setVersion(data.version);
         setStatus(data.status);
       } catch {
-        setError('网络错误，请检查连接');
+        setError("网络错误，请检查连接");
       } finally {
         setSaving(false);
       }
@@ -90,10 +90,10 @@ export function OnboardingForm({
         [key]: {
           ...prev[key],
           value,
-          source: 'manual_input' as const,
-          confidence: 'high' as const,
+          source: "manual_input" as const,
+          confidence: "high" as const,
           updatedAt: new Date().toISOString(),
-          updatedBy: 'current_user',
+          updatedBy: "current_user",
         },
       }));
 
@@ -116,20 +116,27 @@ export function OnboardingForm({
           </h1>
           <div className="flex items-center gap-2">
             {saving && (
-              <span className="text-xs text-[var(--color-text-muted)]">保存中...</span>
+              <span className="text-xs text-[var(--color-text-muted)]">
+                保存中...
+              </span>
             )}
             <StatusLabel status={status} />
           </div>
         </div>
         <ScoreBar score={score.score} />
         <p className="text-xs text-[var(--color-text-muted)] mt-2">
-          已完成 {score.totalWeight - score.filledWeight === 0
-            ? '全部'
-            : `${gapReport.filledFields}/${gapReport.totalFields}`} 字段
-          {score.missingFields.length > 0 && `，还有 ${score.missingFields.length} 个待填写`}
+          已完成{" "}
+          {score.totalWeight - score.filledWeight === 0
+            ? "全部"
+            : `${gapReport.filledFields}/${gapReport.totalFields}`}{" "}
+          字段
+          {score.missingFields.length > 0 &&
+            `，还有 ${score.missingFields.length} 个待填写`}
         </p>
         {error && (
-          <p className="text-xs mt-2" style={{ color: 'var(--color-primary)' }}>{error}</p>
+          <p className="text-xs mt-2" style={{ color: "var(--color-primary)" }}>
+            {error}
+          </p>
         )}
       </div>
 
@@ -147,7 +154,7 @@ export function OnboardingForm({
                 fields={catFields}
                 fieldValues={fields}
                 onChange={handleChange}
-                defaultOpen={cat === 'basic_info'}
+                defaultOpen={cat === "basic_info"}
               />
             );
           })}
@@ -166,15 +173,18 @@ export function OnboardingForm({
 
 function StatusLabel({ status }: { status: BuildingStatus }) {
   const map: Record<BuildingStatus, { label: string; color: string }> = {
-    extracting: { label: '提取中', color: 'var(--color-text-muted)' },
-    incomplete: { label: '待完善', color: 'var(--color-warning)' },
-    previewable: { label: '可预览', color: 'var(--color-success)' },
-    ready_to_publish: { label: '待发布', color: 'var(--color-primary)' },
-    published: { label: '已发布', color: 'var(--color-success)' },
+    extracting: { label: "提取中", color: "var(--color-text-muted)" },
+    incomplete: { label: "待完善", color: "var(--color-warning)" },
+    previewable: { label: "可预览", color: "var(--color-success)" },
+    ready_to_publish: { label: "待发布", color: "var(--color-primary)" },
+    published: { label: "已发布", color: "var(--color-success)" },
   };
   const cfg = map[status] ?? map.incomplete;
   return (
-    <span className="text-xs font-medium px-2 py-0.5 rounded-full border" style={{ color: cfg.color, borderColor: cfg.color }}>
+    <span
+      className="text-xs font-medium px-2 py-0.5 rounded-full border"
+      style={{ color: cfg.color, borderColor: cfg.color }}
+    >
       {cfg.label}
     </span>
   );

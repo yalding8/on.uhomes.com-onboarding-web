@@ -1,17 +1,20 @@
-'use client';
+"use client";
 
 /**
  * FieldGroup — 按分类分组的字段编辑区域。
  * 可折叠展开，标题旁显示该分类的完成度。
  */
 
-import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { FieldEditor } from './FieldEditor';
-import type { FieldDefinition, FieldCategory } from '@/lib/onboarding/field-schema';
-import { FIELD_CATEGORY_LABELS } from '@/lib/onboarding/field-schema';
-import type { FieldValue } from '@/lib/onboarding/field-value';
-import { hasValue } from '@/lib/onboarding/field-value';
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { FieldEditor } from "./FieldEditor";
+import type {
+  FieldDefinition,
+  FieldCategory,
+} from "@/lib/onboarding/field-schema";
+import { FIELD_CATEGORY_LABELS } from "@/lib/onboarding/field-schema";
+import type { FieldValue } from "@/lib/onboarding/field-value";
+import { hasValue } from "@/lib/onboarding/field-value";
 
 interface FieldGroupProps {
   category: FieldCategory;
@@ -50,8 +53,12 @@ export function FieldGroup({
           <span
             className="text-xs px-2 py-0.5 rounded-full"
             style={{
-              color: allDone ? 'var(--color-success)' : 'var(--color-text-muted)',
-              backgroundColor: allDone ? 'var(--color-success-light)' : 'var(--color-bg-primary)',
+              color: allDone
+                ? "var(--color-success)"
+                : "var(--color-text-muted)",
+              backgroundColor: allDone
+                ? "var(--color-success-light)"
+                : "var(--color-bg-primary)",
             }}
           >
             {filled}/{total}
@@ -59,7 +66,7 @@ export function FieldGroup({
         </div>
         <ChevronDown
           className="w-4 h-4 text-[var(--color-text-muted)] transition-transform duration-200"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
         />
       </button>
 

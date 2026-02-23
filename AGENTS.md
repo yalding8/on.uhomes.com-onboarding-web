@@ -32,20 +32,20 @@
 
 所有 `/api/*` 路由**豁免**中间件的 Auth 重定向，由路由自身处理鉴权：
 
-| 路由 | 鉴权方式 | 说明 |
-| :--- | :--- | :--- |
-| `/api/apply` | 无（公开） | 写入 `applications` 表，不得写入 `suppliers` |
-| `/api/admin/approve-supplier` | `x-admin-secret` Header | 仅 BD 内部调用 |
-| `/api/webhooks/opensign` | `x-opensign-signature` Header | OpenSign 回调，Mock 值为 `TEST_SECRET_MOCK` |
+| 路由                          | 鉴权方式                      | 说明                                         |
+| :---------------------------- | :---------------------------- | :------------------------------------------- |
+| `/api/apply`                  | 无（公开）                    | 写入 `applications` 表，不得写入 `suppliers` |
+| `/api/admin/approve-supplier` | `x-admin-secret` Header       | 仅 BD 内部调用                               |
+| `/api/webhooks/opensign`      | `x-opensign-signature` Header | OpenSign 回调，Mock 值为 `TEST_SECRET_MOCK`  |
 
 ## 6. 中间件路由守卫（三态重定向）
 
 登录用户根据 `suppliers.status` 自动路由：
 
-| 状态 | 行为 |
-| :--- | :--- |
-| 无 supplier 记录（`NEW`） | 重定向到 `/`（Landing Page） |
-| `PENDING_CONTRACT` | 重定向到 `/dashboard` |
-| `SIGNED` | 可访问 `/dashboard` 和 `/onboarding/*`；访问 `/` 或 `/login` 时重定向到 `/dashboard` |
+| 状态                      | 行为                                                                                 |
+| :------------------------ | :----------------------------------------------------------------------------------- |
+| 无 supplier 记录（`NEW`） | 重定向到 `/`（Landing Page）                                                         |
+| `PENDING_CONTRACT`        | 重定向到 `/dashboard`                                                                |
+| `SIGNED`                  | 可访问 `/dashboard` 和 `/onboarding/*`；访问 `/` 或 `/login` 时重定向到 `/dashboard` |
 
 未登录用户仅可访问：`/`、`/login`、`/auth/*`、`/api/*`。

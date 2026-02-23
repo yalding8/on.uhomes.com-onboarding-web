@@ -2,9 +2,13 @@
  * Gap Report — 对比 Field Schema 与已填写数据，生成缺失字段报告。
  */
 
-import type { FieldDefinition, FieldCategory, ExtractTier } from './field-schema';
-import type { FieldValue } from './field-value';
-import { hasValue } from './field-value';
+import type {
+  FieldDefinition,
+  FieldCategory,
+  ExtractTier,
+} from "./field-schema";
+import type { FieldValue } from "./field-value";
+import { hasValue } from "./field-value";
 
 export interface GapReportItem {
   fieldKey: string;
@@ -23,15 +27,15 @@ export interface GapReport {
 }
 
 const TIER_SUGGESTION: Record<ExtractTier, string> = {
-  A: '可自动提取',
-  B: '需确认',
-  C: '需手动填写',
+  A: "可自动提取",
+  B: "需确认",
+  C: "需手动填写",
 };
 
 export function generateGapReport(
   fieldSchema: FieldDefinition[],
   fieldValues: Record<string, FieldValue>,
-  buildingId: string = '',
+  buildingId: string = "",
 ): GapReport {
   const missingByCategory: Partial<Record<FieldCategory, GapReportItem[]>> = {};
   let filledFields = 0;

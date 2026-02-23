@@ -26,7 +26,7 @@
     - 导出 `getFieldsByCategory()`、`getRequiredFields()`、`getTotalWeight()` 工具函数
     - _Requirements: 2.1_
 
-  - [ ]* 1.3 编写 Field Schema 属性测试
+  - [ ]\* 1.3 编写 Field Schema 属性测试
     - **Property 4: Field Schema 结构完整性**
     - **Validates: Requirements 2.1**
 
@@ -38,7 +38,7 @@
     - 返回 score、totalWeight、filledWeight、missingFields、fieldDetails
     - _Requirements: 4.1, 4.3_
 
-  - [ ]* 2.2 编写 Scoring Engine 属性测试
+  - [ ]\* 2.2 编写 Scoring Engine 属性测试
     - **Property 8: 评分计算正确性**
     - **Validates: Requirements 4.1, 4.3**
 
@@ -48,7 +48,7 @@
     - 缺失字段按 category 分组，suggestion 根据 extractTier 映射（C→需手动填写, B→需确认, A→可自动提取）
     - _Requirements: 2.2, 2.3, 2.4_
 
-  - [ ]* 2.4 编写 Gap Report 属性测试
+  - [ ]\* 2.4 编写 Gap Report 属性测试
     - **Property 5: Gap Report 正确性**
     - **Validates: Requirements 2.2, 2.3, 2.4**
 
@@ -58,7 +58,7 @@
     - 处理 80 分阈值的双向转换：<80→≥80 = previewable，≥80→<80 = incomplete
     - _Requirements: 4.4, 4.5_
 
-  - [ ]* 2.6 编写状态阈值转换属性测试
+  - [ ]\* 2.6 编写状态阈值转换属性测试
     - **Property 9: 状态阈值双向转换**
     - **Validates: Requirements 4.4, 4.5**
 
@@ -74,7 +74,7 @@
     - 冲突字段保留所有来源值
     - _Requirements: 1.6, 1.7_
 
-  - [ ]* 4.2 编写数据融合属性测试
+  - [ ]\* 4.2 编写数据融合属性测试
     - **Property 3: 多源数据融合优先级与来源追踪**
     - **Validates: Requirements 1.6, 1.7**
 
@@ -83,7 +83,7 @@
     - 已确认字段（confirmedBy 不为空）不被覆盖
     - _Requirements: 8.3_
 
-  - [ ]* 4.4 编写异步补充保护属性测试
+  - [ ]\* 4.4 编写异步补充保护属性测试
     - **Property 12: 异步补充保护已确认字段**
     - **Validates: Requirements 8.3**
 
@@ -120,7 +120,7 @@
     - 重新计算 score，调用 resolveStatus 更新状态
     - _Requirements: 3.3, 4.2, 8.2_
 
-  - [ ]* 5.3 编写审计日志属性测试
+  - [ ]\* 5.3 编写审计日志属性测试
     - **Property 6: 审计日志完整性**
     - **Validates: Requirements 3.3, 8.2**
 
@@ -131,9 +131,9 @@
   - [x] 7.1 修改 middleware 路由逻辑
     - 修改 `src/lib/supabase/middleware.ts`
     - SIGNED 用户不再直接跳转 pro.uhomes.com
-    - SIGNED 用户可访问 /dashboard 和 /onboarding/*
+    - SIGNED 用户可访问 /dashboard 和 /onboarding/\*
     - SIGNED 用户访问 / 或 /login 时重定向到 /dashboard
-    - 未认证用户访问 /onboarding/* 重定向到 /login
+    - 未认证用户访问 /onboarding/\* 重定向到 /login
     - _Requirements: 9.4_
 
   - [x] 7.2 创建角色解析工具函数
@@ -188,7 +188,7 @@
     - 创建 `src/components/onboarding/GapReportPanel.tsx`：侧边栏展示缺失字段清单
     - _Requirements: 3.2, 2.4_
 
-- [-] 10. Checkpoint — 编辑页面验证
+- [x] 10. Checkpoint — 编辑页面验证
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 11. 内部预览与发布流程 _(第二轮：依赖主站 API)_
@@ -212,7 +212,7 @@
     - 失败 → 保持 status，记录错误，支持重试（最多 3 次指数退避）
     - _Requirements: 7.1, 7.2, 7.3, 7.4_
 
-  - [ ]* 11.4 编写渲染数据完整性属性测试
+  - [ ]\* 11.4 编写渲染数据完整性属性测试
     - **Property 10: 渲染数据完整性**
     - **Validates: Requirements 5.2, 6.2**
 

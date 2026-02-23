@@ -4,38 +4,44 @@
  * SIGNED: 显示 building 卡片列表 + 合同已签状态。
  */
 
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { ContractViewer } from '@/components/signing/ContractViewer';
-import { BuildingCard } from '@/components/onboarding/BuildingCard';
-import { FIELD_SCHEMA } from '@/lib/onboarding/field-schema';
-import { calculateScore } from '@/lib/onboarding/scoring-engine';
-import type { FieldValue } from '@/lib/onboarding/field-value';
-import type { BuildingStatus } from '@/lib/onboarding/status-engine';
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { ContractViewer } from "@/components/signing/ContractViewer";
+import { BuildingCard } from "@/components/onboarding/BuildingCard";
+import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
+import { calculateScore } from "@/lib/onboarding/scoring-engine";
+import type { FieldValue } from "@/lib/onboarding/field-value";
+import type { BuildingStatus } from "@/lib/onboarding/status-engine";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
   const { data: supplier } = await supabase
-    .from('suppliers')
-    .select('id, company_name, status')
-    .eq('user_id', user.id)
+    .from("suppliers")
+    .select("id, company_name, status")
+    .eq("user_id", user.id)
     .single();
 
-  if (!supplier) redirect('/');
+  if (!supplier) redirect("/");
 
   // 获取合同（PENDING_CONTRACT 时需要）
-  let contract: { id: string; status: string; embedded_signing_url: string | null } | null = null;
-  if (supplier.status === 'PENDING_CONTRACT') {
+  let contract: {
+    id: string;
+    status: string;
+    embedded_signing_url: string | null;
+  } | null = null;
+  if (supplier.status === "PENDING_CONTRACT") {
     const { data } = await supabase
-      .from('contracts')
-      .select('id, status, embedded_signing_url')
-      .eq('supplier_id', supplier.id)
-      .not('status', 'eq', 'CANCELED')
-      .order('created_at', { ascending: false })
+      .from("contracts")
+      .select("id, status, embedded_signing_url")
+      .eq("supplier_id", supplier.id)
+      .not("status", "eq", "CANCELED")
+      .order("created_at", { ascending: false })
       .limit(1)
       .single();
     contract = data;
@@ -51,19 +57,19 @@ export default async function DashboardPage() {
     status: BuildingStatus;
   }> = [];
 
-  if (supplier.status === 'SIGNED') {
+  if (supplier.status === "SIGNED") {
     const { data: rawBuildings } = await supabase
-      .from('buildings')
-      .select('id, building_name, building_address, score, onboarding_status')
-      .eq('supplier_id', supplier.id)
-      .order('created_at', { ascending: false });
+      .from("buildings")
+      .select("id, building_name, building_address, score, onboarding_status")
+      .eq("supplier_id", supplier.id)
+      .order("created_at", { ascending: false });
 
     if (rawBuildings && rawBuildings.length > 0) {
       const buildingIds = rawBuildings.map((b) => b.id);
       const { data: onboardingRows } = await supabase
-        .from('building_onboarding_data')
-        .select('building_id, field_values')
-        .in('building_id', buildingIds);
+        .from("building_onboarding_data")
+        .select("building_id, field_values")
+        .in("building_id", buildingIds);
 
       const onboardingMap = new Map<string, Record<string, FieldValue>>();
       for (const row of onboardingRows ?? []) {
@@ -78,11 +84,11 @@ export default async function DashboardPage() {
         const result = calculateScore(FIELD_SCHEMA, fv);
         return {
           id: b.id,
-          name: b.building_name ?? 'Unnamed Building',
-          address: b.building_address ?? '',
+          name: b.building_name ?? "Unnamed Building",
+          address: b.building_address ?? "",
           score: result.score,
           missingCount: result.missingFields.length,
-          status: (b.onboarding_status ?? 'incomplete') as BuildingStatus,
+          status: (b.onboarding_status ?? "incomplete") as BuildingStatus,
         };
       });
     }
@@ -102,7 +108,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* 合同签署区域 — PENDING_CONTRACT */}
-        {supplier.status === 'PENDING_CONTRACT' && (
+        {supplier.status === "PENDING_CONTRACT" && (
           <div>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
               Pending Actions
@@ -110,7 +116,7 @@ export default async function DashboardPage() {
             {contract ? (
               <ContractViewer
                 contractId={contract.id}
-                signingUrl={contract.embedded_signing_url || '#'}
+                signingUrl={contract.embedded_signing_url || "#"}
                 status={contract.status}
               />
             ) : (
@@ -125,7 +131,7 @@ export default async function DashboardPage() {
         )}
 
         {/* Building 列表 — SIGNED */}
-        {supplier.status === 'SIGNED' && (
+        {supplier.status === "SIGNED" && (
           <div>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
               Your Properties
