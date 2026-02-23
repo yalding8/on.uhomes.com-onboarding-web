@@ -10,7 +10,6 @@ import {
 
 interface ContractViewerProps {
   contractId: string;
-  supplierId: string;
   signingUrl: string;
   status: string;
 }
