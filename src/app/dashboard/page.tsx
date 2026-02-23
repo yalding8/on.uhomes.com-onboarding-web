@@ -81,7 +81,6 @@ export default async function DashboardPage() {
           {contract ? (
             <ContractViewer
               contractId={contract.id}
-              supplierId={supplier!.id}
               signingUrl={contract.embedded_signing_url || "#"}
               status={contract.status}
             />

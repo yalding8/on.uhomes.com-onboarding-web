@@ -56,6 +56,7 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Condition 2: PENDING_CONTRACT -> Redirect to /dashboard if trying to access other pages
+    // This also catches logged-in users hitting /login — they should go to /dashboard
     if (
       status === "PENDING_CONTRACT" &&
       pathname !== "/dashboard" &&
@@ -65,12 +66,10 @@ export async function updateSession(request: NextRequest) {
     }
 
     // Condition 3: NEW User -> Redirect to / (Landing Page) if they try to access internal pages
-    // Even if they log in via /login, if they aren't associated with a supplier row, they get redirected to /
+    // This also catches logged-in NEW users hitting /login — they should go to /
     if (status === "NEW" && pathname !== "/" && !pathname.startsWith("/auth")) {
       return NextResponse.redirect(new URL("/", request.url));
     }
-
-    // If an authenticated user hits /login, the above rules will properly bounce them away
   } else {
     // Unauthenticated access policies
     // Let public pages flow (landing page, login page, and api auth endpoints)
