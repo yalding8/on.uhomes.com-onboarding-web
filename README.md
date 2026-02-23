@@ -15,6 +15,9 @@
 | Task 7 | Auth 认证 + 路由中间件（三态重定向） | ✅ 完成 |
 | Task 8 | P0 核心视图：Landing / Login / Dashboard / ContractViewer | ✅ 完成 |
 | Task 9 | 重型微服务：PDF 解析 + Playwright 爬虫 Worker | 🚧 待开发 |
+| P1-Core | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页 | ✅ 完成 |
+| P1-AI | AI 多源提取管道 + 数据融合 | 🚧 第二轮 |
+| P1-Pub | 内部预览 + 发布到主站 | 🚧 第二轮 |
 
 **当前里程碑**：合同签署全流程（申请 → BD 审批 → 邮件邀请 → OTP 登录 → 合同签署）已在 Supabase 真实环境中联调通过。
 
@@ -60,7 +63,8 @@ npm run dev
 | :--- | :--- | :--- |
 | `/` | 供应商招募 Landing Page + 申请表单 | 公开 |
 | `/login` | 邮箱 OTP 两步登录 | 公开 |
-| `/dashboard` | 供应商控制台：显示合同状态与签署入口 | 需登录（PENDING_CONTRACT） |
+| `/dashboard` | 供应商控制台：合同签署（PENDING_CONTRACT）/ Building 列表（SIGNED） | 需登录 |
+| `/onboarding/[buildingId]` | Building Onboarding 编辑页面：字段编辑、评分、Gap Report | 需登录（SIGNED） |
 | `/auth/confirm` | Supabase Auth 邮件回调处理 | 系统内部 |
 
 > 新增或删除路由后，必须同步更新本表。
@@ -72,6 +76,8 @@ npm run dev
 | `/api/apply` | POST | 无（公开） | 供应商提交申请，写入 `applications` 表 |
 | `/api/admin/approve-supplier` | POST | `x-admin-secret` Header | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录 |
 | `/api/webhooks/opensign` | POST | `x-opensign-signature` Header | 接收 OpenSign 签署完成回调，更新合同状态 |
+| `/api/buildings/[buildingId]/fields` | GET | Supabase Auth Session | 获取 building 字段数据 + 评分 + Gap Report |
+| `/api/buildings/[buildingId]/fields` | PATCH | Supabase Auth Session | 更新字段值（乐观锁 + 审计日志） |
 
 ## Demo 流程（本地）
 
@@ -97,7 +103,10 @@ curl -X POST http://localhost:3000/api/admin/approve-supplier \
 | `applications` | 公开申请暂存表，无需 Auth 用户关联 |
 | `suppliers` | 已审批的供应商身份表，关联 `auth.users` |
 | `contracts` | 合同流转表，支持 OpenSign 签署追踪 |
-| `buildings` | 楼宇房源数据表（Task 9 爬虫回写目标） |
+| `buildings` | 楼宇房源数据表 |
+| `building_onboarding_data` | Building Onboarding 字段值 + 乐观锁版本号 |
+| `field_audit_logs` | 字段修改审计日志 |
+| `extraction_jobs` | AI 提取任务记录 |
 
 ## 文档索引
 

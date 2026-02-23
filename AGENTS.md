@@ -46,6 +46,6 @@
 | :--- | :--- |
 | 无 supplier 记录（`NEW`） | 重定向到 `/`（Landing Page） |
 | `PENDING_CONTRACT` | 重定向到 `/dashboard` |
-| `SIGNED` | 重定向到 `https://pro.uhomes.com` |
+| `SIGNED` | 可访问 `/dashboard` 和 `/onboarding/*`；访问 `/` 或 `/login` 时重定向到 `/dashboard` |
 
 未登录用户仅可访问：`/`、`/login`、`/auth/*`、`/api/*`。
