@@ -38,16 +38,37 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protected Routes & 3-stage user state resolution rules
+  // Protected Routes & role-based + 3-stage user state resolution rules
   if (user) {
-    // Attempt to query the suppliers table for this user id
+    // Query suppliers table for role and status (Requirements 1.5)
     const { data: supplier } = await supabase
       .from("suppliers")
-      .select("status")
+      .select("status, role")
       .eq("user_id", user.id)
       .single();
 
+    const role = supplier?.role || "supplier";
     const status = supplier?.status || "NEW";
+
+    // BD role routing (Requirements 1.1, 1.2)
+    if (role === "bd") {
+      if (
+        !pathname.startsWith("/admin") &&
+        !pathname.startsWith("/auth") &&
+        !pathname.startsWith("/api/")
+      ) {
+        return NextResponse.redirect(new URL("/admin", request.url));
+      }
+      // Allow /admin/*, /auth/*, /api/* to pass through
+      return supabaseResponse;
+    }
+
+    // Non-BD users cannot access /admin (Requirements 1.3)
+    if (pathname.startsWith("/admin")) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    // --- Original 3-stage supplier routing (unchanged) ---
 
     // Condition 1: SIGNED User -> Can access /dashboard and /onboarding/*
     // Redirect to /dashboard if visiting / or /login
@@ -76,6 +97,7 @@ export async function updateSession(request: NextRequest) {
   } else {
     // Unauthenticated access policies
     // Let public pages flow (landing page, login page, and api auth endpoints)
+    // Unauthenticated users accessing /admin/* are redirected to /login (Requirements 1.4)
     const isPublicRoute =
       pathname === "/" ||
       pathname.startsWith("/login") ||

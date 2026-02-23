@@ -48,10 +48,6 @@ export async function POST(request: Request) {
       .single();
 
     if (findContractError || !contract) {
-      console.error(
-        "Webhook error: Contract record not found for webhook request ID:",
-        request_id,
-      );
       return NextResponse.json(
         { error: "Contract link broken or not found" },
         { status: 404 },
@@ -105,7 +101,6 @@ export async function POST(request: Request) {
       error instanceof Error
         ? error.message
         : "Unknown server error processing webhook";
-    console.error("Webhook processing failure:", message); // Service level crash is fine in logs
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

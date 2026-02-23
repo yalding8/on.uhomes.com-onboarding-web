@@ -15,11 +15,12 @@
 | Task 7  | Auth 认证 + 路由中间件（三态重定向）                                    | ✅ 完成   |
 | Task 8  | P0 核心视图：Landing / Login / Dashboard / ContractViewer               | ✅ 完成   |
 | Task 9  | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                           | 🚧 待开发 |
+| P1-BD   | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请            | ✅ 完成   |
 | P1-Core | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页 | ✅ 完成   |
 | P1-AI   | AI 多源提取管道 + 数据融合                                              | 🚧 第二轮 |
 | P1-Pub  | 内部预览 + 发布到主站                                                   | 🚧 第二轮 |
 
-**当前里程碑**：合同签署全流程（申请 → BD 审批 → 邮件邀请 → OTP 登录 → 合同签署）已在 Supabase 真实环境中联调通过。
+**当前里程碑**：P0 合同签署全流程 + P1-BD 管理后台 + P1-Core Building Onboarding 编辑页均已完成。剩余第二轮任务：AI 多源提取管道、内部预览与发布、重型微服务。
 
 ## 基础设施与选型
 
@@ -52,7 +53,6 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                              |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                          |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                            |
-| `ADMIN_SECRET`                  | BD 内部审批接口鉴权密钥，禁止对外暴露                          |
 | `OPENSIGN_WEBHOOK_SECRET`       | OpenSign Webhook 签名验证；本地 Mock 时设为 `TEST_SECRET_MOCK` |
 
 > 每次新增环境变量后，必须同步更新本表。
@@ -65,6 +65,11 @@ npm run dev
 | `/login`                   | 邮箱 OTP 两步登录                                                   | 公开             |
 | `/dashboard`               | 供应商控制台：合同签署（PENDING_CONTRACT）/ Building 列表（SIGNED） | 需登录           |
 | `/onboarding/[buildingId]` | Building Onboarding 编辑页面：字段编辑、评分、Gap Report            | 需登录（SIGNED） |
+| `/admin`                   | BD 管理后台入口（重定向到申请列表）                                 | BD 角色          |
+| `/admin/applications`      | 供应商申请列表：筛选、审批                                          | BD 角色          |
+| `/admin/suppliers`         | 供应商管理列表：状态筛选、楼宇计数                                  | BD 角色          |
+| `/admin/suppliers/[id]`    | 供应商详情：基本信息、关联楼宇、合同信息                            | BD 角色          |
+| `/admin/invite`            | 手动邀请供应商表单                                                  | BD 角色          |
 | `/auth/confirm`            | Supabase Auth 邮件回调处理                                          | 系统内部         |
 
 > 新增或删除路由后，必须同步更新本表。
@@ -74,7 +79,8 @@ npm run dev
 | 路径                                 | 方法  | 鉴权方式                      | 说明                                               |
 | :----------------------------------- | :---- | :---------------------------- | :------------------------------------------------- |
 | `/api/apply`                         | POST  | 无（公开）                    | 供应商提交申请，写入 `applications` 表             |
-| `/api/admin/approve-supplier`        | POST  | `x-admin-secret` Header       | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录 |
+| `/api/admin/approve-supplier`        | POST  | Supabase Session（BD 角色）   | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录 |
+| `/api/admin/invite-supplier`         | POST  | Supabase Session（BD 角色）   | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
 | `/api/webhooks/opensign`             | POST  | `x-opensign-signature` Header | 接收 OpenSign 签署完成回调，更新合同状态           |
 | `/api/buildings/[buildingId]/fields` | GET   | Supabase Auth Session         | 获取 building 字段数据 + 评分 + Gap Report         |
 | `/api/buildings/[buildingId]/fields` | PATCH | Supabase Auth Session         | 更新字段值（乐观锁 + 审计日志）                    |
@@ -87,11 +93,8 @@ curl -X POST http://localhost:3000/api/apply \
   -H "Content-Type: application/json" \
   -d '{"company_name":"Demo LLC","contact_email":"you@example.com","contact_phone":"+1 555 0000","city":"Toronto","country":"Canada"}'
 
-# ② BD 审批（从 Supabase applications 表获取 application_id）
-curl -X POST http://localhost:3000/api/admin/approve-supplier \
-  -H "Content-Type: application/json" \
-  -H "x-admin-secret: demo-secret" \
-  -d '{"application_id":"<uuid>"}'
+# ② BD 登录管理后台 → /admin/applications → 点击「审批」按钮
+#    （approve-supplier API 已改为 Session 鉴权，不再支持 curl 直接调用）
 
 # ③ 供应商收邮件 → 点链接登录 → /dashboard → 点击 "Sign Contract (Mock)"
 ```

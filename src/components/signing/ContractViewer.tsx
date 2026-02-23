@@ -45,8 +45,8 @@ export function ContractViewer({
 
       // Force reload to let middleware re-evaluate upgraded status
       window.location.reload();
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Error silenced per AGENTS.md production code rules
     } finally {
       setIsSigning(false);
     }

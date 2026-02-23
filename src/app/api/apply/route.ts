@@ -35,7 +35,6 @@ export async function POST(request: Request) {
     ]);
 
     if (error) {
-      console.error("Supabase application insertion error", error);
       return NextResponse.json(
         { error: "Internal database error saving application." },
         { status: 500 },
@@ -46,9 +45,10 @@ export async function POST(request: Request) {
       { success: true, message: "Application submitted." },
       { status: 200 },
     );
-  } catch (error: Error | unknown) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Server error occurred";
     return NextResponse.json(
-      { error: (error as Error).message || "Server error occurred" },
+      { error: message },
       { status: 500 },
     );
   }

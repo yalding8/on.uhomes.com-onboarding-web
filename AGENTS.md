@@ -41,7 +41,8 @@
 | 路由                          | 鉴权方式                      | 说明                                         |
 | :---------------------------- | :---------------------------- | :------------------------------------------- |
 | `/api/apply`                  | 无（公开）                    | 写入 `applications` 表，不得写入 `suppliers` |
-| `/api/admin/approve-supplier` | `x-admin-secret` Header       | 仅 BD 内部调用                               |
+| `/api/admin/approve-supplier` | Supabase Session（BD 角色）   | BD 审批，Session 鉴权 + role 校验                |
+| `/api/admin/invite-supplier`  | Supabase Session（BD 角色）   | BD 手动邀请供应商，Session 鉴权 + role 校验  |
 | `/api/webhooks/opensign`      | `x-opensign-signature` Header | OpenSign 回调，Mock 值为 `TEST_SECRET_MOCK`  |
 
 ## 6. 中间件路由守卫（三态重定向）

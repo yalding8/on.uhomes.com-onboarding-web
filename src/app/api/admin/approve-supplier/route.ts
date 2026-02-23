@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 
 export async function POST(request: Request) {
   try {
-    // 1. Authorization: Verify Admin Secret to prevent malicious escalation
-    const secret = request.headers.get("x-admin-secret");
-    if (!secret || secret !== process.env.ADMIN_SECRET) {
-      return NextResponse.json(
-        { error: "Unauthorized. Invalid admin secret." },
-        { status: 401 },
-      );
+    // 1. Authorization: Verify BD role via cookie session
+    const authResult = await verifyBdRole();
+    if (isBdAuthError(authResult)) {
+      return authResult;
     }
 
     const payload = await request.json();
