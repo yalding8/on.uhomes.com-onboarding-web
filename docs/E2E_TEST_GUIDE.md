@@ -2,13 +2,13 @@
 
 ## 前置条件
 
-| 项目 | 要求 |
-| :--- | :--- |
-| 线上环境 | https://on-uhomes-com-onboarding-web.vercel.app/ |
-| 本地环境 | `npm run dev` → http://localhost:3000 |
-| 测试邮箱 | 准备一个能收邮件的真实邮箱（Supabase OTP 会发验证码） |
-| ADMIN_SECRET | 查看 `.env.local` 中的 `ADMIN_SECRET` 值 |
-| OPENSIGN_WEBHOOK_SECRET | 本地测试设为 `TEST_SECRET_MOCK` |
+| 项目                    | 要求                                                  |
+| :---------------------- | :---------------------------------------------------- |
+| 线上环境                | https://on-uhomes-com-onboarding-web.vercel.app/      |
+| 本地环境                | `npm run dev` → http://localhost:3000                 |
+| 测试邮箱                | 准备一个能收邮件的真实邮箱（Supabase OTP 会发验证码） |
+| ADMIN_SECRET            | 查看 `.env.local` 中的 `ADMIN_SECRET` 值              |
+| OPENSIGN_WEBHOOK_SECRET | 本地测试设为 `TEST_SECRET_MOCK`                       |
 
 > 以下用 `$BASE` 代表你的测试地址（线上或 localhost:3000）。
 
@@ -20,14 +20,14 @@
 
 右侧表单填写：
 
-| 字段 | 示例值 | 必填 |
-| :--- | :--- | :--- |
-| Company Name | Test Housing Inc | ✅ |
-| Work Email | 你的真实邮箱 | ✅ |
-| Contact Phone | +1 555 0000 | ✅ |
-| City | Toronto | ✅ |
-| Country | Canada | ✅ |
-| Website URL | https://example.com | 可选 |
+| 字段          | 示例值              | 必填 |
+| :------------ | :------------------ | :--- |
+| Company Name  | Test Housing Inc    | ✅   |
+| Work Email    | 你的真实邮箱        | ✅   |
+| Contact Phone | +1 555 0000         | ✅   |
+| City          | Toronto             | ✅   |
+| Country       | Canada              | ✅   |
+| Website URL   | https://example.com | 可选 |
 
 点击 "Submit Request"。
 
@@ -59,6 +59,7 @@ curl -X POST $BASE/api/admin/approve-supplier \
 ```
 
 **后台变化**：
+
 - `applications` 表：该记录 status 变为 `CONVERTED`
 - `suppliers` 表：新增一条 `status = PENDING_CONTRACT` 的记录
 - `contracts` 表：新增一条 `status = SENT` 的合同记录
@@ -103,12 +104,14 @@ curl -X POST $BASE/api/admin/approve-supplier \
 点击 "Sign Contract (Mock)" 按钮。
 
 **背后发生了什么**：
+
 1. 前端提取合同中的 `signature_request_id`
 2. 调用 `/api/webhooks/opensign`，带上 `x-opensign-signature: TEST_SECRET_MOCK`
 3. Webhook 处理：合同 status → `SIGNED`，supplier status → `SIGNED`
 4. 页面自动刷新
 
 **预期结果**：页面刷新后，Dashboard 变为 SIGNED 状态视图：
+
 - 合同签署区域消失
 - 出现 "Your Properties" 区域（目前显示 "No properties yet"，因为还没有 building 数据）
 
@@ -118,19 +121,19 @@ curl -X POST $BASE/api/admin/approve-supplier \
 
 SIGNED 状态下测试以下路由行为：
 
-| 访问地址 | 预期行为 |
-| :--- | :--- |
-| `$BASE/` | 重定向到 `/dashboard` |
-| `$BASE/login` | 重定向到 `/dashboard` |
-| `$BASE/dashboard` | 正常显示 |
+| 访问地址          | 预期行为              |
+| :---------------- | :-------------------- |
+| `$BASE/`          | 重定向到 `/dashboard` |
+| `$BASE/login`     | 重定向到 `/dashboard` |
+| `$BASE/dashboard` | 正常显示              |
 
 退出登录后（清除 cookies 或用隐身窗口）：
 
-| 访问地址 | 预期行为 |
-| :--- | :--- |
-| `$BASE/` | 正常显示 Landing Page |
-| `$BASE/login` | 正常显示登录页 |
-| `$BASE/dashboard` | 重定向到 `/login` |
+| 访问地址          | 预期行为              |
+| :---------------- | :-------------------- |
+| `$BASE/`          | 正常显示 Landing Page |
+| `$BASE/login`     | 正常显示登录页        |
+| `$BASE/dashboard` | 重定向到 `/login`     |
 
 ---
 
