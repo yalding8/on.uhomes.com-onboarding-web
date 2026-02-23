@@ -34,7 +34,7 @@ jobs:
           bash scripts/check-file-lines.sh
 
       - name: Vitest Checks
-        run: npm run test:ci || true # Placeholder for when tests are configured
+        run: npm run test:ci
 
       - name: Production Build Verification
         run: npm run build
