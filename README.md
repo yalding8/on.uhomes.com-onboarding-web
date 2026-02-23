@@ -112,4 +112,5 @@ curl -X POST http://localhost:3000/api/admin/approve-supplier \
 
 - `docs/ARCHITECTURE.md` — 架构决策与系统交互链路
 - `docs/API_REFERENCE.md` — 接口通信规范
+- `docs/E2E_TEST_GUIDE.md` — P0 供应商签约全流程 E2E 测试指南
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约

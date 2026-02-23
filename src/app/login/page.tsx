@@ -50,8 +50,8 @@ export default function LoginPage() {
   // Step 2: Verify OTP -> supabase.auth.verifyOtp()
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otp || otp.length < 6) {
-      setErrorMessage("Please enter a valid 6-digit code.");
+    if (!otp || otp.length < 8) {
+      setErrorMessage("Please enter a valid 8-digit code.");
       return;
     }
 
@@ -154,7 +154,7 @@ export default function LoginPage() {
             <div className="text-center mb-6">
               <ShieldCheck className="h-6 w-6 text-[var(--color-success)] mx-auto mb-2" />
               <p className="text-sm text-[var(--color-text-secondary)]">
-                We&apos;ve sent a 6-digit secure code to <br />
+                We&apos;ve sent an 8-digit secure code to <br />
                 <span className="font-semibold text-[var(--color-text-primary)]">
                   {email}
                 </span>
@@ -172,10 +172,10 @@ export default function LoginPage() {
                 id="otp"
                 type="text"
                 required
-                maxLength={6}
+                maxLength={8}
                 disabled={status === "loading" || status === "success"}
                 className="block w-full text-center tracking-[0.5em] text-lg rounded-lg border border-[var(--color-border)] px-4 py-3 placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors disabled:opacity-50"
-                placeholder="000000"
+                placeholder="00000000"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
               />
@@ -190,7 +190,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={
-                status === "loading" || status === "success" || otp.length < 6
+                status === "loading" || status === "success" || otp.length < 8
               }
               className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors disabled:opacity-70"
             >
