@@ -15,7 +15,7 @@
     - 保持原有三态路由逻辑不变
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
 
-  - [ ]* 1.2 编写中间件路由属性测试
+  - [ ]\* 1.2 编写中间件路由属性测试
     - **Property 1: BD 用户路由到 /admin**
     - **Property 2: 非 BD 用户无法访问 /admin**
     - **Validates: Requirements 1.1, 1.3, 1.4**
@@ -26,7 +26,7 @@
     - 返回用户信息或 403 Response
     - _Requirements: 7.2, 7.3_
 
-  - [ ]* 1.4 编写 BD 鉴权属性测试
+  - [ ]\* 1.4 编写 BD 鉴权属性测试
     - **Property 12: BD API 鉴权**
     - **Validates: Requirements 7.2, 7.3**
 
@@ -65,7 +65,7 @@
     - 状态标签使用不同颜色区分
     - _Requirements: 3.3_
 
-  - [ ]* 4.3 编写申请列表筛选与排序属性测试
+  - [ ]\* 4.3 编写申请列表筛选与排序属性测试
     - **Property 3: 申请列表筛选正确性**
     - **Property 4: 申请列表排序正确性**
     - **Validates: Requirements 3.1, 3.3, 3.4**
@@ -91,7 +91,7 @@
     - 成功后刷新列表，失败显示错误信息
     - _Requirements: 4.1, 4.3, 4.4_
 
-  - [ ]* 5.4 编写审批流程属性测试
+  - [ ]\* 5.4 编写审批流程属性测试
     - **Property 6: 供应商创建流程一致性**
     - **Property 7: 审批失败保持原始状态**
     - **Property 8: 非 PENDING 申请不可审批**
@@ -113,7 +113,7 @@
     - 实现状态筛选（NEW / PENDING_CONTRACT / SIGNED）
     - _Requirements: 5.3_
 
-  - [ ]* 7.3 编写供应商列表属性测试
+  - [ ]\* 7.3 编写供应商列表属性测试
     - **Property 9: 供应商列表仅含 supplier 角色**
     - **Property 10: 供应商状态筛选正确性**
     - **Property 5: 记录渲染完整性**
@@ -125,7 +125,7 @@
     - 空楼宇时显示空状态提示
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-  - [ ]* 7.5 编写供应商详情属性测试
+  - [ ]\* 7.5 编写供应商详情属性测试
     - **Property 11: 供应商详情数据完整性**
     - **Validates: Requirements 6.1, 6.2, 6.3**
 
@@ -145,7 +145,7 @@
     - 前端验证 + 提交后显示成功/错误提示
     - _Requirements: 8.1, 8.2, 8.5_
 
-  - [ ]* 8.3 编写邀请功能属性测试
+  - [ ]\* 8.3 编写邀请功能属性测试
     - **Property 13: 邀请表单验证**
     - **Property 14: 重复邮箱邀请拒绝**
     - **Validates: Requirements 8.2, 8.4**

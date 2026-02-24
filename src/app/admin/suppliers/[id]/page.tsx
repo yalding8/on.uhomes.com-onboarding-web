@@ -9,55 +9,16 @@
 import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-
-interface BuildingInfo {
-  id: string;
-  building_name: string;
-  building_address: string | null;
-  onboarding_status: string | null;
-  score: number | null;
-}
-
-interface ContractInfo {
-  id: string;
-  status: string;
-  embedded_signing_url: string | null;
-  created_at: string;
-}
-
-interface SupplierDetail {
-  id: string;
-  company_name: string;
-  contact_email: string;
-  role: string;
-  status: string;
-  created_at: string;
-}
-
-const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
-  NEW: {
-    label: "新建",
-    className: "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
-  },
-  PENDING_CONTRACT: {
-    label: "待签约",
-    className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
-  },
-  SIGNED: {
-    label: "已签约",
-    className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
-  },
-};
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("zh-CN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import type {
+  BuildingInfo,
+  ContractInfo,
+  SupplierDetail,
+} from "./supplier-detail-config";
+import {
+  CONTRACT_STATUS_LABELS,
+  SUPPLIER_STATUS_CONFIG,
+  formatDate,
+} from "./supplier-detail-config";
 
 async function getSupplierDetail(id: string) {
   const supabaseAdmin = createClient(
@@ -84,7 +45,7 @@ async function getSupplierDetail(id: string) {
       .order("created_at", { ascending: false }),
     supabaseAdmin
       .from("contracts")
-      .select("id, status, embedded_signing_url, created_at")
+      .select("id, status, embedded_signing_url, document_url, created_at")
       .eq("supplier_id", id)
       .order("created_at", { ascending: false }),
   ]);
@@ -109,9 +70,10 @@ export default async function SupplierDetailPage({
   }
 
   const { supplier, buildings, contracts } = data;
-  const statusConfig = STATUS_CONFIG[supplier.status] ?? {
+  const statusConfig = SUPPLIER_STATUS_CONFIG[supplier.status] ?? {
     label: supplier.status,
-    className: "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
+    className:
+      "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
   };
 
   return (
@@ -130,22 +92,30 @@ export default async function SupplierDetailPage({
           <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">
             {supplier.company_name}
           </h1>
-          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusConfig.className}`}>
+          <span
+            className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusConfig.className}`}
+          >
             {statusConfig.label}
           </span>
         </div>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
           <div>
             <dt className="text-[var(--color-text-muted)]">联系邮箱</dt>
-            <dd className="text-[var(--color-text-primary)]">{supplier.contact_email}</dd>
+            <dd className="text-[var(--color-text-primary)]">
+              {supplier.contact_email}
+            </dd>
           </div>
           <div>
             <dt className="text-[var(--color-text-muted)]">角色</dt>
-            <dd className="text-[var(--color-text-primary)]">{supplier.role}</dd>
+            <dd className="text-[var(--color-text-primary)]">
+              {supplier.role}
+            </dd>
           </div>
           <div>
             <dt className="text-[var(--color-text-muted)]">创建时间</dt>
-            <dd className="text-[var(--color-text-primary)]">{formatDate(supplier.created_at)}</dd>
+            <dd className="text-[var(--color-text-primary)]">
+              {formatDate(supplier.created_at)}
+            </dd>
           </div>
         </dl>
       </div>
@@ -172,7 +142,10 @@ export default async function SupplierDetailPage({
               </thead>
               <tbody>
                 {buildings.map((b) => (
-                  <tr key={b.id} className="border-t border-[var(--color-border)]">
+                  <tr
+                    key={b.id}
+                    className="border-t border-[var(--color-border)]"
+                  >
                     <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
                       {b.building_name}
                     </td>
@@ -208,35 +181,58 @@ export default async function SupplierDetailPage({
               <thead>
                 <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
                   <th className="text-left px-4 py-3 font-medium">合同状态</th>
-                  <th className="text-left px-4 py-3 font-medium">签署链接</th>
+                  <th className="text-left px-4 py-3 font-medium">操作</th>
                   <th className="text-left px-4 py-3 font-medium">创建时间</th>
                 </tr>
               </thead>
               <tbody>
-                {contracts.map((c) => (
-                  <tr key={c.id} className="border-t border-[var(--color-border)]">
-                    <td className="px-4 py-3 text-[var(--color-text-primary)]">
-                      {c.status}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                      {c.embedded_signing_url ? (
-                        <a
-                          href={c.embedded_signing_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[var(--color-primary)] hover:underline"
+                {contracts.map((c) => {
+                  const statusInfo = CONTRACT_STATUS_LABELS[c.status] ?? {
+                    label: c.status,
+                    className:
+                      "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
+                  };
+                  return (
+                    <tr
+                      key={c.id}
+                      className="border-t border-[var(--color-border)]"
+                    >
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusInfo.className}`}
                         >
-                          查看签署链接
-                        </a>
-                      ) : (
-                        "—"
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">
-                      {formatDate(c.created_at)}
-                    </td>
-                  </tr>
-                ))}
+                          {statusInfo.label}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-[var(--color-text-secondary)]">
+                        {c.status === "DRAFT" && (
+                          <Link
+                            href={`/admin/contracts/${c.id}/edit`}
+                            className="text-[var(--color-primary)] hover:underline"
+                          >
+                            编辑合同
+                          </Link>
+                        )}
+                        {c.status === "SIGNED" && c.document_url && (
+                          <a
+                            href={c.document_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[var(--color-primary)] hover:underline"
+                          >
+                            下载已签署合同
+                          </a>
+                        )}
+                        {c.status !== "DRAFT" &&
+                          !(c.status === "SIGNED" && c.document_url) &&
+                          "—"}
+                      </td>
+                      <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">
+                        {formatDate(c.created_at)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

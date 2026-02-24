@@ -23,18 +23,15 @@ const STATUS_CONFIG: Record<
 > = {
   PENDING: {
     label: "待处理",
-    className:
-      "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
+    className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   CONVERTED: {
     label: "已转化",
-    className:
-      "bg-[var(--color-success-light)] text-[var(--color-success)]",
+    className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
   REJECTED: {
     label: "已拒绝",
-    className:
-      "bg-[var(--color-primary-light)] text-[var(--color-primary)]",
+    className: "bg-[var(--color-primary-light)] text-[var(--color-primary)]",
   },
 };
 
@@ -168,9 +165,7 @@ export function ApplicationTable({
               <p>{app.contact_email}</p>
               {app.contact_phone && <p>{app.contact_phone}</p>}
               {(app.city || app.country) && (
-                <p>
-                  {[app.city, app.country].filter(Boolean).join(", ")}
-                </p>
+                <p>{[app.city, app.country].filter(Boolean).join(", ")}</p>
               )}
               {app.website_url && (
                 <a

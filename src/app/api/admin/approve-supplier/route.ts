@@ -94,16 +94,13 @@ export async function POST(request: Request) {
     }
 
     // 6. Generate an awaiting Contract record mapped to this supplier
-    // We mock the signature embedded URL right away for MVP Phase 2 placeholder testing
-    const signatureRequestId = crypto.randomUUID();
+    // Contract starts as DRAFT; BD will edit fields and push for review before DocuSign envelope creation
     const { error: contractError } = await supabaseAdmin
       .from("contracts")
       .insert({
         supplier_id: supplier.id,
-        status: "SENT",
-        signature_provider: "OPENSIGN",
-        signature_request_id: signatureRequestId,
-        embedded_signing_url: `https://mock.opensign.net/sign/${signatureRequestId}?test=true`,
+        status: "DRAFT",
+        signature_provider: "DOCUSIGN",
         provider_metadata: {
           type: contract_type || "STANDARD_PROMOTION_2026",
           source_application: application.id,

@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  ApproveDialog,
-  CONTRACT_TYPES,
-} from "../ApproveDialog";
+import { ApproveDialog, CONTRACT_TYPES } from "../ApproveDialog";
 import type { ApproveDialogProps } from "../ApproveDialog";
 import type { ApplicationRow } from "@/app/admin/applications/page";
 
@@ -24,7 +21,7 @@ function makeApplication(
     contact_phone: "13800138000",
     city: "上海",
     country: "中国",
-    website: "https://example.com",
+    website_url: "https://example.com",
     status: "PENDING",
     created_at: new Date().toISOString(),
     ...overrides,
@@ -98,9 +95,7 @@ describe("ApproveDialog", () => {
     const onConfirm = vi.fn(() => Promise.resolve());
     renderDialog({ onConfirm });
 
-    await userEvent.click(
-      screen.getByRole("button", { name: "确认审批" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
 
     expect(onConfirm).toHaveBeenCalledWith("STANDARD_PROMOTION_2026");
   });
@@ -113,9 +108,7 @@ describe("ApproveDialog", () => {
       screen.getByLabelText("合同类型"),
       "PREMIUM_PROMOTION_2026",
     );
-    await userEvent.click(
-      screen.getByRole("button", { name: "确认审批" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
 
     expect(onConfirm).toHaveBeenCalledWith("PREMIUM_PROMOTION_2026");
   });
@@ -172,35 +165,25 @@ describe("ApproveDialog", () => {
     );
     renderDialog({ onConfirm });
 
-    await userEvent.click(
-      screen.getByRole("button", { name: "确认审批" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent(
-        "审批失败：网络错误",
-      );
+      expect(screen.getByRole("alert")).toHaveTextContent("审批失败：网络错误");
     });
 
     // 按钮恢复可用
-    expect(
-      screen.getByRole("button", { name: "确认审批" }),
-    ).not.toBeDisabled();
+    expect(screen.getByRole("button", { name: "确认审批" })).not.toBeDisabled();
   });
 
   it("loading 期间 Escape 键不触发关闭", async () => {
     const onConfirm = vi.fn(() => new Promise<void>(() => {}));
     const { props } = renderDialog({ onConfirm });
 
-    await userEvent.click(
-      screen.getByRole("button", { name: "确认审批" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
 
     // 等待进入 loading 状态
     await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /确认审批/ }),
-      ).toBeDisabled();
+      expect(screen.getByRole("button", { name: /确认审批/ })).toBeDisabled();
     });
 
     fireEvent.keyDown(document, { key: "Escape" });
@@ -211,9 +194,6 @@ describe("ApproveDialog", () => {
     renderDialog();
     const dialog = screen.getByRole("dialog");
     expect(dialog).toHaveAttribute("aria-modal", "true");
-    expect(dialog).toHaveAttribute(
-      "aria-labelledby",
-      "approve-dialog-title",
-    );
+    expect(dialog).toHaveAttribute("aria-labelledby", "approve-dialog-title");
   });
 });

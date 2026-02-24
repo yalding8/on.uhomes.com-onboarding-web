@@ -26,9 +26,7 @@ function validatePayload(
 ): { valid: true; data: InvitePayload } | { valid: false; error: string } {
   const email = typeof payload.email === "string" ? payload.email.trim() : "";
   const companyName =
-    typeof payload.company_name === "string"
-      ? payload.company_name.trim()
-      : "";
+    typeof payload.company_name === "string" ? payload.company_name.trim() : "";
 
   if (!email) {
     return { valid: false, error: "邮箱为必填项" };
@@ -46,11 +44,17 @@ function validatePayload(
       email,
       company_name: companyName,
       phone:
-        typeof payload.phone === "string" ? payload.phone.trim() || undefined : undefined,
+        typeof payload.phone === "string"
+          ? payload.phone.trim() || undefined
+          : undefined,
       city:
-        typeof payload.city === "string" ? payload.city.trim() || undefined : undefined,
+        typeof payload.city === "string"
+          ? payload.city.trim() || undefined
+          : undefined,
       website:
-        typeof payload.website === "string" ? payload.website.trim() || undefined : undefined,
+        typeof payload.website === "string"
+          ? payload.website.trim() || undefined
+          : undefined,
     },
   };
 }
@@ -129,15 +133,13 @@ export async function POST(request: Request) {
     }
 
     // 6. 插入 contracts 记录
-    const signatureRequestId = crypto.randomUUID();
+    // Contract starts as DRAFT; BD will edit fields and push for review before DocuSign envelope creation
     const { error: contractError } = await supabaseAdmin
       .from("contracts")
       .insert({
         supplier_id: supplier.id,
-        status: "SENT",
-        signature_provider: "OPENSIGN",
-        signature_request_id: signatureRequestId,
-        embedded_signing_url: `https://mock.opensign.net/sign/${signatureRequestId}?test=true`,
+        status: "DRAFT",
+        signature_provider: "DOCUSIGN",
         provider_metadata: {
           type: "STANDARD_PROMOTION_2026",
           source: "manual_invite",

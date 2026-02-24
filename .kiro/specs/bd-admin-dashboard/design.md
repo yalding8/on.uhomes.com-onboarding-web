@@ -5,6 +5,7 @@
 BD Admin Dashboard 为异乡好居商务拓展人员提供可视化管理界面，替代当前基于 curl 命令的操作方式。系统基于现有 Next.js App Router + Supabase 技术栈构建，复用 OTP 登录机制，通过 `suppliers.role` 字段区分 BD 与供应商角色。
 
 核心设计决策：
+
 - 路由层面：扩展现有中间件，增加 BD 角色识别和 `/admin` 路由守卫
 - API 层面：BD 管理 API 使用 Session-based 鉴权（验证 `role='bd'`），替代原有的 `x-admin-secret` Header 方式
 - UI 层面：`/admin` 下独立布局，侧边栏导航，Mobile-First 响应式
@@ -93,7 +94,11 @@ const status = supplier?.status || "NEW";
 
 // BD 角色路由
 if (role === "bd") {
-  if (!pathname.startsWith("/admin") && !pathname.startsWith("/auth") && !pathname.startsWith("/api/")) {
+  if (
+    !pathname.startsWith("/admin") &&
+    !pathname.startsWith("/auth") &&
+    !pathname.startsWith("/api/")
+  ) {
     return NextResponse.redirect(new URL("/admin", request.url));
   }
   return supabaseResponse; // 放行 /admin/* 请求
@@ -110,6 +115,7 @@ if (pathname.startsWith("/admin")) {
 ### 2. Admin Layout（`src/app/admin/layout.tsx`）
 
 Server Component，负责：
+
 - 验证用户身份和 BD 角色（双重保障，中间件 + 页面级）
 - 渲染侧边栏导航和顶部栏
 - 提供响应式布局容器
@@ -130,6 +136,7 @@ async function AdminLayout({ children }: AdminLayoutProps) {
 ### 3. 侧边栏组件（`src/components/admin/Sidebar.tsx`）
 
 Client Component，负责：
+
 - 渲染导航菜单项
 - 响应式折叠（移动端汉堡菜单）
 - 高亮当前活跃路由
@@ -292,11 +299,11 @@ Client Component，手动邀请供应商的表单：
 
 ```typescript
 interface InviteFormData {
-  email: string;        // 必填
+  email: string; // 必填
   company_name: string; // 必填
-  phone?: string;       // 选填
-  city?: string;        // 选填
-  website?: string;     // 选填
+  phone?: string; // 选填
+  city?: string; // 选填
+  website?: string; // 选填
 }
 ```
 
@@ -307,51 +314,55 @@ interface InviteFormData {
 系统复用现有数据库表，无需新增表或字段：
 
 #### applications 表
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | uuid | 主键 |
-| company_name | text | 公司名称 |
-| contact_email | text | 联系邮箱 |
-| contact_phone | text | 联系电话 |
-| city | text | 城市 |
-| country | text | 国家 |
-| website | text | 网站 |
-| status | text | 状态：PENDING / CONVERTED / REJECTED |
-| created_at | timestamptz | 创建时间 |
+
+| 字段          | 类型        | 说明                                 |
+| ------------- | ----------- | ------------------------------------ |
+| id            | uuid        | 主键                                 |
+| company_name  | text        | 公司名称                             |
+| contact_email | text        | 联系邮箱                             |
+| contact_phone | text        | 联系电话                             |
+| city          | text        | 城市                                 |
+| country       | text        | 国家                                 |
+| website       | text        | 网站                                 |
+| status        | text        | 状态：PENDING / CONVERTED / REJECTED |
+| created_at    | timestamptz | 创建时间                             |
 
 #### suppliers 表
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | uuid | 主键 |
-| user_id | uuid | FK → auth.users |
-| company_name | text | 公司名称 |
-| contact_email | text | 联系邮箱 |
-| status | text | NEW / PENDING_CONTRACT / SIGNED |
-| role | text | supplier / bd / data_team |
-| created_at | timestamptz | 创建时间 |
+
+| 字段          | 类型        | 说明                            |
+| ------------- | ----------- | ------------------------------- |
+| id            | uuid        | 主键                            |
+| user_id       | uuid        | FK → auth.users                 |
+| company_name  | text        | 公司名称                        |
+| contact_email | text        | 联系邮箱                        |
+| status        | text        | NEW / PENDING_CONTRACT / SIGNED |
+| role          | text        | supplier / bd / data_team       |
+| created_at    | timestamptz | 创建时间                        |
 
 #### contracts 表
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | uuid | 主键 |
-| supplier_id | uuid | FK → suppliers |
-| status | text | 合同状态 |
-| signature_request_id | text | OpenSign 签署请求 ID |
-| embedded_signing_url | text | 嵌入式签署链接 |
-| signature_provider | text | 签署服务商 |
-| provider_metadata | jsonb | 签署元数据 |
-| created_at | timestamptz | 创建时间 |
+
+| 字段                 | 类型        | 说明                 |
+| -------------------- | ----------- | -------------------- |
+| id                   | uuid        | 主键                 |
+| supplier_id          | uuid        | FK → suppliers       |
+| status               | text        | 合同状态             |
+| signature_request_id | text        | OpenSign 签署请求 ID |
+| embedded_signing_url | text        | 嵌入式签署链接       |
+| signature_provider   | text        | 签署服务商           |
+| provider_metadata    | jsonb       | 签署元数据           |
+| created_at           | timestamptz | 创建时间             |
 
 #### buildings 表
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | uuid | 主键 |
-| supplier_id | uuid | FK → suppliers |
-| building_name | text | 楼宇名称 |
-| building_address | text | 楼宇地址 |
-| onboarding_status | text | 入驻状态 |
-| score | numeric | 入驻评分 |
-| created_at | timestamptz | 创建时间 |
+
+| 字段              | 类型        | 说明           |
+| ----------------- | ----------- | -------------- |
+| id                | uuid        | 主键           |
+| supplier_id       | uuid        | FK → suppliers |
+| building_name     | text        | 楼宇名称       |
+| building_address  | text        | 楼宇地址       |
+| onboarding_status | text        | 入驻状态       |
+| score             | numeric     | 入驻评分       |
+| created_at        | timestamptz | 创建时间       |
 
 ### 数据查询模式
 
@@ -368,7 +379,7 @@ const { data: suppliers } = await supabaseAdmin
   .order("created_at", { ascending: false });
 
 // 步骤 2：查询每个供应商的楼宇数量
-const supplierIds = suppliers.map(s => s.id);
+const supplierIds = suppliers.map((s) => s.id);
 const { data: buildings } = await supabaseAdmin
   .from("buildings")
   .select("supplier_id")
@@ -376,7 +387,7 @@ const { data: buildings } = await supabaseAdmin
 
 // 步骤 3：在内存中聚合
 const countMap = new Map<string, number>();
-buildings?.forEach(b => {
+buildings?.forEach((b) => {
   countMap.set(b.supplier_id, (countMap.get(b.supplier_id) || 0) + 1);
 });
 ```
@@ -404,92 +415,91 @@ const { data: contracts } = await supabaseAdmin
   .eq("supplier_id", supplierId);
 ```
 
-
 ## 正确性属性
 
-*属性（Property）是系统在所有有效执行中都应保持为真的特征或行为——本质上是对系统应做什么的形式化陈述。属性是人类可读规格与机器可验证正确性保证之间的桥梁。*
+_属性（Property）是系统在所有有效执行中都应保持为真的特征或行为——本质上是对系统应做什么的形式化陈述。属性是人类可读规格与机器可验证正确性保证之间的桥梁。_
 
 ### Property 1: BD 用户路由到 /admin
 
-*对于任意* role='bd' 的已认证用户和任意非 /admin、非 /auth、非 /api 的路径，中间件应将该用户重定向到 `/admin`。
+_对于任意_ role='bd' 的已认证用户和任意非 /admin、非 /auth、非 /api 的路径，中间件应将该用户重定向到 `/admin`。
 
 **Validates: Requirements 1.1**
 
 ### Property 2: 非 BD 用户无法访问 /admin
 
-*对于任意* role 不为 'bd' 的用户（包括 supplier、data_team 或未认证用户），访问任意 `/admin/*` 路径时，中间件应将其重定向到 `/dashboard`（已认证）或 `/login`（未认证）。
+_对于任意_ role 不为 'bd' 的用户（包括 supplier、data_team 或未认证用户），访问任意 `/admin/*` 路径时，中间件应将其重定向到 `/dashboard`（已认证）或 `/login`（未认证）。
 
 **Validates: Requirements 1.3, 1.4**
 
 ### Property 3: 申请列表筛选正确性
 
-*对于任意* 申请数据集和任意状态筛选条件（PENDING / CONVERTED / REJECTED），筛选后返回的所有申请记录的 `status` 字段应与筛选条件完全匹配，且不遗漏任何匹配记录。
+_对于任意_ 申请数据集和任意状态筛选条件（PENDING / CONVERTED / REJECTED），筛选后返回的所有申请记录的 `status` 字段应与筛选条件完全匹配，且不遗漏任何匹配记录。
 
 **Validates: Requirements 3.1, 3.3**
 
 ### Property 4: 申请列表排序正确性
 
-*对于任意* 申请列表查询结果，相邻两条记录的 `created_at` 应满足前一条的时间戳大于等于后一条（倒序）。
+_对于任意_ 申请列表查询结果，相邻两条记录的 `created_at` 应满足前一条的时间戳大于等于后一条（倒序）。
 
 **Validates: Requirements 3.4**
 
 ### Property 5: 记录渲染完整性
 
-*对于任意* 申请记录，渲染结果应包含公司名称、联系邮箱、联系电话、城市、国家、网站、状态、提交时间全部字段。*对于任意* 供应商记录，渲染结果应包含公司名称、联系邮箱、入驻状态、关联楼宇数量、创建时间全部字段。
+_对于任意_ 申请记录，渲染结果应包含公司名称、联系邮箱、联系电话、城市、国家、网站、状态、提交时间全部字段。_对于任意_ 供应商记录，渲染结果应包含公司名称、联系邮箱、入驻状态、关联楼宇数量、创建时间全部字段。
 
 **Validates: Requirements 3.2, 5.2**
 
 ### Property 6: 供应商创建流程一致性
 
-*对于任意* 有效的供应商创建请求（无论来自审批申请还是手动邀请），执行成功后 `suppliers` 表应新增一条 `status='PENDING_CONTRACT'` 的记录，`contracts` 表应新增一条关联该供应商的合同记录。
+_对于任意_ 有效的供应商创建请求（无论来自审批申请还是手动邀请），执行成功后 `suppliers` 表应新增一条 `status='PENDING_CONTRACT'` 的记录，`contracts` 表应新增一条关联该供应商的合同记录。
 
 **Validates: Requirements 4.2, 8.3**
 
 ### Property 7: 审批失败保持原始状态
 
-*对于任意* 审批操作，如果执行过程中任一步骤失败，`applications` 表中该申请的 `status` 应保持为 `PENDING` 不变。
+_对于任意_ 审批操作，如果执行过程中任一步骤失败，`applications` 表中该申请的 `status` 应保持为 `PENDING` 不变。
 
 **Validates: Requirements 4.4**
 
 ### Property 8: 非 PENDING 申请不可审批
 
-*对于任意* `status` 不为 `PENDING` 的申请记录，调用审批 API 应返回错误响应，且 `suppliers` 表和 `contracts` 表不产生新记录。
+_对于任意_ `status` 不为 `PENDING` 的申请记录，调用审批 API 应返回错误响应，且 `suppliers` 表和 `contracts` 表不产生新记录。
 
 **Validates: Requirements 4.5**
 
 ### Property 9: 供应商列表仅含 supplier 角色
 
-*对于任意* 供应商列表查询结果，所有返回记录的 `role` 字段应为 `supplier`，不包含 `bd` 或 `data_team` 角色的记录。
+_对于任意_ 供应商列表查询结果，所有返回记录的 `role` 字段应为 `supplier`，不包含 `bd` 或 `data_team` 角色的记录。
 
 **Validates: Requirements 5.1**
 
 ### Property 10: 供应商状态筛选正确性
 
-*对于任意* 供应商数据集和任意状态筛选条件（NEW / PENDING_CONTRACT / SIGNED），筛选后返回的所有供应商记录的 `status` 字段应与筛选条件完全匹配。
+_对于任意_ 供应商数据集和任意状态筛选条件（NEW / PENDING_CONTRACT / SIGNED），筛选后返回的所有供应商记录的 `status` 字段应与筛选条件完全匹配。
 
 **Validates: Requirements 5.3**
 
 ### Property 11: 供应商详情数据完整性
 
-*对于任意* 供应商 ID，详情查询返回的楼宇列表应与 `buildings` 表中 `supplier_id` 匹配的记录集合一致，合同列表应与 `contracts` 表中 `supplier_id` 匹配的记录集合一致。
+_对于任意_ 供应商 ID，详情查询返回的楼宇列表应与 `buildings` 表中 `supplier_id` 匹配的记录集合一致，合同列表应与 `contracts` 表中 `supplier_id` 匹配的记录集合一致。
 
 **Validates: Requirements 6.1, 6.2, 6.3**
 
 ### Property 12: BD API 鉴权
 
-*对于任意* 用户和任意 `/api/admin/*` 端点，API 返回成功响应当且仅当该用户的 `role` 为 `bd`。非 BD 用户应收到 403 Forbidden 响应。
+_对于任意_ 用户和任意 `/api/admin/*` 端点，API 返回成功响应当且仅当该用户的 `role` 为 `bd`。非 BD 用户应收到 403 Forbidden 响应。
 
 **Validates: Requirements 7.2, 7.3**
 
 ### Property 13: 邀请表单验证
 
-*对于任意* 邀请表单输入，当 `email` 为空或格式不合法，或 `company_name` 为空时，表单验证应拒绝提交。当所有必填字段有效时，表单验证应通过。
+_对于任意_ 邀请表单输入，当 `email` 为空或格式不合法，或 `company_name` 为空时，表单验证应拒绝提交。当所有必填字段有效时，表单验证应通过。
 
 **Validates: Requirements 8.2**
 
 ### Property 14: 重复邮箱邀请拒绝
 
-*对于任意* 已存在于 `suppliers` 表中的邮箱地址，调用邀请 API 应返回错误响应，且不创建新的 `suppliers` 或 `contracts` 记录。
+_对于任意_ 已存在于 `suppliers` 表中的邮箱地址，调用邀请 API 应返回错误响应，且不创建新的 `suppliers` 或 `contracts` 记录。
 
 **Validates: Requirements 8.4**
 
@@ -497,15 +507,15 @@ const { data: contracts } = await supabaseAdmin
 
 ### API 层错误处理
 
-| 错误场景 | HTTP 状态码 | 响应体 | 处理方式 |
-|----------|------------|--------|---------|
-| 未认证用户调用 admin API | 401 | `{ error: "Unauthorized" }` | 前端重定向到登录页 |
-| 非 BD 角色调用 admin API | 403 | `{ error: "Forbidden. BD role required." }` | 前端显示权限不足提示 |
-| 申请不存在 | 404 | `{ error: "Application not found" }` | 前端显示记录不存在 |
-| 申请状态非 PENDING | 400 | `{ error: "Cannot approve application with status: X" }` | 前端显示状态冲突 |
-| 邮箱已注册为供应商 | 409 | `{ error: "Email already registered as supplier" }` | 前端显示重复邮箱提示 |
-| Supabase Auth 创建用户失败 | 500 | `{ error: "Failed to create auth user", details: "..." }` | 前端显示系统错误 |
-| 数据库写入失败 | 500 | `{ error: "Database operation failed", details: "..." }` | 前端显示系统错误 |
+| 错误场景                   | HTTP 状态码 | 响应体                                                    | 处理方式             |
+| -------------------------- | ----------- | --------------------------------------------------------- | -------------------- |
+| 未认证用户调用 admin API   | 401         | `{ error: "Unauthorized" }`                               | 前端重定向到登录页   |
+| 非 BD 角色调用 admin API   | 403         | `{ error: "Forbidden. BD role required." }`               | 前端显示权限不足提示 |
+| 申请不存在                 | 404         | `{ error: "Application not found" }`                      | 前端显示记录不存在   |
+| 申请状态非 PENDING         | 400         | `{ error: "Cannot approve application with status: X" }`  | 前端显示状态冲突     |
+| 邮箱已注册为供应商         | 409         | `{ error: "Email already registered as supplier" }`       | 前端显示重复邮箱提示 |
+| Supabase Auth 创建用户失败 | 500         | `{ error: "Failed to create auth user", details: "..." }` | 前端显示系统错误     |
+| 数据库写入失败             | 500         | `{ error: "Database operation failed", details: "..." }`  | 前端显示系统错误     |
 
 ### 前端错误处理
 
@@ -549,6 +559,7 @@ const { data: contracts } = await supabaseAdmin
 ### 单元测试
 
 单元测试聚焦于：
+
 - 特定边界情况（空数据、null 值）
 - 错误条件（网络失败、数据库错误）
 - 组件渲染（关键 UI 元素存在性）

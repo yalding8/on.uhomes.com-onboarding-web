@@ -27,13 +27,11 @@ const STATUS_CONFIG: Record<
   },
   PENDING_CONTRACT: {
     label: "待签约",
-    className:
-      "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
+    className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   SIGNED: {
     label: "已签约",
-    className:
-      "bg-[var(--color-success-light)] text-[var(--color-success)]",
+    className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
 };
 

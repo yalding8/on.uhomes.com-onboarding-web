@@ -6,7 +6,8 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ContractViewer } from "@/components/signing/ContractViewer";
+import { ContractPreview } from "@/components/signing/ContractPreview";
+import type { ContractStatus, ContractFields } from "@/lib/contracts/types";
 import { BuildingCard } from "@/components/onboarding/BuildingCard";
 import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
 import { calculateScore } from "@/lib/onboarding/scoring-engine";
@@ -29,16 +30,18 @@ export default async function DashboardPage() {
 
   if (!supplier) redirect("/");
 
-  // 获取合同（PENDING_CONTRACT 时需要）
+  // 获取合同（PENDING_CONTRACT 或新状态流程中的供应商都需要）
   let contract: {
     id: string;
     status: string;
-    embedded_signing_url: string | null;
+    contract_fields: ContractFields | null;
+    document_url: string | null;
   } | null = null;
+
   if (supplier.status === "PENDING_CONTRACT") {
     const { data } = await supabase
       .from("contracts")
-      .select("id, status, embedded_signing_url")
+      .select("id, status, contract_fields, document_url")
       .eq("supplier_id", supplier.id)
       .not("status", "eq", "CANCELED")
       .order("created_at", { ascending: false })
@@ -46,6 +49,11 @@ export default async function DashboardPage() {
       .single();
     contract = data;
   }
+
+  // 判断合同是否处于新状态流程中（需要显示 ContractPreview）
+  const contractInProgress =
+    contract &&
+    ["DRAFT", "PENDING_REVIEW", "CONFIRMED", "SENT"].includes(contract.status);
 
   // SIGNED 用户：查询名下所有 buildings + onboarding 数据
   let buildings: Array<{
@@ -107,17 +115,25 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        {/* 合同签署区域 — PENDING_CONTRACT */}
+        {/* 合同区域 — 新状态流程（DRAFT / PENDING_REVIEW / CONFIRMED / SENT） */}
         {supplier.status === "PENDING_CONTRACT" && (
           <div>
             <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
               Pending Actions
             </h2>
-            {contract ? (
-              <ContractViewer
+            {contract && contractInProgress ? (
+              <ContractPreview
                 contractId={contract.id}
-                signingUrl={contract.embedded_signing_url || "#"}
-                status={contract.status}
+                status={contract.status as ContractStatus}
+                fields={contract.contract_fields}
+                documentUrl={contract.document_url}
+              />
+            ) : contract && contract.status === "SIGNED" ? (
+              <ContractPreview
+                contractId={contract.id}
+                status={contract.status as ContractStatus}
+                fields={contract.contract_fields}
+                documentUrl={contract.document_url}
               />
             ) : (
               <div className="p-4 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-border)]">
