@@ -15,7 +15,7 @@
 | Task 7  | Auth 认证 + 路由中间件（三态重定向）                                    | ✅ 完成   |
 | Task 8  | P0 核心视图：Landing / Login / Dashboard / ContractViewer               | ✅ 完成   |
 | Task 9  | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                           | 🚧 待开发 |
-| P1-BD   | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请            | ✅ 完成   |
+| P1-BD   | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请             | ✅ 完成   |
 | P1-Core | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页 | ✅ 完成   |
 | P1-AI   | AI 多源提取管道 + 数据融合                                              | 🚧 第二轮 |
 | P1-Pub  | 内部预览 + 发布到主站                                                   | 🚧 第二轮 |
@@ -54,8 +54,76 @@ npm run dev
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                          |
 | `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                            |
 | `OPENSIGN_WEBHOOK_SECRET`       | OpenSign Webhook 签名验证；本地 Mock 时设为 `TEST_SECRET_MOCK` |
+| `DOCUSIGN_CLIENT_ID`            | DocuSign Integration Key（Client ID）                          |
+| `DOCUSIGN_USER_ID`              | DocuSign User ID，用于 JWT impersonation                       |
+| `DOCUSIGN_ACCOUNT_ID`           | DocuSign Account ID                                            |
+| `DOCUSIGN_PRIVATE_KEY`          | Base64 编码的 RSA 私钥，用于 JWT 认证                          |
+| `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`）          |
+| `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                                      |
+| `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                             |
 
 > 每次新增环境变量后，必须同步更新本表。
+
+## Supabase Storage 配置：`signed-contracts` 存储桶
+
+DocuSign 签署完成后，Webhook 会自动下载已签署 PDF 并上传到 Supabase Storage。需要手动创建存储桶并配置 RLS 策略。
+
+### 1. 创建存储桶
+
+在 Supabase Dashboard → Storage 中创建：
+
+- 名称：`signed-contracts`
+- 公开访问：**关闭**（Private bucket）
+- 文件大小限制：建议 10MB
+- 允许的 MIME 类型：`application/pdf`
+
+或通过 SQL 创建：
+
+```sql
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'signed-contracts',
+  'signed-contracts',
+  false,
+  10485760,
+  ARRAY['application/pdf']
+);
+```
+
+### 2. 配置 RLS 策略
+
+存储桶为 Private，需要配置 RLS 策略控制访问权限：
+
+```sql
+-- 策略 1：允许 service_role 上传文件（Webhook 使用 service_role key 上传）
+-- service_role 默认绑定 bypass RLS，无需额外策略
+
+-- 策略 2：供应商只能读取自己的合同文件
+-- 文件路径格式：{supplier_id}/{contract_id}.pdf
+CREATE POLICY "Suppliers can read own contracts"
+ON storage.objects FOR SELECT
+TO authenticated
+USING (
+  bucket_id = 'signed-contracts'
+  AND (storage.foldername(name))[1] = (
+    SELECT id::text FROM public.suppliers
+    WHERE user_id = auth.uid()
+    LIMIT 1
+  )
+);
+```
+
+### 3. 文件路径规则
+
+| 路径格式                          | 说明                         |
+| :-------------------------------- | :--------------------------- |
+| `{supplier_id}/{contract_id}.pdf` | Webhook 上传的已签署合同 PDF |
+
+### 4. 注意事项
+
+- Webhook 路由使用 `SUPABASE_SERVICE_ROLE_KEY` 上传文件，绕过 RLS
+- 供应商通过 Supabase Client SDK 的 `storage.from('signed-contracts').download()` 下载自己的合同
+- BD 管理后台通过 service_role 客户端访问所有文件，无 RLS 限制
 
 ## 核心页面路由
 
@@ -76,14 +144,18 @@ npm run dev
 
 ## API 路由
 
-| 路径                                 | 方法  | 鉴权方式                      | 说明                                               |
-| :----------------------------------- | :---- | :---------------------------- | :------------------------------------------------- |
-| `/api/apply`                         | POST  | 无（公开）                    | 供应商提交申请，写入 `applications` 表             |
-| `/api/admin/approve-supplier`        | POST  | Supabase Session（BD 角色）   | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录 |
-| `/api/admin/invite-supplier`         | POST  | Supabase Session（BD 角色）   | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
-| `/api/webhooks/opensign`             | POST  | `x-opensign-signature` Header | 接收 OpenSign 签署完成回调，更新合同状态           |
-| `/api/buildings/[buildingId]/fields` | GET   | Supabase Auth Session         | 获取 building 字段数据 + 评分 + Gap Report         |
-| `/api/buildings/[buildingId]/fields` | PATCH | Supabase Auth Session         | 更新字段值（乐观锁 + 审计日志）                    |
+| 路径                                  | 方法  | 鉴权方式                      | 说明                                                |
+| :------------------------------------ | :---- | :---------------------------- | :-------------------------------------------------- |
+| `/api/apply`                          | POST  | 无（公开）                    | 供应商提交申请，写入 `applications` 表              |
+| `/api/admin/approve-supplier`         | POST  | Supabase Session（BD 角色）   | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录  |
+| `/api/admin/invite-supplier`          | POST  | Supabase Session（BD 角色）   | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
+| `/api/webhooks/opensign`              | POST  | `x-opensign-signature` Header | 接收 OpenSign 签署完成回调，更新合同状态            |
+| `/api/admin/contracts/[contractId]`   | PUT   | Supabase Session（BD 角色）   | 保存合同动态字段（仅 DRAFT 状态）                   |
+| `/api/admin/contracts/[contractId]`   | POST  | Supabase Session（BD 角色）   | 推送审阅（DRAFT → PENDING_REVIEW）                  |
+| `/api/contracts/[contractId]/confirm` | POST  | Supabase Session（供应商）    | 供应商确认签署或请求修改                            |
+| `/api/webhooks/docusign`              | POST  | HMAC Signature                | DocuSign 签署完成回调，更新合同 + 供应商状态        |
+| `/api/buildings/[buildingId]/fields`  | GET   | Supabase Auth Session         | 获取 building 字段数据 + 评分 + Gap Report          |
+| `/api/buildings/[buildingId]/fields`  | PATCH | Supabase Auth Session         | 更新字段值（乐观锁 + 审计日志）                     |
 
 ## Demo 流程（本地）
 

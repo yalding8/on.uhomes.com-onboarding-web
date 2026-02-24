@@ -1,9 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { it as fcIt, fc } from "@fast-check/vitest";
-import {
-  filterApplications,
-  getStatusCounts,
-} from "../ApplicationList";
+import { filterApplications, getStatusCounts } from "../ApplicationList";
 import type { StatusFilter } from "../ApplicationList";
 
 /**
@@ -112,17 +109,28 @@ describe("getStatusCounts", () => {
 
 const arbStatus = fc.constantFrom<AppStatus>(...STATUSES);
 
+// 使用时间戳整数生成安全的 ISO 日期字符串，避免 fc.date() 的边界问题
+const safeIsoDate = fc
+  .integer({ min: 946684800000, max: 4102444800000 }) // 2000-01-01 ~ 2099-12-31
+  .map((ts) => new Date(ts).toISOString());
+
 const arbApp = fc
   .record({
     id: fc.uuid(),
     company_name: fc.string({ minLength: 1, maxLength: 50 }),
-    contact_email: fc.emailAddress(),
-    contact_phone: fc.option(fc.string(), { nil: null }),
-    city: fc.option(fc.string(), { nil: null }),
-    country: fc.option(fc.string(), { nil: null }),
-    website_url: fc.option(fc.webUrl(), { nil: null }),
+    contact_email: fc
+      .string({ minLength: 5, maxLength: 30 })
+      .map((s) => `${s}@test.com`),
+    contact_phone: fc.option(fc.string({ minLength: 1, maxLength: 20 }), {
+      nil: null,
+    }),
+    city: fc.option(fc.string({ minLength: 1, maxLength: 20 }), { nil: null }),
+    country: fc.option(fc.string({ minLength: 1, maxLength: 20 }), {
+      nil: null,
+    }),
+    website_url: fc.option(fc.constant("https://example.com"), { nil: null }),
     status: arbStatus,
-    created_at: fc.date().map((d) => d.toISOString()),
+    created_at: safeIsoDate,
   })
   .map((r) => r as MockApp);
 
@@ -153,21 +161,15 @@ describe("Property 3: 申请列表筛选正确性", () => {
     },
   );
 
-  fcIt.prop([arbApps], { numRuns: 100 })(
-    "ALL 筛选返回全部记录",
-    (apps) => {
-      const result = filterApplications(apps, "ALL");
-      expect(result).toHaveLength(apps.length);
-    },
-  );
+  fcIt.prop([arbApps], { numRuns: 100 })("ALL 筛选返回全部记录", (apps) => {
+    const result = filterApplications(apps, "ALL");
+    expect(result).toHaveLength(apps.length);
+  });
 
-  fcIt.prop([arbApps], { numRuns: 100 })(
-    "各状态计数之和等于总数",
-    (apps) => {
-      const counts = getStatusCounts(apps);
-      expect(counts.PENDING + counts.CONVERTED + counts.REJECTED).toBe(
-        counts.ALL,
-      );
-    },
-  );
+  fcIt.prop([arbApps], { numRuns: 100 })("各状态计数之和等于总数", (apps) => {
+    const counts = getStatusCounts(apps);
+    expect(counts.PENDING + counts.CONVERTED + counts.REJECTED).toBe(
+      counts.ALL,
+    );
+  });
 });

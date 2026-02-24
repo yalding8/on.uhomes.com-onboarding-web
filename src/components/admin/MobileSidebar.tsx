@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Sidebar } from "./Sidebar";
@@ -9,18 +9,20 @@ import { Sidebar } from "./Sidebar";
  * 移动端侧边栏 — 汉堡菜单按钮 + overlay + 滑出导航面板。
  * 仅在 <768px 时可见（md:hidden）。
  *
+ * 使用 pathname 作为 key，路由变化时 React 自动重置 isOpen 状态。
+ *
  * Requirements: 2.3, 2.4
  */
 export function MobileSidebar() {
-  const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
+  // key 变化时 React 重新挂载 MobileSidebarInner，isOpen 自动重置为 false
+  return <MobileSidebarInner key={pathname} />;
+}
+
+function MobileSidebarInner() {
+  const [isOpen, setIsOpen] = useState(false);
 
   const close = useCallback(() => setIsOpen(false), []);
-
-  // 路由变化时自动关闭（浏览器前进/后退）
-  useEffect(() => {
-    close();
-  }, [pathname, close]);
 
   return (
     <>

@@ -89,7 +89,10 @@ export function InviteForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setResult({ type: "error", message: data.error || "操作失败，请稍后重试" });
+        setResult({
+          type: "error",
+          message: data.error || "操作失败，请稍后重试",
+        });
         return;
       }
 
@@ -142,7 +145,9 @@ export function InviteForm() {
           } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]`}
         />
         {errors.email && (
-          <p className="mt-1 text-xs text-[var(--color-primary)]">{errors.email}</p>
+          <p className="mt-1 text-xs text-[var(--color-primary)]">
+            {errors.email}
+          </p>
         )}
       </div>
 

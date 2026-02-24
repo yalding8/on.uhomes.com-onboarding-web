@@ -19,7 +19,7 @@ interface MockApp {
   contact_phone: string | null;
   city: string | null;
   country: string | null;
-  website: string | null;
+  website_url: string | null;
   status: AppStatus;
   created_at: string;
 }
@@ -32,7 +32,7 @@ function makeApp(overrides: Partial<MockApp> = {}): MockApp {
     contact_phone: null,
     city: null,
     country: null,
-    website: null,
+    website_url: null,
     status: "PENDING",
     created_at: new Date().toISOString(),
     ...overrides,
@@ -84,13 +84,15 @@ describe("ApplicationTable", () => {
       contact_phone: "+86 123",
       city: "Shanghai",
       country: "China",
-      website: "https://acme.com",
+      website_url: "https://acme.com",
     });
 
     render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
 
     expect(screen.getAllByText("Acme Inc").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("acme@test.com").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("acme@test.com").length).toBeGreaterThanOrEqual(
+      1,
+    );
     expect(screen.getAllByText("+86 123").length).toBeGreaterThanOrEqual(1);
   });
 

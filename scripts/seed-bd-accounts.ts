@@ -54,7 +54,7 @@ async function ensureRoleColumn() {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      apikey: SERVICE_ROLE_KEY,
+      apikey: SERVICE_ROLE_KEY!,
       Authorization: `Bearer ${SERVICE_ROLE_KEY}`,
     },
   });
@@ -117,7 +117,9 @@ async function seedBdAccount(email: string, companyName: string) {
   let userId: string;
 
   if (existingUser) {
-    console.log(`ℹ️  ${email} 已存在于 auth.users (user_id=${existingUser.id})`);
+    console.log(
+      `ℹ️  ${email} 已存在于 auth.users (user_id=${existingUser.id})`,
+    );
     userId = existingUser.id;
   } else {
     const { data: authUser, error: authError } =

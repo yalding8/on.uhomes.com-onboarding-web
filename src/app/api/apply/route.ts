@@ -46,10 +46,8 @@ export async function POST(request: Request) {
       { status: 200 },
     );
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Server error occurred";
-    return NextResponse.json(
-      { error: message },
-      { status: 500 },
-    );
+    const message =
+      error instanceof Error ? error.message : "Server error occurred";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

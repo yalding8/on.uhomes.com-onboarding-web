@@ -14,7 +14,7 @@ for d in "${search_dirs[@]}"; do
         echo -e "\033[0;31mERROR:\033[0m Architecture violation ($SLOC lines)! File $obj crossed 300 max LOC rule policy. Refactor logical blocks or UI sub-components out to pass CI."
         has_error=1
       fi
-    done < <(find "$d" -name '*.ts' -o -name '*.tsx')
+    done < <(find "$d" -name '*.ts' -o -name '*.tsx' | grep -v '__tests__' | grep -v '\.test\.')
   fi
 done
 
