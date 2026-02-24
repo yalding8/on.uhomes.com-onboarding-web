@@ -1,59 +1,19 @@
 /**
- * DocuSign eSignature 客户端。
+ * DocuSign eSignature 客户端（纯 fetch 实现）。
  *
  * 职责：
  * - JWT Grant 认证（自动缓存 & 续期）
  * - 基于模板创建签署信封
  * - 下载已签署文档
  *
- * 依赖 `docusign-esign` CommonJS 包，通过 require 导入。
+ * 不依赖 docusign-esign SDK，直接调用 DocuSign REST API v2.1。
  */
 
+import jwt from "jsonwebtoken";
 import type { ContractFields } from "@/lib/contracts/types";
 import { buildTextTabs } from "./tab-mapping";
 import { getConfig } from "./config";
-import type {
-  CreateEnvelopeResult,
-  EnvelopeSummary,
-  JWTTokenResponse,
-} from "./types";
-
-/* ------------------------------------------------------------------ */
-/*  docusign-esign SDK（CommonJS，无 .d.ts）                            */
-/* ------------------------------------------------------------------ */
-
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const docusign = require("docusign-esign") as {
-  ApiClient: new () => DocuSignApiClient;
-  EnvelopesApi: new (client: DocuSignApiClient) => DocuSignEnvelopesApi;
-};
-
-/** ApiClient 实例的最小类型约束 */
-interface DocuSignApiClient {
-  setOAuthBasePath(path: string): void;
-  addDefaultHeader(name: string, value: string): void;
-  setBasePath(path: string): void;
-  requestJWTUserToken(
-    clientId: string,
-    userId: string,
-    scopes: string[],
-    privateKey: Buffer,
-    expiresIn: number,
-  ): Promise<JWTTokenResponse>;
-}
-
-/** EnvelopesApi 实例的最小类型约束 */
-interface DocuSignEnvelopesApi {
-  createEnvelope(
-    accountId: string,
-    opts: { envelopeDefinition: Record<string, unknown> },
-  ): Promise<EnvelopeSummary>;
-  getDocument(
-    accountId: string,
-    envelopeId: string,
-    documentId: string,
-  ): Promise<Buffer>;
-}
+import type { CreateEnvelopeResult } from "./types";
 
 /* ------------------------------------------------------------------ */
 /*  Token 缓存                                                         */
@@ -61,13 +21,10 @@ interface DocuSignEnvelopesApi {
 
 interface CachedToken {
   accessToken: string;
-  /** token 过期的绝对时间戳（ms） */
   expiresAt: number;
 }
 
 let tokenCache: CachedToken | null = null;
-
-/** 提前 5 分钟刷新，避免边界过期 */
 const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 
 /* ------------------------------------------------------------------ */
@@ -77,11 +34,10 @@ const REFRESH_MARGIN_MS = 5 * 60 * 1000;
 /**
  * 获取 DocuSign access_token（JWT Grant）。
  *
- * - 首次调用时申请新 token 并缓存
- * - 后续调用若 token 未过期则直接返回缓存值
- * - token 过期或不存在时自动重新申请
+ * 签发 JWT assertion → POST /oauth/token → 缓存 access_token。
+ * token 过期前 5 分钟自动刷新。
  *
- * @throws {Error} JWT 认证失败时，包含具体错误原因
+ * @throws {Error} JWT 认证失败时
  */
 export async function getAccessToken(): Promise<string> {
   if (tokenCache && Date.now() < tokenCache.expiresAt) {
@@ -89,47 +45,62 @@ export async function getAccessToken(): Promise<string> {
   }
 
   const config = getConfig();
-  const apiClient = new docusign.ApiClient();
-  apiClient.setOAuthBasePath(config.authServer);
 
-  const privateKeyBuffer = Buffer.from(config.privateKey, "utf-8");
+  const assertion = jwt.sign(
+    {
+      iss: config.clientId,
+      sub: config.userId,
+      aud: config.authServer,
+      scope: "signature impersonation",
+    },
+    config.privateKey,
+    {
+      algorithm: "RS256",
+      expiresIn: 3600,
+      notBefore: 0,
+      header: { typ: "JWT", alg: "RS256" },
+    },
+  );
 
-  let response: JWTTokenResponse;
-  try {
-    response = await apiClient.requestJWTUserToken(
-      config.clientId,
-      config.userId,
-      ["signature", "impersonation"],
-      privateKeyBuffer,
-      3600,
+  const tokenUrl = `https://${config.authServer}/oauth/token`;
+  const body = new URLSearchParams({
+    grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+    assertion,
+  });
+
+  const res = await fetch(tokenUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(
+      `DocuSign JWT authentication failed: ${res.status} ${text}`,
     );
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Unknown authentication error";
-    throw new Error(`DocuSign JWT authentication failed: ${message}`);
   }
 
-  const { accessToken, expiresIn } = response.body;
-
-  tokenCache = {
-    accessToken,
-    expiresAt: Date.now() + expiresIn * 1000 - REFRESH_MARGIN_MS,
+  const data = (await res.json()) as {
+    access_token: string;
+    expires_in: number;
   };
 
-  return accessToken;
+  tokenCache = {
+    accessToken: data.access_token,
+    expiresAt: Date.now() + data.expires_in * 1000 - REFRESH_MARGIN_MS,
+  };
+
+  return data.access_token;
 }
 
 /**
  * 创建 DocuSign 签署信封。
  *
- * - 使用预上传模板 + Text Tabs 动态填充字段
- * - 配置 eventNotification 接收 Webhook 回调
- * - 信封创建后立即发送（status = 'sent'）
+ * 使用预上传模板 + Text Tabs 动态填充字段，
+ * 配置 eventNotification 接收 Webhook 回调，
+ * 信封创建后立即发送（status = 'sent'）。
  *
- * @param signerEmail - 签署人邮箱
- * @param signerName  - 签署人姓名
- * @param fields      - 合同动态字段
- * @returns 包含 envelopeId 的结果
  * @throws {Error} DocuSign API 调用失败时
  */
 export async function createEnvelope(
@@ -139,16 +110,11 @@ export async function createEnvelope(
 ): Promise<CreateEnvelopeResult> {
   const config = getConfig();
   const accessToken = await getAccessToken();
-
-  const apiClient = new docusign.ApiClient();
-  apiClient.setBasePath(`https://demo.docusign.net/restapi`);
-  apiClient.addDefaultHeader("Authorization", `Bearer ${accessToken}`);
-
-  const envelopesApi = new docusign.EnvelopesApi(apiClient);
+  const baseUrl =
+    process.env.DOCUSIGN_BASE_URL ?? "https://demo.docusign.net/restapi";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
   const textTabs = buildTextTabs(fields);
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
 
   const envelopeDefinition = {
     templateId: config.templateId,
@@ -157,9 +123,7 @@ export async function createEnvelope(
         email: signerEmail,
         name: signerName,
         roleName: "signer",
-        tabs: {
-          textTabs,
-        },
+        tabs: { textTabs },
       },
     ],
     status: "sent",
@@ -171,17 +135,22 @@ export async function createEnvelope(
     },
   };
 
-  let result: EnvelopeSummary;
-  try {
-    result = await envelopesApi.createEnvelope(config.accountId, {
-      envelopeDefinition,
-    });
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Unknown envelope creation error";
-    throw new Error(`DocuSign envelope creation failed: ${message}`);
+  const url = `${baseUrl}/v2.1/accounts/${config.accountId}/envelopes`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(envelopeDefinition),
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`DocuSign envelope creation failed: ${res.status} ${text}`);
   }
 
+  const result = (await res.json()) as { envelopeId: string };
   return { envelopeId: result.envelopeId };
 }
 
@@ -197,30 +166,25 @@ export async function downloadSignedDocument(
 ): Promise<Buffer> {
   const config = getConfig();
   const accessToken = await getAccessToken();
+  const baseUrl =
+    process.env.DOCUSIGN_BASE_URL ?? "https://demo.docusign.net/restapi";
 
-  const apiClient = new docusign.ApiClient();
-  apiClient.setBasePath(`https://demo.docusign.net/restapi`);
-  apiClient.addDefaultHeader("Authorization", `Bearer ${accessToken}`);
+  const url = `${baseUrl}/v2.1/accounts/${config.accountId}/envelopes/${envelopeId}/documents/combined`;
+  const res = await fetch(url, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 
-  const envelopesApi = new docusign.EnvelopesApi(apiClient);
-
-  try {
-    // documentId 'combined' 获取合并后的完整文档
-    return await envelopesApi.getDocument(
-      config.accountId,
-      envelopeId,
-      "combined",
-    );
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Unknown document download error";
-    throw new Error(`DocuSign document download failed: ${message}`);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`DocuSign document download failed: ${res.status} ${text}`);
   }
+
+  const arrayBuffer = await res.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
-/**
- * 清除 token 缓存（仅用于测试）。
- */
+/** 清除 token 缓存（仅用于测试）。 */
 export function _resetTokenCache(): void {
   tokenCache = null;
 }
