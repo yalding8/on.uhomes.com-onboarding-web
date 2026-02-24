@@ -46,7 +46,7 @@ describe("ApplicationTable", () => {
 
     render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
 
-    const buttons = screen.getAllByRole("button", { name: "审批" });
+    const buttons = screen.getAllByRole("button", { name: "Approve" });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
     expect(buttons[0]).not.toBeDisabled();
 
@@ -60,7 +60,7 @@ describe("ApplicationTable", () => {
 
     render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
 
-    const buttons = screen.getAllByRole("button", { name: "已转化" });
+    const buttons = screen.getAllByRole("button", { name: "Converted" });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
     expect(buttons[0]).toBeDisabled();
   });
@@ -71,7 +71,7 @@ describe("ApplicationTable", () => {
 
     render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
 
-    const buttons = screen.getAllByRole("button", { name: "已拒绝" });
+    const buttons = screen.getAllByRole("button", { name: "Rejected" });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
     expect(buttons[0]).toBeDisabled();
   });

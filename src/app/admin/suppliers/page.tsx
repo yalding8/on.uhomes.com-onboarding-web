@@ -66,12 +66,12 @@ export default async function SuppliersPage() {
   return (
     <div>
       <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
-        供应商列表
+        Suppliers
       </h1>
 
       {suppliers.length === 0 ? (
         <div className="text-center py-16 text-[var(--color-text-muted)]">
-          暂无供应商记录
+          No suppliers yet
         </div>
       ) : (
         <SupplierList suppliers={suppliers} />

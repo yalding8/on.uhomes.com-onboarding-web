@@ -1,5 +1,5 @@
 /**
- * Gap Report — 对比 Field Schema 与已填写数据，生成缺失字段报告。
+ * Gap Report — Compare Field Schema with filled data, generate missing fields report.
  */
 
 import type {
@@ -27,9 +27,9 @@ export interface GapReport {
 }
 
 const TIER_SUGGESTION: Record<ExtractTier, string> = {
-  A: "可自动提取",
-  B: "需确认",
-  C: "需手动填写",
+  A: "Auto-extractable",
+  B: "Needs confirmation",
+  C: "Manual input required",
 };
 
 export function generateGapReport(

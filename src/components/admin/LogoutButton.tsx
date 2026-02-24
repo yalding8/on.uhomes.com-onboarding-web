@@ -21,7 +21,7 @@ export function LogoutButton() {
       disabled={loading}
       className="px-3 py-1.5 text-sm rounded-lg border border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors disabled:opacity-50"
     >
-      {loading ? "登出中..." : "登出"}
+      {loading ? "Signing out..." : "Sign Out"}
     </button>
   );
 }

@@ -12,13 +12,13 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { label: "申请列表", href: "/admin/applications", icon: Inbox },
-  { label: "供应商列表", href: "/admin/suppliers", icon: Users },
-  { label: "邀请供应商", href: "/admin/invite", icon: UserPlus },
+  { label: "Applications", href: "/admin/applications", icon: Inbox },
+  { label: "Suppliers", href: "/admin/suppliers", icon: Users },
+  { label: "Invite Supplier", href: "/admin/invite", icon: UserPlus },
 ];
 
 interface SidebarProps {
-  /** 点击导航项后的回调，移动端用于关闭菜单 */
+  /** Callback after clicking a nav item, used to close menu on mobile */
   onNavigate?: () => void;
 }
 

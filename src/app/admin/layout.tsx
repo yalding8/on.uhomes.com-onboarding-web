@@ -49,7 +49,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
           {/* 移动端汉堡菜单按钮 + overlay 面板 */}
           <MobileSidebar />
           <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-            BD 管理后台
+            BD Admin
           </span>
         </div>
 

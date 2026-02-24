@@ -32,12 +32,12 @@ export function ContractPreview({
       });
       if (!res.ok) {
         const data = (await res.json()) as { error?: string };
-        setError(data.error ?? "操作失败，请稍后重试");
+        setError(data.error ?? "Operation failed, please try again");
         return;
       }
       window.location.reload();
     } catch {
-      setError("网络错误，请稍后重试");
+      setError("Network error, please try again");
     } finally {
       setIsLoading(false);
     }
@@ -53,10 +53,10 @@ export function ContractPreview({
           </div>
           <div>
             <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
-              合作协议
+              Partnership Agreement
             </h3>
             <p className="text-sm text-[var(--color-text-secondary)]">
-              合同编号: {contractId.split("-")[0].toUpperCase()}
+              Contract ID: {contractId.split("-")[0].toUpperCase()}
             </p>
           </div>
         </div>

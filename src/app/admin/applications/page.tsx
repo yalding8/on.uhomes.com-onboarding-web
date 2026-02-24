@@ -49,12 +49,12 @@ export default async function ApplicationsPage() {
   return (
     <div>
       <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
-        申请列表
+        Applications
       </h1>
 
       {applications.length === 0 ? (
         <div className="text-center py-16 text-[var(--color-text-muted)]">
-          暂无申请记录
+          No applications yet
         </div>
       ) : (
         <ApplicationList applications={applications} />

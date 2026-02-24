@@ -42,7 +42,7 @@ export default async function ContractEditPage({ params }: RouteParams) {
   // 2. 查询关联供应商信息
   const { data: supplier, error: supplierError } = await supabaseAdmin
     .from("suppliers")
-    .select("company_name, city")
+    .select("company_name, contact_email")
     .eq("id", contract.supplier_id)
     .single();
 
@@ -50,17 +50,26 @@ export default async function ContractEditPage({ params }: RouteParams) {
     notFound();
   }
 
+  // 3. 尝试从 applications 表获取城市信息（用于预填）
+  const { data: application } = await supabaseAdmin
+    .from("applications")
+    .select("city")
+    .eq("contact_email", supplier.contact_email)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
   return (
     <div>
       <Link
         href={`/admin/suppliers/${contract.supplier_id}`}
         className="inline-flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4"
       >
-        ← 返回供应商详情
+        ← Back to Supplier
       </Link>
 
       <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
-        编辑合同
+        Edit Contract
       </h1>
 
       <ContractEditForm
@@ -70,7 +79,7 @@ export default async function ContractEditPage({ params }: RouteParams) {
         }
         supplierInfo={{
           company_name: supplier.company_name as string,
-          city: (supplier.city as string | null) ?? null,
+          city: (application?.city as string | null) ?? null,
         }}
         contractStatus={contract.status as ContractStatus}
       />

@@ -49,10 +49,10 @@ describe("generateGapReport", () => {
     ];
     const report = generateGapReport(schema, {});
     expect(report.missingByCategory.basic_info?.[0].suggestion).toBe(
-      "可自动提取",
+      "Auto-extractable",
     );
-    expect(report.missingByCategory.contacts?.[0].suggestion).toBe("需确认");
-    expect(report.missingByCategory.fees?.[0].suggestion).toBe("需手动填写");
+    expect(report.missingByCategory.contacts?.[0].suggestion).toBe("Needs confirmation");
+    expect(report.missingByCategory.fees?.[0].suggestion).toBe("Manual input required");
   });
 
   it("groups missing fields by category", () => {

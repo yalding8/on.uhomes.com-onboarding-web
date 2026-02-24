@@ -21,17 +21,17 @@ export interface ContractEditFormProps {
   contractStatus: ContractStatus;
 }
 
-/** 字段中文标签映射 */
+/** Field labels */
 const FIELD_LABELS: Record<keyof ContractFields, string> = {
-  partner_company_name: "合作方公司名称",
-  partner_contact_name: "合作方联系人",
-  partner_address: "合作方地址",
-  partner_city: "合作方城市",
-  partner_country: "合作方国家",
-  commission_rate: "佣金比例 (%)",
-  contract_start_date: "合同开始日期",
-  contract_end_date: "合同结束日期",
-  covered_properties: "覆盖房源",
+  partner_company_name: "Partner Company Name",
+  partner_contact_name: "Partner Contact Name",
+  partner_address: "Partner Address",
+  partner_city: "Partner City",
+  partner_country: "Partner Country",
+  commission_rate: "Commission Rate (%)",
+  contract_start_date: "Contract Start Date",
+  contract_end_date: "Contract End Date",
+  covered_properties: "Covered Properties",
 };
 
 /** 字段输入类型映射 */
@@ -41,14 +41,14 @@ const FIELD_INPUT_TYPES: Partial<Record<keyof ContractFields, string>> = {
   contract_end_date: "date",
 };
 
-/** 合同状态中文标签 */
+/** Contract status labels */
 const STATUS_LABELS: Record<ContractStatus, string> = {
-  DRAFT: "草稿",
-  PENDING_REVIEW: "待审阅",
-  CONFIRMED: "已确认",
-  SENT: "已发送签署",
-  SIGNED: "已签署",
-  CANCELED: "已取消",
+  DRAFT: "Draft",
+  PENDING_REVIEW: "Pending Review",
+  CONFIRMED: "Confirmed",
+  SENT: "Sent for Signing",
+  SIGNED: "Signed",
+  CANCELED: "Canceled",
 };
 
 /** 需要 textarea 的字段 */
@@ -119,19 +119,19 @@ export function ContractEditForm({
         if (data.fields) {
           setErrors(data.fields);
         }
-        setMessage({ type: "error", text: data.error ?? "保存失败" });
+        setMessage({ type: "error", text: data.error ?? "Save failed" });
         return;
       }
 
-      setMessage({ type: "success", text: "合同字段已保存" });
+      setMessage({ type: "success", text: "Contract fields saved" });
     } catch {
-      setMessage({ type: "error", text: "网络错误，请重试" });
+      setMessage({ type: "error", text: "Network error, please try again" });
     } finally {
       setSaving(false);
     }
   }, [contractId, fields]);
 
-  /** 推送审阅 */
+  /** Push for review */
   const handlePushForReview = useCallback(async () => {
     setPushing(true);
     setMessage(null);
@@ -148,7 +148,7 @@ export function ContractEditForm({
       if (!saveRes.ok) {
         const saveData = await saveRes.json();
         if (saveData.fields) setErrors(saveData.fields);
-        setMessage({ type: "error", text: saveData.error ?? "保存失败" });
+        setMessage({ type: "error", text: saveData.error ?? "Save failed" });
         return;
       }
 
@@ -162,14 +162,14 @@ export function ContractEditForm({
 
       if (!res.ok) {
         if (data.fields) setErrors(data.fields);
-        setMessage({ type: "error", text: data.error ?? "推送审阅失败" });
+        setMessage({ type: "error", text: data.error ?? "Push for review failed" });
         return;
       }
 
       setStatus("PENDING_REVIEW");
-      setMessage({ type: "success", text: "合同已推送审阅" });
+      setMessage({ type: "success", text: "Contract pushed for review" });
     } catch {
-      setMessage({ type: "error", text: "网络错误，请重试" });
+      setMessage({ type: "error", text: "Network error, please try again" });
     } finally {
       setPushing(false);
     }
@@ -180,7 +180,7 @@ export function ContractEditForm({
       {/* 状态提示 */}
       {!isEditable && (
         <div className="mb-4 rounded-md bg-[var(--color-bg-secondary)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-          当前合同状态为「{STATUS_LABELS[status]}」，不可编辑。
+          Current contract status is &quot;{STATUS_LABELS[status]}&quot;, editing is disabled.
         </div>
       )}
 
@@ -264,7 +264,7 @@ export function ContractEditForm({
             disabled={saving || pushing}
             className="px-4 py-2 rounded-md border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {saving ? "保存中..." : "保存"}
+            {saving ? "Saving..." : "Save"}
           </button>
 
           <button
@@ -273,7 +273,7 @@ export function ContractEditForm({
             disabled={saving || pushing}
             className="px-4 py-2 rounded-md text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {pushing ? "推送中..." : "推送审阅"}
+            {pushing ? "Pushing..." : "Push for Review"}
           </button>
         </div>
       )}

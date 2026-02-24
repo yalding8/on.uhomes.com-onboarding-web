@@ -1,10 +1,10 @@
 /**
- * 供应商确认/请求修改合同 API — POST /api/contracts/[contractId]/confirm
+ * Supplier confirm/request changes API — POST /api/contracts/[contractId]/confirm
  *
- * action=confirm:  PENDING_REVIEW → CONFIRMED → DocuSign 创建信封 → SENT
+ * action=confirm:  PENDING_REVIEW → CONFIRMED → DocuSign create envelope → SENT
  * action=request_changes: PENDING_REVIEW → DRAFT
  *
- * 鉴权：Supabase Session + 合同归属验证 | Requirements: 5.2, 5.3, 6.1, 6.4, 6.5, 6.6
+ * Auth: Supabase Session + contract ownership verification | Requirements: 5.2, 5.3, 6.1, 6.4, 6.5, 6.6
  */
 
 import { NextResponse } from "next/server";
@@ -33,7 +33,7 @@ interface SupplierRow {
   company_name: string;
 }
 
-/** service-role 客户端，用于跨 RLS 操作 */
+/** Service-role client for cross-RLS operations */
 function getAdminClient() {
   return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,8 +43,8 @@ function getAdminClient() {
 }
 
 /**
- * 验证当前用户身份，返回其关联的 supplier 记录。
- * 失败时返回对应的错误 Response。
+ * Authenticate current user and return their associated supplier record.
+ * Returns an error Response on failure.
  */
 async function authenticateSupplier(): Promise<
   | { supplier: SupplierRow; error: null }
@@ -80,7 +80,7 @@ async function authenticateSupplier(): Promise<
 }
 
 /**
- * 查询合同记录并验证归属关系
+ * Fetch contract record and verify ownership
  */
 async function fetchAndVerifyContract(
   contractId: string,
@@ -122,7 +122,7 @@ async function fetchAndVerifyContract(
 }
 
 /**
- * 处理 action=confirm：PENDING_REVIEW → CONFIRMED → DocuSign 创建信封 → SENT
+ * Handle action=confirm: PENDING_REVIEW → CONFIRMED → DocuSign create envelope → SENT
  */
 async function handleConfirm(
   contract: ContractRow,
@@ -130,7 +130,7 @@ async function handleConfirm(
 ): Promise<NextResponse> {
   const adminClient = getAdminClient();
 
-  // 1. 验证状态转换 PENDING_REVIEW → CONFIRMED
+  // 1. Validate state transition PENDING_REVIEW → CONFIRMED
   const toConfirmed = validateTransition(contract.status, "CONFIRMED");
   if (!toConfirmed.valid) {
     return NextResponse.json(
@@ -141,7 +141,7 @@ async function handleConfirm(
     );
   }
 
-  // 2. 更新状态为 CONFIRMED
+  // 2. Update status to CONFIRMED
   const { error: confirmError } = await adminClient
     .from("contracts")
     .update({ status: "CONFIRMED" })
@@ -154,7 +154,7 @@ async function handleConfirm(
     );
   }
 
-  // 3. 调用 DocuSign 创建信封
+  // 3. Call DocuSign to create envelope
   const fields = contract.contract_fields;
   if (!fields) {
     return NextResponse.json(
@@ -170,7 +170,7 @@ async function handleConfirm(
       fields,
     );
 
-    // 4. 成功：更新状态为 SENT，存储 envelope_id，设置 signature_provider
+    // 4. Success: update status to SENT, store envelope_id, set signature_provider
     const { error: sentError } = await adminClient
       .from("contracts")
       .update({
@@ -189,12 +189,12 @@ async function handleConfirm(
 
     return NextResponse.json({
       success: true,
-      message: "合同已确认，签署邮件已发送",
+      message: "Contract confirmed. Signing email has been sent",
       status: "SENT",
       envelopeId,
     });
   } catch (err: unknown) {
-    // 5. 失败：保持 CONFIRMED 状态，记录错误到 provider_metadata
+    // 5. Failure: keep CONFIRMED status, record error to provider_metadata
     const detail =
       err instanceof Error ? err.message : "Unknown DocuSign error";
     await adminClient
@@ -215,7 +215,7 @@ async function handleConfirm(
 }
 
 /**
- * 处理 action=request_changes：PENDING_REVIEW → DRAFT
+ * Handle action=request_changes: PENDING_REVIEW → DRAFT
  */
 async function handleRequestChanges(
   contract: ContractRow,
@@ -245,7 +245,7 @@ async function handleRequestChanges(
 
   return NextResponse.json({
     success: true,
-    message: "已请求修改，合同已退回 BD 编辑",
+    message: "Changes requested. Contract has been returned to BD for editing",
     status: "DRAFT",
   });
 }
@@ -257,12 +257,12 @@ async function handleRequestChanges(
  */
 export async function POST(request: Request, context: RouteContext) {
   try {
-    // 1. 供应商身份验证
+    // 1. Supplier authentication
     const authResult = await authenticateSupplier();
     if (authResult.error) return authResult.error;
     const { supplier } = authResult;
 
-    // 2. 解析 action
+    // 2. Parse action
     const body = (await request.json()) as { action?: string };
     const action = body.action as Action | undefined;
 
@@ -273,7 +273,7 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 3. 查询合同并验证归属
+    // 3. Fetch contract and verify ownership
     const { contractId } = await context.params;
     const contractResult = await fetchAndVerifyContract(
       contractId,
@@ -282,7 +282,7 @@ export async function POST(request: Request, context: RouteContext) {
     if (contractResult.error) return contractResult.error;
     const { contract } = contractResult;
 
-    // 4. 分发处理
+    // 4. Dispatch handler
     if (action === "confirm") {
       return handleConfirm(contract, supplier);
     }

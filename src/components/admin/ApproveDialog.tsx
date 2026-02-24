@@ -21,17 +21,17 @@ export interface ApproveDialogProps {
 }
 
 export const CONTRACT_TYPES = [
-  { value: "STANDARD_PROMOTION_2026", label: "标准推广 2026" },
-  { value: "PREMIUM_PROMOTION_2026", label: "高级推广 2026" },
-  { value: "CUSTOM", label: "自定义合同" },
+  { value: "STANDARD_PROMOTION_2026", label: "Standard Promotion 2026" },
+  { value: "PREMIUM_PROMOTION_2026", label: "Premium Promotion 2026" },
+  { value: "CUSTOM", label: "Custom Contract" },
 ] as const;
 
 export type ContractTypeValue = (typeof CONTRACT_TYPES)[number]["value"];
 
 const STATUS_LABELS: Record<ApplicationRow["status"], string> = {
-  PENDING: "待处理",
-  CONVERTED: "已转化",
-  REJECTED: "已拒绝",
+  PENDING: "Pending",
+  CONVERTED: "Converted",
+  REJECTED: "Rejected",
 };
 
 export function ApproveDialog({
@@ -66,7 +66,7 @@ export function ApproveDialog({
       await onConfirm(contractType);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "操作失败，请稍后重试";
+        err instanceof Error ? err.message : "Operation failed, please try again";
       setError(message);
     } finally {
       setLoading(false);
@@ -105,25 +105,25 @@ export function ApproveDialog({
             id="approve-dialog-title"
             className="text-lg font-semibold text-[var(--color-text-primary)]"
           >
-            审批确认
+            Approve Application
           </h2>
           {!isPending && (
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              当前状态为「{STATUS_LABELS[application.status]}」，无法审批
+              Current status is &quot;{STATUS_LABELS[application.status]}&quot;, cannot approve
             </p>
           )}
         </div>
 
         {/* 申请详情 */}
         <div className="px-6 py-4 space-y-3">
-          <DetailRow label="公司名称" value={application.company_name} />
-          <DetailRow label="联系邮箱" value={application.contact_email} />
+          <DetailRow label="Company" value={application.company_name} />
+          <DetailRow label="Email" value={application.contact_email} />
           <DetailRow
-            label="联系电话"
+            label="Phone"
             value={application.contact_phone ?? "—"}
           />
-          <DetailRow label="城市" value={application.city ?? "—"} />
-          <DetailRow label="国家" value={application.country ?? "—"} />
+          <DetailRow label="City" value={application.city ?? "—"} />
+          <DetailRow label="Country" value={application.country ?? "—"} />
 
           {/* 合同类型选择 */}
           <div className="pt-2">
@@ -131,7 +131,7 @@ export function ApproveDialog({
               htmlFor="contract-type"
               className="block text-sm font-medium text-[var(--color-text-primary)] mb-1.5"
             >
-              合同类型
+              Contract Type
             </label>
             <select
               id="contract-type"
@@ -169,7 +169,7 @@ export function ApproveDialog({
             disabled={loading}
             className="px-4 py-2 rounded-md text-sm font-medium text-[var(--color-text-secondary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            取消
+            Cancel
           </button>
           <button
             type="button"
@@ -178,7 +178,7 @@ export function ApproveDialog({
             className="px-4 py-2 rounded-md text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             {loading && <LoadingSpinner />}
-            {isPending ? "确认审批" : STATUS_LABELS[application.status]}
+            {isPending ? "Confirm Approval" : STATUS_LABELS[application.status]}
           </button>
         </div>
       </div>

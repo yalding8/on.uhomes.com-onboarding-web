@@ -27,34 +27,34 @@ export interface SupplierDetail {
   created_at: string;
 }
 
-/** 合同状态中文标签 */
+/** Contract status labels */
 export const CONTRACT_STATUS_LABELS: Record<
   string,
   { label: string; className: string }
 > = {
   DRAFT: {
-    label: "草稿",
+    label: "Draft",
     className:
       "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
   },
   PENDING_REVIEW: {
-    label: "待审阅",
+    label: "Pending Review",
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   CONFIRMED: {
-    label: "已确认",
+    label: "Confirmed",
     className: "bg-[var(--color-primary-light)] text-[var(--color-primary)]",
   },
   SENT: {
-    label: "已发送",
+    label: "Sent",
     className: "bg-[var(--color-primary-light)] text-[var(--color-primary)]",
   },
   SIGNED: {
-    label: "已签署",
+    label: "Signed",
     className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
   CANCELED: {
-    label: "已取消",
+    label: "Canceled",
     className: "bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)]",
   },
 };
@@ -64,22 +64,22 @@ export const SUPPLIER_STATUS_CONFIG: Record<
   { label: string; className: string }
 > = {
   NEW: {
-    label: "新建",
+    label: "New",
     className:
       "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
   },
   PENDING_CONTRACT: {
-    label: "待签约",
+    label: "Pending Contract",
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   SIGNED: {
-    label: "已签约",
+    label: "Signed",
     className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
 };
 
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("zh-CN", {
+  return new Date(iso).toLocaleString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",

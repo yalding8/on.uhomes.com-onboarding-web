@@ -135,9 +135,9 @@ describe("StatusContent 单元测试", () => {
     covered_properties: "All London properties",
   };
 
-  it("DRAFT 状态显示'合同正在准备中'提示", () => {
+  it("DRAFT 状态显示'Contract is Being Prepared'提示", () => {
     renderStatusContent("DRAFT");
-    expect(screen.getByText("合同正在准备中")).toBeInTheDocument();
+    expect(screen.getByText("Contract is Being Prepared")).toBeInTheDocument();
   });
 
   it("PENDING_REVIEW 状态渲染所有 9 个字段值", () => {
@@ -151,8 +151,8 @@ describe("StatusContent 单元测试", () => {
 
   it("PENDING_REVIEW 状态渲染确认和请求修改按钮", () => {
     renderStatusContent("PENDING_REVIEW", sampleFields);
-    expect(screen.getByText("确认并进入签署")).toBeInTheDocument();
-    expect(screen.getByText("请求修改")).toBeInTheDocument();
+    expect(screen.getByText("Confirm & Sign")).toBeInTheDocument();
+    expect(screen.getByText("Request Changes")).toBeInTheDocument();
   });
 
   it("PENDING_REVIEW 状态 fields 为 null 时不渲染字段区域", () => {
@@ -162,22 +162,22 @@ describe("StatusContent 单元测试", () => {
 
   it("CONFIRMED 状态显示'正在创建签署请求...'", () => {
     renderStatusContent("CONFIRMED");
-    expect(screen.getByText("正在创建签署请求...")).toBeInTheDocument();
+    expect(screen.getByText("Creating Signing Request...")).toBeInTheDocument();
   });
 
   it("SENT 状态显示签署邮件已发送提示", () => {
     renderStatusContent("SENT");
-    expect(screen.getByText("签署邮件已发送，请查收邮箱")).toBeInTheDocument();
+    expect(screen.getByText("Signing Email Sent — Check Your Inbox")).toBeInTheDocument();
   });
 
   it("SIGNED 状态显示签署完成", () => {
     renderStatusContent("SIGNED", null, null);
-    expect(screen.getByText("合同签署完成")).toBeInTheDocument();
+    expect(screen.getByText("Contract Signed Successfully")).toBeInTheDocument();
   });
 
   it("SIGNED 状态有 documentUrl 时渲染下载链接", () => {
     renderStatusContent("SIGNED", null, "https://example.com/doc.pdf");
-    const link = screen.getByText("下载已签署合同 (PDF)");
+    const link = screen.getByText("Download Signed Contract (PDF)");
     expect(link).toBeInTheDocument();
     expect(link.closest("a")).toHaveAttribute(
       "href",
@@ -187,12 +187,12 @@ describe("StatusContent 单元测试", () => {
 
   it("SIGNED 状态无 documentUrl 时不渲染下载链接", () => {
     renderStatusContent("SIGNED", null, null);
-    expect(screen.queryByText("下载已签署合同 (PDF)")).not.toBeInTheDocument();
+    expect(screen.queryByText("Download Signed Contract (PDF)")).not.toBeInTheDocument();
   });
 
   it("CANCELED 状态显示合同已取消", () => {
     renderStatusContent("CANCELED");
-    expect(screen.getByText("合同已取消")).toBeInTheDocument();
+    expect(screen.getByText("Contract Canceled")).toBeInTheDocument();
   });
 
   it("isLoading 为 true 时按钮禁用", () => {
@@ -205,7 +205,7 @@ describe("StatusContent 单元测试", () => {
         onAction={noop}
       />,
     );
-    expect(screen.getByText("处理中...")).toBeInTheDocument();
+    expect(screen.getByText("Processing...")).toBeInTheDocument();
   });
 
   it("空字段值渲染为 '—' 占位符", () => {

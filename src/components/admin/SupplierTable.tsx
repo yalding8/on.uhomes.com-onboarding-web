@@ -21,16 +21,16 @@ const STATUS_CONFIG: Record<
   { label: string; className: string }
 > = {
   NEW: {
-    label: "新建",
+    label: "New",
     className:
       "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
   },
   PENDING_CONTRACT: {
-    label: "待签约",
+    label: "Pending Contract",
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   SIGNED: {
-    label: "已签约",
+    label: "Signed",
     className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
 };
@@ -47,7 +47,7 @@ function StatusBadge({ status }: { status: SupplierRow["status"] }) {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("zh-CN", {
+  return new Date(iso).toLocaleString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -64,11 +64,11 @@ export function SupplierTable({ suppliers, onRowClick }: SupplierTableProps) {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-              <th className="text-left px-4 py-3 font-medium">公司名称</th>
-              <th className="text-left px-4 py-3 font-medium">联系邮箱</th>
-              <th className="text-left px-4 py-3 font-medium">入驻状态</th>
-              <th className="text-left px-4 py-3 font-medium">楼宇数量</th>
-              <th className="text-left px-4 py-3 font-medium">创建时间</th>
+              <th className="text-left px-4 py-3 font-medium">Company</th>
+              <th className="text-left px-4 py-3 font-medium">Email</th>
+              <th className="text-left px-4 py-3 font-medium">Status</th>
+              <th className="text-left px-4 py-3 font-medium">Buildings</th>
+              <th className="text-left px-4 py-3 font-medium">Created</th>
             </tr>
           </thead>
           <tbody>
@@ -116,7 +116,7 @@ export function SupplierTable({ suppliers, onRowClick }: SupplierTableProps) {
             </div>
             <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
               <p>{s.contact_email}</p>
-              <p>楼宇：{s.building_count} 个</p>
+              <p>Buildings: {s.building_count}</p>
               <p className="text-[var(--color-text-muted)] text-xs">
                 {formatDate(s.created_at)}
               </p>

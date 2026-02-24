@@ -83,7 +83,7 @@ export default async function SupplierDetailPage({
         href="/admin/suppliers"
         className="inline-flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4"
       >
-        ← 返回供应商列表
+        ← Back to Suppliers
       </Link>
 
       {/* 基本信息 */}
@@ -100,19 +100,19 @@ export default async function SupplierDetailPage({
         </div>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
           <div>
-            <dt className="text-[var(--color-text-muted)]">联系邮箱</dt>
+            <dt className="text-[var(--color-text-muted)]">Email</dt>
             <dd className="text-[var(--color-text-primary)]">
               {supplier.contact_email}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--color-text-muted)]">角色</dt>
+            <dt className="text-[var(--color-text-muted)]">Role</dt>
             <dd className="text-[var(--color-text-primary)]">
               {supplier.role}
             </dd>
           </div>
           <div>
-            <dt className="text-[var(--color-text-muted)]">创建时间</dt>
+            <dt className="text-[var(--color-text-muted)]">Created</dt>
             <dd className="text-[var(--color-text-primary)]">
               {formatDate(supplier.created_at)}
             </dd>
@@ -123,21 +123,21 @@ export default async function SupplierDetailPage({
       {/* 关联楼宇 */}
       <section className="mb-6">
         <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
-          关联楼宇（{buildings.length}）
+          Buildings ({buildings.length})
         </h2>
         {buildings.length === 0 ? (
           <div className="text-center py-8 text-[var(--color-text-muted)] rounded-lg border border-[var(--color-border)]">
-            该供应商暂无关联楼宇
+            No buildings associated with this supplier
           </div>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-                  <th className="text-left px-4 py-3 font-medium">楼宇名称</th>
-                  <th className="text-left px-4 py-3 font-medium">地址</th>
-                  <th className="text-left px-4 py-3 font-medium">入驻状态</th>
-                  <th className="text-left px-4 py-3 font-medium">评分</th>
+                  <th className="text-left px-4 py-3 font-medium">Name</th>
+                  <th className="text-left px-4 py-3 font-medium">Address</th>
+                  <th className="text-left px-4 py-3 font-medium">Status</th>
+                  <th className="text-left px-4 py-3 font-medium">Score</th>
                 </tr>
               </thead>
               <tbody>
@@ -156,7 +156,7 @@ export default async function SupplierDetailPage({
                       {b.onboarding_status ?? "—"}
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                      {b.score != null ? `${b.score}分` : "—"}
+                      {b.score != null ? `${b.score} pts` : "—"}
                     </td>
                   </tr>
                 ))}
@@ -169,20 +169,20 @@ export default async function SupplierDetailPage({
       {/* 合同信息 */}
       <section>
         <h2 className="text-lg font-semibold text-[var(--color-text-primary)] mb-3">
-          合同信息（{contracts.length}）
+          Contracts ({contracts.length})
         </h2>
         {contracts.length === 0 ? (
           <div className="text-center py-8 text-[var(--color-text-muted)] rounded-lg border border-[var(--color-border)]">
-            暂无合同记录
+            No contracts yet
           </div>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-                  <th className="text-left px-4 py-3 font-medium">合同状态</th>
-                  <th className="text-left px-4 py-3 font-medium">操作</th>
-                  <th className="text-left px-4 py-3 font-medium">创建时间</th>
+                  <th className="text-left px-4 py-3 font-medium">Status</th>
+                  <th className="text-left px-4 py-3 font-medium">Action</th>
+                  <th className="text-left px-4 py-3 font-medium">Created</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,7 +210,7 @@ export default async function SupplierDetailPage({
                             href={`/admin/contracts/${c.id}/edit`}
                             className="text-[var(--color-primary)] hover:underline"
                           >
-                            编辑合同
+                            Edit Contract
                           </Link>
                         )}
                         {c.status === "SIGNED" && c.document_url && (
@@ -220,7 +220,7 @@ export default async function SupplierDetailPage({
                             rel="noopener noreferrer"
                             className="text-[var(--color-primary)] hover:underline"
                           >
-                            下载已签署合同
+                            Download Signed Contract
                           </a>
                         )}
                         {c.status !== "DRAFT" &&
