@@ -38,16 +38,16 @@
 
 所有 `/api/*` 路由**豁免**中间件的 Auth 重定向，由路由自身处理鉴权：
 
-| 路由                                  | 鉴权方式                      | 说明                                                |
-| :------------------------------------ | :---------------------------- | :-------------------------------------------------- |
-| `/api/apply`                          | 无（公开）                    | 写入 `applications` 表，不得写入 `suppliers`        |
-| `/api/admin/approve-supplier`         | Supabase Session（BD 角色）   | BD 审批，Session 鉴权 + role 校验                   |
-| `/api/admin/invite-supplier`          | Supabase Session（BD 角色）   | BD 手动邀请供应商，Session 鉴权 + role 校验         |
-| `/api/admin/contracts/[contractId]`   | Supabase Session（BD 角色）   | PUT 保存合同字段 / POST 推送审阅                    |
-| `/api/contracts/[contractId]/confirm` | Supabase Session（供应商）    | 供应商确认签署或请求修改                            |
-| `/api/webhooks/docusign`              | HMAC Signature                | DocuSign 签署完成回调                               |
+| 路由                                  | 鉴权方式                      | 说明                                                    |
+| :------------------------------------ | :---------------------------- | :------------------------------------------------------ |
+| `/api/apply`                          | 无（公开）                    | 写入 `applications` 表，不得写入 `suppliers`            |
+| `/api/admin/approve-supplier`         | Supabase Session（BD 角色）   | BD 审批，Session 鉴权 + role 校验                       |
+| `/api/admin/invite-supplier`          | Supabase Session（BD 角色）   | BD 手动邀请供应商，Session 鉴权 + role 校验             |
+| `/api/admin/contracts/[contractId]`   | Supabase Session（BD 角色）   | PUT 保存合同字段 / POST 推送审阅                        |
+| `/api/contracts/[contractId]/confirm` | Supabase Session（供应商）    | 供应商确认签署或请求修改                                |
+| `/api/webhooks/docusign`              | HMAC Signature                | DocuSign 签署完成回调                                   |
 | `/api/webhooks/opensign`              | `x-opensign-signature` Header | OpenSign 回调（旧合同兼容），Mock 值 `TEST_SECRET_MOCK` |
-| `/api/buildings/[buildingId]/fields`  | Supabase Auth Session         | GET 获取字段数据 / PATCH 更新字段值                 |
+| `/api/buildings/[buildingId]/fields`  | Supabase Auth Session         | GET 获取字段数据 / PATCH 更新字段值                     |
 
 ## 6. 中间件路由守卫（三态重定向）
 
