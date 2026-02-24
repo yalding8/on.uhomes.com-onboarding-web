@@ -85,7 +85,8 @@ export function validateContractFields(
     isValidDate(startDate) &&
     new Date(endDate) <= new Date(startDate)
   ) {
-    errors.contract_end_date = "contract_end_date must be after contract_start_date";
+    errors.contract_end_date =
+      "contract_end_date must be after contract_start_date";
   }
 
   return {

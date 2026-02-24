@@ -51,8 +51,12 @@ describe("generateGapReport", () => {
     expect(report.missingByCategory.basic_info?.[0].suggestion).toBe(
       "Auto-extractable",
     );
-    expect(report.missingByCategory.contacts?.[0].suggestion).toBe("Needs confirmation");
-    expect(report.missingByCategory.fees?.[0].suggestion).toBe("Manual input required");
+    expect(report.missingByCategory.contacts?.[0].suggestion).toBe(
+      "Needs confirmation",
+    );
+    expect(report.missingByCategory.fees?.[0].suggestion).toBe(
+      "Manual input required",
+    );
   });
 
   it("groups missing fields by category", () => {

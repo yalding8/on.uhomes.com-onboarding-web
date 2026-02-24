@@ -167,12 +167,16 @@ describe("StatusContent 单元测试", () => {
 
   it("SENT 状态显示签署邮件已发送提示", () => {
     renderStatusContent("SENT");
-    expect(screen.getByText("Signing Email Sent — Check Your Inbox")).toBeInTheDocument();
+    expect(
+      screen.getByText("Signing Email Sent — Check Your Inbox"),
+    ).toBeInTheDocument();
   });
 
   it("SIGNED 状态显示签署完成", () => {
     renderStatusContent("SIGNED", null, null);
-    expect(screen.getByText("Contract Signed Successfully")).toBeInTheDocument();
+    expect(
+      screen.getByText("Contract Signed Successfully"),
+    ).toBeInTheDocument();
   });
 
   it("SIGNED 状态有 documentUrl 时渲染下载链接", () => {
@@ -187,7 +191,9 @@ describe("StatusContent 单元测试", () => {
 
   it("SIGNED 状态无 documentUrl 时不渲染下载链接", () => {
     renderStatusContent("SIGNED", null, null);
-    expect(screen.queryByText("Download Signed Contract (PDF)")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Download Signed Contract (PDF)"),
+    ).not.toBeInTheDocument();
   });
 
   it("CANCELED 状态显示合同已取消", () => {

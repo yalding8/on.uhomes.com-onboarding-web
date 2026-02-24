@@ -132,8 +132,8 @@ function PendingReviewContent({
   return (
     <div className="space-y-6">
       <p className="text-sm text-[var(--color-text-secondary)]">
-        Please review the contract terms below carefully. Click &quot;Confirm &amp;
-        Sign&quot; once you are satisfied.
+        Please review the contract terms below carefully. Click &quot;Confirm
+        &amp; Sign&quot; once you are satisfied.
       </p>
 
       {fields && (
@@ -188,8 +188,8 @@ function PendingReviewContent({
       </div>
 
       <p className="text-xs text-[var(--color-text-muted)]">
-        After clicking &quot;Confirm &amp; Sign&quot;, a DocuSign signing email will be
-        sent to your registered email address.
+        After clicking &quot;Confirm &amp; Sign&quot;, a DocuSign signing email
+        will be sent to your registered email address.
       </p>
     </div>
   );
@@ -223,7 +223,8 @@ function SentContent() {
         Signing Email Sent — Check Your Inbox
       </h4>
       <p className="text-sm text-[var(--color-text-secondary)]">
-        A DocuSign signing link has been sent to your registered email. Please follow the instructions to complete the e-signature.
+        A DocuSign signing link has been sent to your registered email. Please
+        follow the instructions to complete the e-signature.
       </p>
     </div>
   );
@@ -240,7 +241,8 @@ function SignedContent({ documentUrl }: { documentUrl: string | null }) {
         Contract Signed Successfully
       </h4>
       <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-        Your partnership agreement has been signed and is now in effect. Thank you for your trust and cooperation.
+        Your partnership agreement has been signed and is now in effect. Thank
+        you for your trust and cooperation.
       </p>
       {documentUrl && (
         <a
@@ -268,7 +270,8 @@ function CanceledContent() {
         Contract Canceled
       </h4>
       <p className="text-sm text-[var(--color-text-secondary)]">
-        This contract has been canceled. Please contact the BD team if you have any questions.
+        This contract has been canceled. Please contact the BD team if you have
+        any questions.
       </p>
     </div>
   );

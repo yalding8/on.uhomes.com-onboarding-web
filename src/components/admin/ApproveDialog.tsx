@@ -66,7 +66,9 @@ export function ApproveDialog({
       await onConfirm(contractType);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Operation failed, please try again";
+        err instanceof Error
+          ? err.message
+          : "Operation failed, please try again";
       setError(message);
     } finally {
       setLoading(false);
@@ -109,7 +111,8 @@ export function ApproveDialog({
           </h2>
           {!isPending && (
             <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-              Current status is &quot;{STATUS_LABELS[application.status]}&quot;, cannot approve
+              Current status is &quot;{STATUS_LABELS[application.status]}&quot;,
+              cannot approve
             </p>
           )}
         </div>
@@ -118,10 +121,7 @@ export function ApproveDialog({
         <div className="px-6 py-4 space-y-3">
           <DetailRow label="Company" value={application.company_name} />
           <DetailRow label="Email" value={application.contact_email} />
-          <DetailRow
-            label="Phone"
-            value={application.contact_phone ?? "—"}
-          />
+          <DetailRow label="Phone" value={application.contact_phone ?? "—"} />
           <DetailRow label="City" value={application.city ?? "—"} />
           <DetailRow label="Country" value={application.country ?? "—"} />
 

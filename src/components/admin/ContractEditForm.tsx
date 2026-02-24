@@ -162,7 +162,10 @@ export function ContractEditForm({
 
       if (!res.ok) {
         if (data.fields) setErrors(data.fields);
-        setMessage({ type: "error", text: data.error ?? "Push for review failed" });
+        setMessage({
+          type: "error",
+          text: data.error ?? "Push for review failed",
+        });
         return;
       }
 
@@ -180,7 +183,8 @@ export function ContractEditForm({
       {/* 状态提示 */}
       {!isEditable && (
         <div className="mb-4 rounded-md bg-[var(--color-bg-secondary)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
-          Current contract status is &quot;{STATUS_LABELS[status]}&quot;, editing is disabled.
+          Current contract status is &quot;{STATUS_LABELS[status]}&quot;,
+          editing is disabled.
         </div>
       )}
 

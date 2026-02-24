@@ -99,7 +99,10 @@ export function InviteForm() {
       setResult({ type: "success", message: "Invitation sent successfully" });
       setForm(INITIAL_FORM);
     } catch {
-      setResult({ type: "error", message: "Operation failed, please try again" });
+      setResult({
+        type: "error",
+        message: "Operation failed, please try again",
+      });
     } finally {
       setSubmitting(false);
     }

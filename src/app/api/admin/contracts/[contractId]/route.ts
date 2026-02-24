@@ -124,7 +124,10 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
-    return NextResponse.json({ success: true, message: "Contract fields saved" });
+    return NextResponse.json({
+      success: true,
+      message: "Contract fields saved",
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown server error";
