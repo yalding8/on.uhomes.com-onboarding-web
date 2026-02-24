@@ -17,10 +17,12 @@
 | Task 9  | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                           | 🚧 待开发 |
 | P1-BD   | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请             | ✅ 完成   |
 | P1-Core | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页 | ✅ 完成   |
+| P1-Sign | Online Contract Signing：DocuSign eSignature 集成（替代 Mock OpenSign） | ✅ 完成   |
+| P1-i18n | 全站 UI 英文化：组件文案、API 消息、验证错误、测试断言                  | ✅ 完成   |
 | P1-AI   | AI 多源提取管道 + 数据融合                                              | 🚧 第二轮 |
 | P1-Pub  | 内部预览 + 发布到主站                                                   | 🚧 第二轮 |
 
-**当前里程碑**：P0 合同签署全流程 + P1-BD 管理后台 + P1-Core Building Onboarding 编辑页均已完成。剩余第二轮任务：AI 多源提取管道、内部预览与发布、重型微服务。
+**当前里程碑**：P0 基础设施 + P1-BD 管理后台 + P1-Core Building Onboarding + P1-Sign DocuSign 在线签约 + P1-i18n 全站英文化均已完成。剩余第二轮任务：AI 多源提取管道、内部预览与发布、重型微服务。
 
 ## 基础设施与选型
 
@@ -188,4 +190,5 @@ curl -X POST http://localhost:3000/api/apply \
 - `docs/ARCHITECTURE.md` — 架构决策与系统交互链路
 - `docs/API_REFERENCE.md` — 接口通信规范
 - `docs/E2E_TEST_GUIDE.md` — P0 供应商签约全流程 E2E 测试指南
+- `docs/DOCUSIGN_E2E_TEST_GUIDE.md` — DocuSign 在线签约 E2E 测试指南
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约

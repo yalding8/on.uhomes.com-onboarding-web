@@ -1,4 +1,4 @@
-# Qwen Code 针对 on.uhomes.com Onboarding 项目的开发规约
+# AI Agent 针对 on.uhomes.com Onboarding 项目的开发规约
 
 ## 1. 架构原则
 
@@ -11,7 +11,7 @@
 - **表结构**（当前已建）：
   - `applications`：公开申请暂存表，无需 Auth 用户关联，供 Landing Page 写入
   - `suppliers`：已审批供应商，`user_id` 关联 `auth.users`，状态流：`NEW → PENDING_CONTRACT → SIGNED`
-  - `contracts`：合同记录，含 OpenSign 签署追踪字段（`signature_request_id`, `embedded_signing_url`）
+  - `contracts`：合同记录，支持 DocuSign eSignature 签署追踪（`contract_fields` JSONB、`signature_provider`、`envelope_id`、`document_url`）
   - `buildings`：楼宇房源数据，Task 9 爬虫回写目标
 - **Auth 机制**：Supabase OTP 邮件登录。BD 通过 `/api/admin/approve-supplier` 触发 `inviteUserByEmail`，供应商点邮件链接完成首次登录绑定。
 
@@ -38,12 +38,16 @@
 
 所有 `/api/*` 路由**豁免**中间件的 Auth 重定向，由路由自身处理鉴权：
 
-| 路由                          | 鉴权方式                      | 说明                                         |
-| :---------------------------- | :---------------------------- | :------------------------------------------- |
-| `/api/apply`                  | 无（公开）                    | 写入 `applications` 表，不得写入 `suppliers` |
-| `/api/admin/approve-supplier` | Supabase Session（BD 角色）   | BD 审批，Session 鉴权 + role 校验            |
-| `/api/admin/invite-supplier`  | Supabase Session（BD 角色）   | BD 手动邀请供应商，Session 鉴权 + role 校验  |
-| `/api/webhooks/opensign`      | `x-opensign-signature` Header | OpenSign 回调，Mock 值为 `TEST_SECRET_MOCK`  |
+| 路由                                  | 鉴权方式                      | 说明                                                |
+| :------------------------------------ | :---------------------------- | :-------------------------------------------------- |
+| `/api/apply`                          | 无（公开）                    | 写入 `applications` 表，不得写入 `suppliers`        |
+| `/api/admin/approve-supplier`         | Supabase Session（BD 角色）   | BD 审批，Session 鉴权 + role 校验                   |
+| `/api/admin/invite-supplier`          | Supabase Session（BD 角色）   | BD 手动邀请供应商，Session 鉴权 + role 校验         |
+| `/api/admin/contracts/[contractId]`   | Supabase Session（BD 角色）   | PUT 保存合同字段 / POST 推送审阅                    |
+| `/api/contracts/[contractId]/confirm` | Supabase Session（供应商）    | 供应商确认签署或请求修改                            |
+| `/api/webhooks/docusign`              | HMAC Signature                | DocuSign 签署完成回调                               |
+| `/api/webhooks/opensign`              | `x-opensign-signature` Header | OpenSign 回调（旧合同兼容），Mock 值 `TEST_SECRET_MOCK` |
+| `/api/buildings/[buildingId]/fields`  | Supabase Auth Session         | GET 获取字段数据 / PATCH 更新字段值                 |
 
 ## 6. 中间件路由守卫（三态重定向）
 
