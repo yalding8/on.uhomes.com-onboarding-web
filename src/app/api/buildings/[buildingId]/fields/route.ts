@@ -13,6 +13,7 @@ import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
 import { calculateScore } from "@/lib/onboarding/scoring-engine";
 import { generateGapReport } from "@/lib/onboarding/gap-report";
 import { resolveStatus } from "@/lib/onboarding/status-engine";
+import { validateFields } from "@/lib/onboarding/field-validator";
 import type { FieldValue } from "@/lib/onboarding/field-value";
 import type { BuildingStatus } from "@/lib/onboarding/status-engine";
 
@@ -91,6 +92,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     if (!fields || typeof fields !== "object") {
       return NextResponse.json(
         { error: "Invalid payload: fields required" },
+        { status: 400 },
+      );
+    }
+
+    // 字段值类型校验
+    const validation = validateFields(fields);
+    if (!validation.ok) {
+      return NextResponse.json(
+        { error: "Invalid field values", fieldErrors: validation.errors },
         { status: 400 },
       );
     }
