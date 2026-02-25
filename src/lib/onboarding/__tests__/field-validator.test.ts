@@ -75,7 +75,9 @@ describe("validateFields", () => {
   // ── multi_select ──
   it("accepts valid options array for multi_select", () => {
     expect(
-      validateFields({ availability_method: ["Google Sheet", "API Integration"] }).ok,
+      validateFields({
+        availability_method: ["Google Sheet", "API Integration"],
+      }).ok,
     ).toBe(true);
   });
 
@@ -84,44 +86,61 @@ describe("validateFields", () => {
   });
 
   it("rejects non-array for multi_select", () => {
-    expect(validateFields({ availability_method: "Google Sheet" }).ok).toBe(false);
+    expect(validateFields({ availability_method: "Google Sheet" }).ok).toBe(
+      false,
+    );
   });
 
   it("rejects out-of-range option in multi_select", () => {
-    const result = validateFields({ availability_method: ["Google Sheet", "Carrier Pigeon"] });
+    const result = validateFields({
+      availability_method: ["Google Sheet", "Carrier Pigeon"],
+    });
     expect(result.ok).toBe(false);
     expect(result.errors[0].message).toMatch(/Invalid options/);
   });
 
   // ── email ──
   it("accepts valid email", () => {
-    expect(validateFields({ primary_contact_email: "test@example.com" }).ok).toBe(true);
+    expect(
+      validateFields({ primary_contact_email: "test@example.com" }).ok,
+    ).toBe(true);
   });
 
   it("rejects invalid email", () => {
-    expect(validateFields({ primary_contact_email: "not-an-email" }).ok).toBe(false);
+    expect(validateFields({ primary_contact_email: "not-an-email" }).ok).toBe(
+      false,
+    );
   });
 
   // ── url ──
   it("accepts valid URL", () => {
-    expect(validateFields({ cover_image: "https://example.com/photo.jpg" }).ok).toBe(true);
-    expect(validateFields({ cover_image: "http://example.com/photo.jpg" }).ok).toBe(true);
+    expect(
+      validateFields({ cover_image: "https://example.com/photo.jpg" }).ok,
+    ).toBe(true);
+    expect(
+      validateFields({ cover_image: "http://example.com/photo.jpg" }).ok,
+    ).toBe(true);
   });
 
   it("rejects URL without http/https scheme", () => {
     expect(validateFields({ cover_image: "ftp://example.com" }).ok).toBe(false);
-    expect(validateFields({ cover_image: "example.com/photo.jpg" }).ok).toBe(false);
+    expect(validateFields({ cover_image: "example.com/photo.jpg" }).ok).toBe(
+      false,
+    );
   });
 
   // ── image_urls ──
   it("accepts array of valid URLs for image_urls", () => {
     expect(
-      validateFields({ images: ["https://a.com/1.jpg", "https://b.com/2.jpg"] }).ok,
+      validateFields({ images: ["https://a.com/1.jpg", "https://b.com/2.jpg"] })
+        .ok,
     ).toBe(true);
   });
 
   it("rejects image_urls containing invalid URL", () => {
-    const result = validateFields({ images: ["https://ok.com/1.jpg", "not-a-url"] });
+    const result = validateFields({
+      images: ["https://ok.com/1.jpg", "not-a-url"],
+    });
     expect(result.ok).toBe(false);
   });
 

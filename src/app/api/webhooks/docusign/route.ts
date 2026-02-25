@@ -139,7 +139,10 @@ export async function POST(request: Request) {
 
     if (supplier?.status === "SIGNED") {
       // 两表均已更新，完全幂等
-      return NextResponse.json({ message: "Already processed" }, { status: 200 });
+      return NextResponse.json(
+        { message: "Already processed" },
+        { status: 200 },
+      );
     }
     // 合同已 SIGNED 但供应商未更新 — 部分失败恢复，跳过合同更新直接补充供应商
   }

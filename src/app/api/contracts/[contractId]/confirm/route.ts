@@ -33,7 +33,6 @@ interface SupplierRow {
   company_name: string;
 }
 
-
 /**
  * Authenticate current user and return their associated supplier record.
  * Returns an error Response on failure.

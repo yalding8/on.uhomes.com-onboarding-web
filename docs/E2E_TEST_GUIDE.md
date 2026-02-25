@@ -9,9 +9,9 @@
 
 ### 0.1 启动环境
 
-| 环境 | 地址 | 说明 |
-|:-----|:-----|:-----|
-| 本地 | `http://localhost:3000` | `npm run dev` |
+| 环境           | 地址                      | 说明                                          |
+| :------------- | :------------------------ | :-------------------------------------------- |
+| 本地           | `http://localhost:3000`   | `npm run dev`                                 |
 | Vercel Preview | PR 自动生成的 Preview URL | DocuSign Webhook 可直接回调，推荐用于完整流程 |
 
 > 以下用 `$BASE` 代表你的测试地址。
@@ -20,12 +20,12 @@
 
 `.env.local` 中需配置（参考 README.md 环境变量表）：
 
-| 变量 | 测试值 |
-|:-----|:-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase 项目 URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥 |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase 管理员 Key |
-| `DOCUSIGN_*` 系列 | 参考 DOCUSIGN_E2E_TEST_GUIDE.md |
+| 变量                            | 测试值                          |
+| :------------------------------ | :------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL               |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥               |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key             |
+| `DOCUSIGN_*` 系列               | 参考 DOCUSIGN_E2E_TEST_GUIDE.md |
 
 ### 0.3 创建 BD 测试账号
 
@@ -67,14 +67,14 @@ VALUES (
 1. 访问 `$BASE/`，查看 Landing Page
 2. 填写申请表单：
 
-   | 字段 | 示例值 |
-   |:-----|:-------|
-   | Company Name | Test Housing Inc |
-   | Work Email | your-test-email@example.com |
-   | Contact Phone | +1 555 0000 |
-   | City | Toronto |
-   | Country | Canada |
-   | Website URL | https://example.com（选填）|
+   | 字段          | 示例值                      |
+   | :------------ | :-------------------------- |
+   | Company Name  | Test Housing Inc            |
+   | Work Email    | your-test-email@example.com |
+   | Contact Phone | +1 555 0000                 |
+   | City          | Toronto                     |
+   | Country       | Canada                      |
+   | Website URL   | https://example.com（选填） |
 
 3. 点击 **"Submit Request"**
 
@@ -109,13 +109,13 @@ VALUES (
 
 **验证数据库**：
 
-| 表 | 字段 | 预期值 |
-|:---|:-----|:-------|
-| `applications` | status | `CONVERTED` |
-| `suppliers` | status | `PENDING_CONTRACT` |
-| `suppliers` | role | `supplier` |
-| `contracts` | status | `DRAFT` |
-| `contracts` | contract_fields | `{}` |
+| 表             | 字段            | 预期值             |
+| :------------- | :-------------- | :----------------- |
+| `applications` | status          | `CONVERTED`        |
+| `suppliers`    | status          | `PENDING_CONTRACT` |
+| `suppliers`    | role            | `supplier`         |
+| `contracts`    | status          | `DRAFT`            |
+| `contracts`    | contract_fields | `{}`               |
 
 **验证邮箱**：供应商邮箱收到 Supabase 发出的邀请邮件（标题含 "invited"）
 
@@ -128,6 +128,7 @@ VALUES (
 3. 点击进入供应商详情页 `/admin/suppliers/[id]`
 
 **✅ 预期结果**：
+
 - 基本信息区域显示公司名、邮箱、状态
 - 合同区域显示一条 `DRAFT` 状态合同，有 **"Edit Contract"** 链接
 
@@ -139,17 +140,17 @@ VALUES (
 2. 确认字段 `Partner Company Name` 和 `City` 已自动预填
 3. 补全所有必填字段：
 
-   | 字段 | 示例值 |
-   |:-----|:-------|
-   | Partner Company Name | Test Housing Inc（预填）|
-   | Contact Name | John Smith |
-   | Address | 123 Main Street |
-   | City | Toronto（预填）|
-   | Country | Canada |
-   | Commission Rate | 15 |
-   | Contract Start Date | 2026-03-01 |
-   | Contract End Date | 2027-02-28 |
-   | Covered Properties | All Toronto properties |
+   | 字段                 | 示例值                   |
+   | :------------------- | :----------------------- |
+   | Partner Company Name | Test Housing Inc（预填） |
+   | Contact Name         | John Smith               |
+   | Address              | 123 Main Street          |
+   | City                 | Toronto（预填）          |
+   | Country              | Canada                   |
+   | Commission Rate      | 15                       |
+   | Contract Start Date  | 2026-03-01               |
+   | Contract End Date    | 2027-02-28               |
+   | Covered Properties   | All Toronto properties   |
 
 4. 点击 **"Save"**
 
@@ -181,13 +182,13 @@ BD 登录后，点击左侧导航 **"Invite Supplier"**，进入 `/admin/invite`
 
 ### Step 2 — 填写邀请信息
 
-| 字段 | 示例值 |
-|:-----|:-------|
-| Email | invited-supplier@example.com |
-| Company Name | Direct Invite Housing Co |
-| Phone | +1 555 1234（选填）|
-| City | Vancouver（选填）|
-| Website | https://example.com（选填）|
+| 字段         | 示例值                       |
+| :----------- | :--------------------------- |
+| Email        | invited-supplier@example.com |
+| Company Name | Direct Invite Housing Co     |
+| Phone        | +1 555 1234（选填）          |
+| City         | Vancouver（选填）            |
+| Website      | https://example.com（选填）  |
 
 点击 **"Send Invitation"**
 
@@ -224,6 +225,7 @@ BD 登录后，点击左侧导航 **"Invite Supplier"**，进入 `/admin/invite`
 ### Step 2 — 供应商查看合同信息
 
 Dashboard 应显示：
+
 - 公司名欢迎信息
 - 合同预览区域，包含 BD 填写的所有字段值
 - 两个操作按钮：**"Confirm & Proceed to Sign"** 和 **"Request Changes"**
@@ -237,6 +239,7 @@ Dashboard 应显示：
 如信息有误，点击 **"Request Changes"**
 
 **✅ 预期结果**：
+
 - `contracts.status` 回退为 `DRAFT`
 - Dashboard 显示"Modification requested, waiting for BD to update"
 - BD 可重新进入合同编辑页修改字段并再次推送
@@ -248,6 +251,7 @@ Dashboard 应显示：
 点击 **"Confirm & Proceed to Sign"**
 
 **背后流程**：
+
 1. `contracts.status` → `CONFIRMED`
 2. 系统调用 DocuSign API 创建签署信封（附带合同字段数据）
 3. `contracts.status` → `SENT`，`signature_request_id` 写入 envelope ID
@@ -256,10 +260,10 @@ Dashboard 应显示：
 
 **验证数据库**：
 
-| 表 | 字段 | 预期值 |
-|:---|:-----|:-------|
-| `contracts` | status | `SENT` |
-| `contracts` | signature_request_id | DocuSign envelope UUID（非空）|
+| 表          | 字段                 | 预期值                         |
+| :---------- | :------------------- | :----------------------------- |
+| `contracts` | status               | `SENT`                         |
+| `contracts` | signature_request_id | DocuSign envelope UUID（非空） |
 
 **验证邮箱**：供应商邮箱收到 DocuSign 发出的签署邮件（发件人 `dse_demo@docusign.net`）
 
@@ -294,18 +298,19 @@ curl -X POST $BASE/api/webhooks/docusign \
 **Vercel Preview 环境**：DocuSign 自动回调，无需手动操作。
 
 **✅ 预期响应**：
+
 ```json
 { "success": true, "processed_contract_id": "xxx-xxx" }
 ```
 
 **验证数据库**：
 
-| 表 | 字段 | 预期值 |
-|:---|:-----|:-------|
-| `contracts` | status | `SIGNED` |
-| `contracts` | signed_at | 非空时间戳 |
+| 表          | 字段         | 预期值           |
+| :---------- | :----------- | :--------------- |
+| `contracts` | status       | `SIGNED`         |
+| `contracts` | signed_at    | 非空时间戳       |
 | `contracts` | document_url | Storage PDF 路径 |
-| `suppliers` | status | `SIGNED` |
+| `suppliers` | status       | `SIGNED`         |
 
 **验证 Storage**：Supabase Storage → `signed-contracts` 桶中有 `{supplier_id}/{contract_id}.pdf`
 
@@ -324,50 +329,52 @@ curl -X POST $BASE/api/webhooks/docusign \
 
 ### 已登录供应商（SIGNED 状态）
 
-| 访问地址 | 预期结果 |
-|:---------|:---------|
-| `$BASE/` | 重定向到 `/dashboard` |
-| `$BASE/login` | 重定向到 `/dashboard` |
-| `$BASE/dashboard` | 正常显示 |
-| `$BASE/admin` | 重定向到 `/dashboard`（非 BD 角色）|
+| 访问地址          | 预期结果                            |
+| :---------------- | :---------------------------------- |
+| `$BASE/`          | 重定向到 `/dashboard`               |
+| `$BASE/login`     | 重定向到 `/dashboard`               |
+| `$BASE/dashboard` | 正常显示                            |
+| `$BASE/admin`     | 重定向到 `/dashboard`（非 BD 角色） |
 
 ### 已登录供应商（PENDING_CONTRACT 状态）
 
-| 访问地址 | 预期结果 |
-|:---------|:---------|
-| `$BASE/` | 重定向到 `/dashboard` |
-| `$BASE/onboarding/any-id` | 重定向到 `/dashboard`（未签约）|
-| `$BASE/dashboard` | 正常显示合同签署界面 |
+| 访问地址                  | 预期结果                        |
+| :------------------------ | :------------------------------ |
+| `$BASE/`                  | 重定向到 `/dashboard`           |
+| `$BASE/onboarding/any-id` | 重定向到 `/dashboard`（未签约） |
+| `$BASE/dashboard`         | 正常显示合同签署界面            |
 
 ### 已登录 BD
 
-| 访问地址 | 预期结果 |
-|:---------|:---------|
-| `$BASE/` | 重定向到 `/admin/applications` |
-| `$BASE/login` | 重定向到 `/admin/applications` |
-| `$BASE/admin/applications` | 正常显示 |
-| `$BASE/admin/suppliers` | 正常显示 |
-| `$BASE/admin/invite` | 正常显示 |
+| 访问地址                   | 预期结果                       |
+| :------------------------- | :----------------------------- |
+| `$BASE/`                   | 重定向到 `/admin/applications` |
+| `$BASE/login`              | 重定向到 `/admin/applications` |
+| `$BASE/admin/applications` | 正常显示                       |
+| `$BASE/admin/suppliers`    | 正常显示                       |
+| `$BASE/admin/invite`       | 正常显示                       |
 
 ### 未登录用户
 
-| 访问地址 | 预期结果 |
-|:---------|:---------|
-| `$BASE/` | 正常显示 Landing Page |
-| `$BASE/login` | 正常显示登录页 |
-| `$BASE/dashboard` | 重定向到 `/login` |
-| `$BASE/admin` | 重定向到 `/login` |
+| 访问地址          | 预期结果              |
+| :---------------- | :-------------------- |
+| `$BASE/`          | 正常显示 Landing Page |
+| `$BASE/login`     | 正常显示登录页        |
+| `$BASE/dashboard` | 重定向到 `/login`     |
+| `$BASE/admin`     | 重定向到 `/login`     |
 
 ---
 
 ## 完整流程检查清单
 
 ### 环境准备
+
 - [ ] BD 测试账号已在 Supabase 创建（`role = 'bd'`）
 - [ ] 供应商测试邮箱可正常收邮件
 - [ ] DocuSign 沙箱配置完成（参考 DOCUSIGN_E2E_TEST_GUIDE.md）
 
 ### 流程一：申请 → 审批
+
 - [ ] Landing Page 表单提交成功，显示确认提示
 - [ ] `applications` 表有 `PENDING` 记录
 - [ ] BD 通过 OTP 登录后跳转到 `/admin/applications`
@@ -377,6 +384,7 @@ curl -X POST $BASE/api/webhooks/docusign \
 - [ ] 供应商邮箱收到 Supabase 邀请邮件
 
 ### BD 合同操作
+
 - [ ] 进入供应商详情页，合同 `DRAFT` 状态可见
 - [ ] 合同编辑页 Company Name 和 City 已自动预填
 - [ ] 所有字段保存成功，`contract_fields` 有值
@@ -384,6 +392,7 @@ curl -X POST $BASE/api/webhooks/docusign \
 - [ ] 字段完整时推送成功，`contracts.status = PENDING_REVIEW`
 
 ### 供应商签约
+
 - [ ] 供应商通过邮件链接或 OTP 登录成功，跳转到 Dashboard
 - [ ] Dashboard 显示 BD 填写的合同字段详情
 - [ ] （可选）点击 Request Changes → 合同退回 `DRAFT`
@@ -395,6 +404,7 @@ curl -X POST $BASE/api/webhooks/docusign \
 - [ ] PDF 上传到 Supabase Storage
 
 ### 路由守卫
+
 - [ ] SIGNED 供应商访问 `/` 重定向到 `/dashboard`
 - [ ] 未登录用户访问 `/dashboard` 重定向到 `/login`
 - [ ] BD 登录后跳转到 `/admin/applications`
