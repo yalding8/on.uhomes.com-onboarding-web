@@ -441,3 +441,113 @@ A: 这是预期行为。本地没有有效的 DocuSign access token，PDF 下载
 **Q: OTP 验证码收不到**
 
 A: 检查垃圾邮件文件夹。Supabase 免费版有发送频率限制（每小时约 4 封），等几分钟再试。
+
+---
+
+## 流程四：Building Onboarding Portal
+
+> 前置条件：供应商已完成合同签署，`suppliers.status = SIGNED`。
+
+### Step 1 — 进入楼宇编辑页
+
+Dashboard 的 **"Your Properties"** 区域显示楼宇卡片，点击任意一张进入：
+
+```
+/onboarding/[buildingId]
+```
+
+> 若楼宇列表为空，说明数据提取管道（AI extraction pipeline）尚未运行，需手动在 Supabase 中插入测试楼宇：
+>
+> ```sql
+> INSERT INTO buildings (supplier_id, building_name, building_address, onboarding_status)
+> VALUES ('你的supplier_id', 'Test Tower', '123 Main St, Toronto', 'incomplete');
+> ```
+
+---
+
+### Step 2 — 填写字段，观察实时评分
+
+1. 展开 **"Basic Information"** 分类（默认展开）
+2. 填写以下字段，每个字段保存后观察顶部分数条变化（600ms debounce 自动保存）：
+
+| 字段            | 示例值                        |
+| :-------------- | :---------------------------- |
+| Property Name   | Test Tower                    |
+| Address         | 123 Main Street               |
+| City            | Toronto                       |
+| Country         | Canada                        |
+| Postal Code     | M5V 3A8                       |
+| Primary Contact | John Smith                    |
+| Contact Email   | john@testhousing.com          |
+| Min Price       | 1200                          |
+| Max Price       | 2500                          |
+| Currency        | CAD（下拉选择）               |
+| Cover Image URL | https://example.com/cover.jpg |
+| Key Amenities   | Gym, WiFi（多选）             |
+| Unit Types      | Studio, 1BR, 2BR              |
+| Availability    | Google Sheet（多选）          |
+| Application     | Online（多选）                |
+| Commission      | 15% of first month rent       |
+
+**✅ 预期结果**：
+
+- 每次保存后顶部 ScoreBar 实时更新
+- 右侧 Gap Report 面板缺失字段数量减少
+- 当分数 ≥ 80 时，状态标签从 `待完善` 变为 `可预览`，右上角出现 **"提交审核"** 按钮
+
+---
+
+### Step 3 — 字段校验测试
+
+在 **Minimum Price** 字段输入 `-100`（负数），等待自动保存：
+
+**✅ 预期结果**：API 返回 400，页面显示错误提示 "保存失败，请重试"，分数不变
+
+---
+
+### Step 4 — 提交审核
+
+分数达到 80 后，点击右上角 **"提交审核"** 按钮：
+
+**✅ 预期结果**：
+
+- 按钮消失，状态标签变为 `待发布`
+- 右上角出现文字 "已提交，等待团队审核"
+
+**验证数据库**：
+
+| 表          | 字段              | 预期值             |
+| :---------- | :---------------- | :----------------- |
+| `buildings` | onboarding_status | `ready_to_publish` |
+
+---
+
+### Step 5 — 提交前缺失必填字段的行为
+
+重置一个测试楼宇（`onboarding_status = previewable`，但清空 `cover_image` 字段），再点击提交：
+
+**✅ 预期结果**：422 响应，页面显示 "以下必填字段尚未填写：Cover Image URL"，状态不变
+
+---
+
+### Step 6 — 乐观锁冲突测试（高级）
+
+1. 在两个浏览器 Tab 同时打开同一楼宇编辑页
+2. Tab A 修改 Property Name → 等待保存（version: N → N+1）
+3. Tab B 修改 City → 等待保存（客户端持有旧 version: N）
+
+**✅ 预期结果**：Tab B 的保存返回 409，页面显示 "数据已被其他用户修改，请刷新页面"
+
+---
+
+### Building Onboarding 检查清单
+
+- [ ] 楼宇卡片在 Dashboard 可见
+- [ ] 点击进入 `/onboarding/[id]` 编辑页
+- [ ] 填写字段后 debounce 自动保存，ScoreBar 实时更新
+- [ ] Gap Report 面板显示缺失字段列表
+- [ ] 负数价格字段提示 400 校验错误
+- [ ] 分数 ≥ 80 时状态变为 `可预览`，出现"提交审核"按钮
+- [ ] 点击提交后状态变为 `待发布`，数据库 `ready_to_publish`
+- [ ] 缺必填字段时提交返回 422 + 字段名提示
+- [ ] 两个 Tab 并发编辑触发 409 冲突提示

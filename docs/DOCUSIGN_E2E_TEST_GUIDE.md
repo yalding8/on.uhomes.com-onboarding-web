@@ -18,7 +18,6 @@
 3. 点击 "ADD APP AND INTEGRATION KEY"
 4. 输入 App 名称（如 `uhomes-onboarding-dev`）
 5. 记下生成的 **Integration Key**（即 `DOCUSIGN_CLIENT_ID`）
-   4f42fdd9-5017-4d25-8a22-38d53ae98b0c
 
 ### Step 0.3：生成 RSA 密钥对
 
@@ -37,17 +36,9 @@
 cat docusign_private.pem | base64 | tr -d '\n'
 ```
 
-输出的 Base64 字符串就是 `DOCUSIGN_PRIVATE_KEY` 的值。
+输出的 Base64 字符串就是 `DOCUSIGN_PRIVATE_KEY` 的值，将其填入 `.env.local`。
 
-nVCK0hHbDRNUDdMZWxHMzMrdzBhZTBzCnNJZ1FRV0JXYlorRy8yRUlSazhOQkVWcDRXYXB2VDhoN2tsN05FbVNnRk9wK0FscXZvVlM0cWpZYWIyeGFiWWgKVmM0a1hwQU5UZU5jS2xGRHdzaG82QStaNVlUekI4WUE1N0Y4cWx1eGtwSUI1NFQyb3dxVWJ5VTE3Q2p4dVprYwpBVHJ4MExBZ0pISUlyamMwZE9Ob1pHMzNBSFpJSU0vSklYU25PSkFRdEtpSHFSci9ST1VSRC9zYW1NNkM2ODhuCndyM0ZzMm1NbjYwSCsxYlI1S2dLbkYvZkF4WTgyRVpudmxWNzcweGNVdHpDd2ZadG5aeWtnRC9YeDRjV0tTdS8Ka3lTdUhJT3BPazdMVmlqeDI2T3RldEs2VUhrNFQzd2N2WHdVR3dJREFRQUJBb0lCQUJvSlNpYnZYRURzK2R4bAo1TitUT0EzdDBoMG12U0VyMUNBb1IzZDh3R2FSS0ZTSiszaVg2ZWxnZG1IT2xPZTdlT1VsSldzTUg2ajU4bEdGCkI4M3RvVDZMUHdSc1p1b2RrSW15d2NvWExoYy9VTGxrRlBneW1rYW81RTZDZGdydnRBLzJiNC9saVFpQjdJbWkKYXNwSW5pMzNWVjVRMzNjSjk0ZmloNUdkRTNsTWdrSzRQU2VUcHIxUElJdzY5Vll1dTB5QnVXYnpRVXZLazhtcApGaVZsN2V3QnN4czRzR2pFc2R1YTRWMnZ6MHUvclJCSGhQajhtN3FrSEczMmxKa3JxYkxrZzcwRjgrTlNmd0YzClc5aVdtcFpwd0N2L2JXNnBpVy9JL2ZpMnBiN0lzcExvRTY1Rms3Um9KZ050RWtRUEFnT0VPa0pXV2JydTF5ZjgKVmZaU2JFRUNnWUVBK3JvYVBzY1psR0hEUXQxUWZ5SHJ0RW5hR0JERTgvUFBEOVRBK3dvT0NsQjRaQTYvOHlmMwpHU3JJdlF1NHhFcnpKUE85SHZXa3hTemMwT3YwblZPaE0rTnZGeW1BUmtzcytnQUZGYUZVZThxRThtSFh6aW81CmtWTkFlWEpBZUF1bWxBeUJKZklCajJNOXlUeStmT2UweTBSRTJ4V0p3UUdiL1VhU25jSWNPRnNDZ1lFQXRzUlkKcW1VQ3BiQm5EQnF2Vy85UXJ5d1l0OFQ4ZFhCc3ZXMUVuWDh1anBGSFlWSU94MDJCKzlIdUhGUjR4Zy9MYTRGaApYMGFUaWJKZVo5U1FleGpzMlZxYThYSnMyR3o1V2lnRkJaT1pYN2pQait3Q0ZYS3hBRXVIdUl6K2RrUjZuMUNGCk01VW5HR0xoL1BPKzZLK1pDT3BTRHQ5YWova2p1VkJqWVk2NFgwRUNnWUVBNHVDYU5TcG16QzAyeW4rSGdyTUkKSFdraWo5cEV6bGRWakFiQjVhZndrb2JFbWczNnhhWHBZLzJpRGViWWQ4ODJlNzZPNkwveExIYnZEYUltQkdNVApvT2R4cyt6YTVVRExYeUc3ZUJvM1g1a2ZlbER0UGVKWm0xWlJKbFFyWURWeXM4OG80bFE5OHlralZNREJ3amJOCkU0NGdISHM5M3NkOUJzL2doaDZLK0xjQ2dZQVdObVRFU01SNm1LYmRmTHpGUkpGc3lNSTBTM2VYV2xPTTdpUEIKdEh4WERXY01kK21kNVZpZjMxSytGTEljK0R4ejAyU2ZMTGV2cTRMM3dZalJ2U1RFQWRRRTlqQXVXWWd3b2Q2QwpYLzdxK0U0Wm9zaGFEUGRnSHMzZTZ4dmVDZEtSWERya0d3T0dYall6QlBpMTFPbVhnTXI2VGNEMjhJT2IrUjRxCjlDcUtRUUtCZ0F6d2dJdjQ0cVgzWUlxZ2Q4bkdMQVdBVjRTZm45S1FMaXBaWXliOEVEYzRmMkVsUlBzeFhVNVMKRCtNM3RxRlJBcHJrdXhQenNmYmpxRk1DT2creUtNTTl0QzZLc2p0eENuWk5Na1dVWngwQkJLem5XVVVrazdmZApacUtrYVJVaW9qelJWUTliRmpmS3JxMmlHdE9qcVhzT0x1NjdGL2FRdi9JaFZka1Y2aDczCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0t%
-
-### Step 0.4：获取 User ID
-
-be99cebc-cfc0-444a-8b62-eba1b6d9b2b8
-
-和 Account ID
-
-64077115-dd56-4271-a4a5-8b4eb24adc89
+### Step 0.4：获取 User ID 和 Account ID
 
 在 "Apps and Keys" 页面顶部可以看到：
 
@@ -56,16 +47,11 @@ be99cebc-cfc0-444a-8b62-eba1b6d9b2b8
 
 ### Step 0.5：授予 JWT 同意（一次性操作）
 
-在浏览器中访问以下 URL（替换 `{CLIENT_ID}` 为你的 Integration Key）：
-4f42fdd9-5017-4d25-8a22-38d53ae98b0c
-
-ur\
+在浏览器中访问以下 URL（将 `{CLIENT_ID}` 替换为你的 Integration Key）：
 
 ```
 https://account-d.docusign.com/oauth/auth?response_type=code&scope=signature%20impersonation&client_id={CLIENT_ID}&redirect_uri=https://httpbin.org/get
 ```
-
-https://account-d.docusign.com/oauth/auth?response_type=code&scope=signature%20impersonation&client_id=4f42fdd9-5017-4d25-8a22-38d53ae98b0c&redirect_uri=https://httpbin.org/get
 
 1. 登录你的 DocuSign 沙箱账号
 2. 点击 "Accept" 授予同意
@@ -162,12 +148,10 @@ supabase db push
 
 ### Step 5：BD 审批供应商
 
-```bash
-curl -X POST $BASE/api/admin/approve-supplier \
-  -H "Content-Type: application/json" \
-  -H "x-admin-secret: 你的ADMIN_SECRET值" \
-  -d '{"application_id": "Step4拿到的UUID"}'
-```
+1. 以 BD 账号登录（`/login` → OTP 验证）
+2. 跳转到 `/admin/applications`
+3. 找到 Step 4 提交的申请（状态 `Pending`）
+4. 点击 **"Approve"** → 弹出对话框确认信息 → 点击 **"Confirm Approval"**
 
 **验证数据库变化**：
 
