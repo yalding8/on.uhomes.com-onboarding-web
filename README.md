@@ -13,16 +13,17 @@
 | Task 5  | 品牌设计令牌注入（globals.css @theme）                                  | ✅ 完成   |
 | Task 6  | Supabase 建表：applications / suppliers / contracts / buildings         | ✅ 完成   |
 | Task 7  | Auth 认证 + 路由中间件（三态重定向）                                    | ✅ 完成   |
-| Task 8  | P0 核心视图：Landing / Login / Dashboard / ContractViewer               | ✅ 完成   |
+| Task 8  | P0 核心视图：Landing / Login / Dashboard                                | ✅ 完成   |
 | Task 9  | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                           | 🚧 待开发 |
 | P1-BD   | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请             | ✅ 完成   |
 | P1-Core | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页 | ✅ 完成   |
 | P1-Sign | Online Contract Signing：DocuSign eSignature 集成（替代 Mock OpenSign） | ✅ 完成   |
 | P1-i18n | 全站 UI 英文化：组件文案、API 消息、验证错误、测试断言                  | ✅ 完成   |
+| P1-Q    | 供应商全流程 P0 质量加固：事务一致性、Webhook 原子性、字段校验、乐观锁  | ✅ 完成   |
 | P1-AI   | AI 多源提取管道 + 数据融合                                              | 🚧 第二轮 |
 | P1-Pub  | 内部预览 + 发布到主站                                                   | 🚧 第二轮 |
 
-**当前里程碑**：P0 基础设施 + P1-BD 管理后台 + P1-Core Building Onboarding + P1-Sign DocuSign 在线签约 + P1-i18n 全站英文化均已完成。剩余第二轮任务：AI 多源提取管道、内部预览与发布、重型微服务。
+**当前里程碑**：P0 基础设施 + P1-BD 管理后台 + P1-Core Building Onboarding + P1-Sign DocuSign 在线签约 + P1-i18n 全站英文化 + P1-Q 全流程质量加固均已完成。剩余第二轮任务：AI 多源提取管道、内部预览与发布、重型微服务。
 
 ## 基础设施与选型
 
@@ -50,19 +51,18 @@ npm run dev
 
 ## 环境变量 (.env.local)
 
-| 变量名称                        | 说明                                                           |
-| :------------------------------ | :------------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                              |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                          |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                            |
-| `OPENSIGN_WEBHOOK_SECRET`       | OpenSign Webhook 签名验证；本地 Mock 时设为 `TEST_SECRET_MOCK` |
-| `DOCUSIGN_CLIENT_ID`            | DocuSign Integration Key（Client ID）                          |
-| `DOCUSIGN_USER_ID`              | DocuSign User ID，用于 JWT impersonation                       |
-| `DOCUSIGN_ACCOUNT_ID`           | DocuSign Account ID                                            |
-| `DOCUSIGN_PRIVATE_KEY`          | Base64 编码的 RSA 私钥，用于 JWT 认证                          |
-| `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`）          |
-| `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                                      |
-| `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                             |
+| 变量名称                        | 说明                                                  |
+| :------------------------------ | :---------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                     |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                 |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                   |
+| `DOCUSIGN_CLIENT_ID`            | DocuSign Integration Key（Client ID）                 |
+| `DOCUSIGN_USER_ID`              | DocuSign User ID，用于 JWT impersonation              |
+| `DOCUSIGN_ACCOUNT_ID`           | DocuSign Account ID                                   |
+| `DOCUSIGN_PRIVATE_KEY`          | Base64 编码的 RSA 私钥，用于 JWT 认证                 |
+| `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`） |
+| `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                             |
+| `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                    |
 
 > 每次新增环境变量后，必须同步更新本表。
 
@@ -146,18 +146,18 @@ USING (
 
 ## API 路由
 
-| 路径                                  | 方法  | 鉴权方式                      | 说明                                                |
-| :------------------------------------ | :---- | :---------------------------- | :-------------------------------------------------- |
-| `/api/apply`                          | POST  | 无（公开）                    | 供应商提交申请，写入 `applications` 表              |
-| `/api/admin/approve-supplier`         | POST  | Supabase Session（BD 角色）   | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录  |
-| `/api/admin/invite-supplier`          | POST  | Supabase Session（BD 角色）   | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
-| `/api/webhooks/opensign`              | POST  | `x-opensign-signature` Header | 接收 OpenSign 签署完成回调，更新合同状态            |
-| `/api/admin/contracts/[contractId]`   | PUT   | Supabase Session（BD 角色）   | 保存合同动态字段（仅 DRAFT 状态）                   |
-| `/api/admin/contracts/[contractId]`   | POST  | Supabase Session（BD 角色）   | 推送审阅（DRAFT → PENDING_REVIEW）                  |
-| `/api/contracts/[contractId]/confirm` | POST  | Supabase Session（供应商）    | 供应商确认签署或请求修改                            |
-| `/api/webhooks/docusign`              | POST  | HMAC Signature                | DocuSign 签署完成回调，更新合同 + 供应商状态        |
-| `/api/buildings/[buildingId]/fields`  | GET   | Supabase Auth Session         | 获取 building 字段数据 + 评分 + Gap Report          |
-| `/api/buildings/[buildingId]/fields`  | PATCH | Supabase Auth Session         | 更新字段值（乐观锁 + 审计日志）                     |
+| 路径                                  | 方法  | 鉴权方式                    | 说明                                                |
+| :------------------------------------ | :---- | :-------------------------- | :-------------------------------------------------- |
+| `/api/apply`                          | POST  | 无（公开）                  | 供应商提交申请，写入 `applications` 表              |
+| `/api/admin/approve-supplier`         | POST  | Supabase Session（BD 角色） | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录  |
+| `/api/admin/invite-supplier`          | POST  | Supabase Session（BD 角色） | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
+| `/api/admin/contracts/[contractId]`   | PUT   | Supabase Session（BD 角色） | 保存合同动态字段（仅 DRAFT 状态）                   |
+| `/api/admin/contracts/[contractId]`   | POST  | Supabase Session（BD 角色） | 推送审阅（DRAFT → PENDING_REVIEW）                  |
+| `/api/contracts/[contractId]/confirm` | POST  | Supabase Session（供应商）  | 供应商确认签署或请求修改                            |
+| `/api/webhooks/docusign`              | POST  | HMAC Signature              | DocuSign 签署完成回调，更新合同 + 供应商状态        |
+| `/api/buildings/[buildingId]/fields`  | GET   | Supabase Auth Session       | 获取 building 字段数据 + 评分 + Gap Report          |
+| `/api/buildings/[buildingId]/fields`  | PATCH | Supabase Auth Session       | 更新字段值（乐观锁 + 审计日志 + 字段值校验）        |
+| `/api/buildings/[buildingId]/submit`  | POST  | Supabase Auth Session       | 提交楼宇审核（previewable → ready_to_publish）      |
 
 ## Demo 流程（本地）
 
@@ -170,7 +170,8 @@ curl -X POST http://localhost:3000/api/apply \
 # ② BD 登录管理后台 → /admin/applications → 点击「审批」按钮
 #    （approve-supplier API 已改为 Session 鉴权，不再支持 curl 直接调用）
 
-# ③ 供应商收邮件 → 点链接登录 → /dashboard → 点击 "Sign Contract (Mock)"
+# ③ 供应商收邮件 → 点链接登录 → /dashboard → 查看合同预览 → 点击 "Sign Contract"
+#    → DocuSign 完成签署 → Webhook 回调更新状态 → 跳转 Dashboard 显示楼宇列表
 ```
 
 ## 数据库表结构
