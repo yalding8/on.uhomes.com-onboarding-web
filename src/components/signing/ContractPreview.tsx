@@ -23,7 +23,9 @@ export function ContractPreview({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAction = async (action: "confirm" | "request_changes" | "resend") => {
+  const handleAction = async (
+    action: "confirm" | "request_changes" | "resend",
+  ) => {
     if (isLoading) return;
     setIsLoading(true);
     setError(null);
