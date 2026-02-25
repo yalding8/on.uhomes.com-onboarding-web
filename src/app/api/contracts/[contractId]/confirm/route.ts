@@ -8,8 +8,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { createClient as createSessionClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { validateTransition } from "@/lib/contracts/status-machine";
 import { createEnvelope } from "@/lib/docusign/client";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
@@ -33,14 +33,6 @@ interface SupplierRow {
   company_name: string;
 }
 
-/** Service-role client for cross-RLS operations */
-function getAdminClient() {
-  return createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
-}
 
 /**
  * Authenticate current user and return their associated supplier record.
@@ -62,7 +54,7 @@ async function authenticateSupplier(): Promise<
     };
   }
 
-  const adminClient = getAdminClient();
+  const adminClient = createAdminClient();
   const { data: supplier, error: dbError } = await adminClient
     .from("suppliers")
     .select("id, contact_email, company_name")
@@ -89,7 +81,7 @@ async function fetchAndVerifyContract(
   | { contract: ContractRow; error: null }
   | { contract: null; error: NextResponse }
 > {
-  const adminClient = getAdminClient();
+  const adminClient = createAdminClient();
   const { data, error: dbError } = await adminClient
     .from("contracts")
     .select("id, supplier_id, status, contract_fields")
@@ -128,7 +120,7 @@ async function handleConfirm(
   contract: ContractRow,
   supplier: SupplierRow,
 ): Promise<NextResponse> {
-  const adminClient = getAdminClient();
+  const adminClient = createAdminClient();
 
   // 1. Validate state transition PENDING_REVIEW → CONFIRMED
   const toConfirmed = validateTransition(contract.status, "CONFIRMED");
@@ -230,7 +222,7 @@ async function handleRequestChanges(
     );
   }
 
-  const adminClient = getAdminClient();
+  const adminClient = createAdminClient();
   const { error: updateError } = await adminClient
     .from("contracts")
     .update({ status: "DRAFT" })

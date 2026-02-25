@@ -10,23 +10,14 @@
  */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { validateContractFields } from "@/lib/contracts/field-validation";
 import { validateTransition } from "@/lib/contracts/status-machine";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
 
 interface RouteContext {
   params: Promise<{ contractId: string }>;
-}
-
-/** Create service-role Supabase client */
-function createAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
 }
 
 interface ContractData {
@@ -44,7 +35,7 @@ type FetchContractResult =
  * Fetch contract record, return contract data or error Response
  */
 async function fetchContract(
-  supabase: { from: ReturnType<typeof createClient>["from"] },
+  supabase: { from: ReturnType<typeof createAdminClient>["from"] },
   contractId: string,
 ): Promise<FetchContractResult> {
   const { data, error } = await supabase

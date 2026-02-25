@@ -12,9 +12,9 @@
  */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyDocuSignHmac } from "@/lib/docusign/hmac";
 import { downloadSignedDocument } from "@/lib/docusign/client";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -38,15 +38,6 @@ interface ContractRow {
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-/** service-role 客户端，用于跨 RLS 操作 */
-function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
-}
-
 /**
  * 下载签署 PDF 并上传到 Supabase Storage，保存 document_url。
  * 此操作为非核心操作，失败不影响合同/供应商状态更新。
@@ -56,7 +47,7 @@ async function downloadAndStorePdf(
   contractId: string,
   supplierId: string,
 ): Promise<void> {
-  const adminClient = getAdminClient();
+  const adminClient = createAdminClient();
   const storagePath = `${supplierId}/${contractId}.pdf`;
 
   const pdfBuffer = await downloadSignedDocument(envelopeId);
@@ -118,7 +109,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const adminClient = getAdminClient();
+  const adminClient = createAdminClient();
 
   // 6. 通过 envelope_id 查找合同
   const { data: contract, error: findError } = await adminClient

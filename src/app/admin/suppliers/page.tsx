@@ -7,8 +7,8 @@
  * Requirements: 5.1, 5.2, 5.4
  */
 
-import { createClient } from "@supabase/supabase-js";
 import { SupplierList } from "@/components/admin/SupplierList";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface SupplierRow {
   id: string;
@@ -20,11 +20,7 @@ export interface SupplierRow {
 }
 
 async function getSuppliers(): Promise<SupplierRow[]> {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  const supabaseAdmin = createAdminClient();
 
   // 步骤 1：查询所有 supplier 角色的供应商
   const { data: suppliers, error: suppliersError } = await supabaseAdmin

@@ -7,8 +7,8 @@
  * Requirements: 3.1, 3.2, 3.4
  */
 
-import { createClient } from "@supabase/supabase-js";
 import { ApplicationList } from "@/components/admin/ApplicationList";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface ApplicationRow {
   id: string;
@@ -23,11 +23,7 @@ export interface ApplicationRow {
 }
 
 async function getApplications(): Promise<ApplicationRow[]> {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  const supabaseAdmin = createAdminClient();
 
   const { data, error } = await supabaseAdmin
     .from("applications")

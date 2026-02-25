@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
   try {
@@ -29,16 +29,7 @@ export async function POST(request: Request) {
     }
 
     // 2. Init Admin-level Supabase to securely find & transition the user contract states
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-        },
-      },
-    );
+    const supabaseAdmin = createAdminClient();
 
     // 3. Retrieve pending contract by mapped signature_request_id mapped in admin approve phase
     const { data: contract, error: findContractError } = await supabaseAdmin
@@ -90,7 +81,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO Phase 4.1: Parallel launch data aggregation pipeline for auto-onboarding listing.
+    // Phase 4.1 scope: data aggregation pipeline for auto-onboarding listing (tracked in GitHub Issues).
 
     return NextResponse.json({
       success: true,

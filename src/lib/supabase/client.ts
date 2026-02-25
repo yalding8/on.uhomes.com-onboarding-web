@@ -1,9 +1,6 @@
 import { createBrowserClient } from "@supabase/ssr";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/env";
 
 export function createClient() {
-  // Create a supabase client on the browser with project's public anon key
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }

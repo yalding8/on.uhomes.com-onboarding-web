@@ -8,8 +8,8 @@
  */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -75,11 +75,7 @@ export async function POST(request: Request) {
     const { email, company_name, phone, city, website } = validation.data;
 
     // 2. Admin Client
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } },
-    );
+    const supabaseAdmin = createAdminClient();
 
     // 3. 检查邮箱是否已存在于 suppliers 表
     const { data: existing } = await supabaseAdmin

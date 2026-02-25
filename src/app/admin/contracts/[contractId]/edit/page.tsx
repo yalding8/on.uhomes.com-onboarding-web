@@ -6,22 +6,14 @@
  * Requirements: 3.1, 3.2, 3.5, 4.2, 4.4
  */
 
-import { createClient } from "@supabase/supabase-js";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ContractEditForm } from "@/components/admin/ContractEditForm";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
 
 interface RouteParams {
   params: Promise<{ contractId: string }>;
-}
-
-function createAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
 }
 
 export default async function ContractEditPage({ params }: RouteParams) {
