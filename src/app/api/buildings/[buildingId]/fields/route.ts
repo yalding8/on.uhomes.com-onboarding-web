@@ -120,10 +120,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       existing?.field_values ?? {};
     const currentVersion = existing?.version ?? 0;
 
-    // 乐观锁检查
+    // 乐观锁快速拦截：客户端持有明显过期的 version，省去后续 DB 写入
     if (clientVersion !== undefined && clientVersion !== currentVersion) {
       return NextResponse.json(
-        { error: "数据已被其他用户修改，请刷新后重试" },
+        { error: "数据已被其他用户修改，请刷新页面" },
         { status: 409 },
       );
     }
@@ -176,17 +176,29 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const newVersion = currentVersion + 1;
 
     if (existing) {
-      const { error: updateErr } = await supabase
+      // DB 层乐观锁：WHERE version = currentVersion 确保只有持有正确 version
+      // 的请求能写入。.select("version") 返回被更新的行；空数组 = 0 行受影响
+      // = 并发请求已先一步修改了 version，返回 409 让客户端刷新重试。
+      const { data: updated, error: updateErr } = await supabase
         .from("building_onboarding_data")
         .update({
           field_values: updatedValues,
           version: newVersion,
         })
         .eq("building_id", buildingId)
-        .eq("version", currentVersion);
+        .eq("version", currentVersion)
+        .select("version");
 
       if (updateErr) {
         return NextResponse.json({ error: "Update failed" }, { status: 500 });
+      }
+
+      // 0 行受影响：并发请求已在此期间修改了 version
+      if (!updated || updated.length === 0) {
+        return NextResponse.json(
+          { error: "数据已被其他用户修改，请刷新页面" },
+          { status: 409 },
+        );
       }
     } else {
       const { error: insertErr } = await supabase
