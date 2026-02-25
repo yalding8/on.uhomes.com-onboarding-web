@@ -4,11 +4,13 @@
  * 无需用户认证，通过 HMAC-SHA256 签名验证请求合法性。
  *
  * 处理 envelope-completed 事件：
- * 1. 更新合同状态 → SIGNED + signed_at
- * 2. 更新供应商状态 → SIGNED
- * 3. 下载签署 PDF → 上传 Supabase Storage → 保存 document_url
+ * 1. 原子更新合同 + 供应商状态 → SIGNED（含回滚保障）
+ * 2. 下载签署 PDF → 上传 Supabase Storage → 保存 document_url（非核心，失败不影响主流程）
  *
- * Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 8.1, 8.2, 8.3, 8.6
+ * 原子性保障策略：
+ * - 若合同更新失败 → 直接返回 500，DocuSign 会重试
+ * - 若供应商更新失败 → 回滚合同到 SENT，返回 500，DocuSign 会重试
+ * - 幂等检查同时验证双表状态，可从部分失败中恢复
  */
 
 import { NextResponse } from "next/server";
@@ -40,7 +42,7 @@ interface ContractRow {
 
 /**
  * 下载签署 PDF 并上传到 Supabase Storage，保存 document_url。
- * 此操作为非核心操作，失败不影响合同/供应商状态更新。
+ * 非核心操作，失败只记录到 provider_metadata，不影响状态更新结果。
  */
 async function downloadAndStorePdf(
   envelopeId: string,
@@ -127,46 +129,65 @@ export async function POST(request: Request) {
 
   const row = contract as ContractRow;
 
-  // 7. 幂等性：已签署合同不重复处理
+  // 7. 幂等性检查：同时验证双表状态，可从部分失败中恢复
   if (row.status === "SIGNED") {
-    return NextResponse.json({ message: "Already processed" }, { status: 200 });
+    const { data: supplier } = await adminClient
+      .from("suppliers")
+      .select("status")
+      .eq("id", row.supplier_id)
+      .single();
+
+    if (supplier?.status === "SIGNED") {
+      // 两表均已更新，完全幂等
+      return NextResponse.json({ message: "Already processed" }, { status: 200 });
+    }
+    // 合同已 SIGNED 但供应商未更新 — 部分失败恢复，跳过合同更新直接补充供应商
   }
 
-  // 8. 更新合同状态 → SIGNED + signed_at（核心操作）
-  const { error: updateContractError } = await adminClient
-    .from("contracts")
-    .update({
-      status: "SIGNED",
-      signed_at: new Date().toISOString(),
-    })
-    .eq("id", row.id);
+  // 8. 更新合同状态 → SIGNED（仅在尚未 SIGNED 时执行）
+  if (row.status !== "SIGNED") {
+    const { error: updateContractError } = await adminClient
+      .from("contracts")
+      .update({
+        status: "SIGNED",
+        signed_at: new Date().toISOString(),
+      })
+      .eq("id", row.id);
 
-  if (updateContractError) {
-    return NextResponse.json(
-      { error: "Failed to update contract status" },
-      { status: 500 },
-    );
+    if (updateContractError) {
+      // 合同更新失败，未修改任何数据，返回 500 让 DocuSign 重试
+      return NextResponse.json(
+        { error: "Failed to update contract status" },
+        { status: 500 },
+      );
+    }
   }
 
-  // 9. 更新供应商状态 → SIGNED（核心操作）
+  // 9. 更新供应商状态 → SIGNED
+  //    失败时回滚合同到 SENT，确保 DocuSign 重试时能完整重走流程
   const { error: updateSupplierError } = await adminClient
     .from("suppliers")
     .update({ status: "SIGNED" })
     .eq("id", row.supplier_id);
 
   if (updateSupplierError) {
+    // 回滚合同状态，使下次重试可以从头开始
+    await adminClient
+      .from("contracts")
+      .update({ status: "SENT" })
+      .eq("id", row.id);
+
     return NextResponse.json(
       { error: "Failed to update supplier status" },
       { status: 500 },
     );
   }
 
-  // 10. 下载签署 PDF → 上传 Storage → 保存 URL（非核心操作，失败不影响状态）
+  // 10. 下载签署 PDF → 上传 Storage → 保存 URL（非核心，失败不影响状态）
   try {
     await downloadAndStorePdf(envelopeId, row.id, row.supplier_id);
   } catch (err: unknown) {
     const detail = err instanceof Error ? err.message : "Unknown PDF error";
-    // 记录错误到 provider_metadata，不影响 webhook 返回
     const metadata = row.provider_metadata ?? {};
     await adminClient
       .from("contracts")
