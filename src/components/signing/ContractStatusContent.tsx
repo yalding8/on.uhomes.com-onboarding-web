@@ -78,7 +78,7 @@ export function StatusContent({
   fields: ContractFields | null;
   documentUrl: string | null;
   isLoading: boolean;
-  onAction: (action: "confirm" | "request_changes") => void;
+  onAction: (action: "confirm" | "request_changes" | "resend") => void;
 }) {
   switch (status) {
     case "DRAFT":
@@ -94,7 +94,12 @@ export function StatusContent({
     case "CONFIRMED":
       return <ConfirmedContent />;
     case "SENT":
-      return <SentContent />;
+      return (
+        <SentContent
+          isLoading={isLoading}
+          onResend={() => onAction("resend")}
+        />
+      );
     case "SIGNED":
       return <SignedContent documentUrl={documentUrl} />;
     case "CANCELED":
@@ -102,7 +107,6 @@ export function StatusContent({
   }
 }
 
-/** DRAFT status: Contract is being prepared */
 function DraftContent() {
   return (
     <div className="text-center py-12">
@@ -119,7 +123,6 @@ function DraftContent() {
   );
 }
 
-/** PENDING_REVIEW status: Show field details + action buttons */
 function PendingReviewContent({
   fields,
   isLoading,
@@ -195,7 +198,6 @@ function PendingReviewContent({
   );
 }
 
-/** CONFIRMED status: Creating signing request */
 function ConfirmedContent() {
   return (
     <div className="text-center py-12">
@@ -212,8 +214,13 @@ function ConfirmedContent() {
   );
 }
 
-/** SENT status: Signing email sent */
-function SentContent() {
+function SentContent({
+  isLoading,
+  onResend,
+}: {
+  isLoading: boolean;
+  onResend: () => void;
+}) {
   return (
     <div className="text-center py-12">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--color-success-light)] text-[var(--color-success)] mb-4">
@@ -222,15 +229,32 @@ function SentContent() {
       <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
         Signing Email Sent — Check Your Inbox
       </h4>
-      <p className="text-sm text-[var(--color-text-secondary)]">
+      <p className="text-sm text-[var(--color-text-secondary)] mb-6">
         A DocuSign signing link has been sent to your registered email. Please
         follow the instructions to complete the e-signature.
       </p>
+      <button
+        type="button"
+        disabled={isLoading}
+        onClick={onResend}
+        className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium text-sm transition-colors disabled:opacity-70"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          <>
+            <Mail className="w-4 h-4 mr-2" />
+            Resend Signing Email
+          </>
+        )}
+      </button>
     </div>
   );
 }
 
-/** SIGNED status: Signing complete + download link */
 function SignedContent({ documentUrl }: { documentUrl: string | null }) {
   return (
     <div className="text-center py-12">
@@ -258,8 +282,6 @@ function SignedContent({ documentUrl }: { documentUrl: string | null }) {
     </div>
   );
 }
-
-/** CANCELED status: Contract canceled */
 function CanceledContent() {
   return (
     <div className="text-center py-12">

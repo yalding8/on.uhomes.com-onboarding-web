@@ -3,113 +3,26 @@
  *
  * action=confirm:  PENDING_REVIEW → CONFIRMED → DocuSign create envelope → SENT
  * action=request_changes: PENDING_REVIEW → DRAFT
+ * action=resend: SENT → create new DocuSign envelope → SENT
  *
  * Auth: Supabase Session + contract ownership verification | Requirements: 5.2, 5.3, 6.1, 6.4, 6.5, 6.6
  */
 
 import { NextResponse } from "next/server";
-import { createClient as createSessionClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { validateTransition } from "@/lib/contracts/status-machine";
 import { createEnvelope } from "@/lib/docusign/client";
-import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
+import {
+  authenticateUser,
+  fetchContract,
+  type ContractRow,
+  type SupplierRow,
+} from "./auth";
 
-type Action = "confirm" | "request_changes";
+type Action = "confirm" | "request_changes" | "resend";
 
 interface RouteContext {
   params: Promise<{ contractId: string }>;
-}
-
-interface ContractRow {
-  id: string;
-  supplier_id: string;
-  status: ContractStatus;
-  contract_fields: ContractFields | null;
-}
-
-interface SupplierRow {
-  id: string;
-  contact_email: string;
-  company_name: string;
-}
-
-/**
- * Authenticate current user and return their associated supplier record.
- * Returns an error Response on failure.
- */
-async function authenticateSupplier(): Promise<
-  | { supplier: SupplierRow; error: null }
-  | { supplier: null; error: NextResponse }
-> {
-  const supabase = await createSessionClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      supplier: null,
-      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
-    };
-  }
-
-  const adminClient = createAdminClient();
-  const { data: supplier, error: dbError } = await adminClient
-    .from("suppliers")
-    .select("id, contact_email, company_name")
-    .eq("user_id", user.id)
-    .single();
-
-  if (dbError || !supplier) {
-    return {
-      supplier: null,
-      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
-    };
-  }
-
-  return { supplier: supplier as SupplierRow, error: null };
-}
-
-/**
- * Fetch contract record and verify ownership
- */
-async function fetchAndVerifyContract(
-  contractId: string,
-  supplierId: string,
-): Promise<
-  | { contract: ContractRow; error: null }
-  | { contract: null; error: NextResponse }
-> {
-  const adminClient = createAdminClient();
-  const { data, error: dbError } = await adminClient
-    .from("contracts")
-    .select("id, supplier_id, status, contract_fields")
-    .eq("id", contractId)
-    .single();
-
-  if (dbError || !data) {
-    return {
-      contract: null,
-      error: NextResponse.json(
-        { error: "Contract not found" },
-        { status: 404 },
-      ),
-    };
-  }
-
-  const contract = data as ContractRow;
-
-  if (contract.supplier_id !== supplierId) {
-    return {
-      contract: null,
-      error: NextResponse.json(
-        { error: "Contract does not belong to current user" },
-        { status: 403 },
-      ),
-    };
-  }
-
-  return { contract, error: null };
 }
 
 /**
@@ -121,7 +34,6 @@ async function handleConfirm(
 ): Promise<NextResponse> {
   const adminClient = createAdminClient();
 
-  // 1. Validate state transition PENDING_REVIEW → CONFIRMED
   const toConfirmed = validateTransition(contract.status, "CONFIRMED");
   if (!toConfirmed.valid) {
     return NextResponse.json(
@@ -132,7 +44,6 @@ async function handleConfirm(
     );
   }
 
-  // 2. Update status to CONFIRMED
   const { error: confirmError } = await adminClient
     .from("contracts")
     .update({ status: "CONFIRMED" })
@@ -145,8 +56,35 @@ async function handleConfirm(
     );
   }
 
-  // 3. Call DocuSign to create envelope
+  return sendEnvelope(contract, supplier);
+}
+
+/**
+ * Handle action=resend: SENT → create new DocuSign envelope → SENT
+ */
+async function handleResend(
+  contract: ContractRow,
+  supplier: SupplierRow,
+): Promise<NextResponse> {
+  if (contract.status !== "SENT") {
+    return NextResponse.json(
+      { error: "Can only resend contracts in SENT status" },
+      { status: 400 },
+    );
+  }
+  return sendEnvelope(contract, supplier);
+}
+
+/**
+ * Shared: create DocuSign envelope and update contract to SENT
+ */
+async function sendEnvelope(
+  contract: ContractRow,
+  supplier: SupplierRow,
+): Promise<NextResponse> {
+  const adminClient = createAdminClient();
   const fields = contract.contract_fields;
+
   if (!fields) {
     return NextResponse.json(
       { error: "Contract fields are missing" },
@@ -161,7 +99,6 @@ async function handleConfirm(
       fields,
     );
 
-    // 4. Success: update status to SENT, store envelope_id, set signature_provider
     const { error: sentError } = await adminClient
       .from("contracts")
       .update({
@@ -180,12 +117,11 @@ async function handleConfirm(
 
     return NextResponse.json({
       success: true,
-      message: "Contract confirmed. Signing email has been sent",
+      message: "Signing email has been sent",
       status: "SENT",
       envelopeId,
     });
   } catch (err: unknown) {
-    // 5. Failure: keep CONFIRMED status, record error to provider_metadata
     const detail =
       err instanceof Error ? err.message : "Unknown DocuSign error";
     await adminClient
@@ -244,38 +180,39 @@ async function handleRequestChanges(
 /**
  * POST /api/contracts/[contractId]/confirm
  *
- * Body: { action: "confirm" | "request_changes" }
+ * Body: { action: "confirm" | "request_changes" | "resend" }
  */
 export async function POST(request: Request, context: RouteContext) {
   try {
-    // 1. Supplier authentication
-    const authResult = await authenticateSupplier();
+    const authResult = await authenticateUser();
     if (authResult.error) return authResult.error;
-    const { supplier } = authResult;
+    const { auth } = authResult;
 
-    // 2. Parse action
     const body = (await request.json()) as { action?: string };
     const action = body.action as Action | undefined;
 
-    if (!action || !["confirm", "request_changes"].includes(action)) {
+    if (!action || !["confirm", "request_changes", "resend"].includes(action)) {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+    }
+
+    // BD can only resend, not confirm or request_changes on behalf
+    if (auth.isBd && action !== "resend") {
       return NextResponse.json(
-        { error: "Invalid action. Must be 'confirm' or 'request_changes'" },
-        { status: 400 },
+        { error: "BD can only resend signing emails" },
+        { status: 403 },
       );
     }
 
-    // 3. Fetch contract and verify ownership
     const { contractId } = await context.params;
-    const contractResult = await fetchAndVerifyContract(
-      contractId,
-      supplier.id,
-    );
+    const contractResult = await fetchContract(contractId, auth);
     if (contractResult.error) return contractResult.error;
-    const { contract } = contractResult;
+    const { contract, contractSupplier } = contractResult;
 
-    // 4. Dispatch handler
     if (action === "confirm") {
-      return handleConfirm(contract, supplier);
+      return handleConfirm(contract, contractSupplier);
+    }
+    if (action === "resend") {
+      return handleResend(contract, contractSupplier);
     }
 
     return handleRequestChanges(contract);

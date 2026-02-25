@@ -19,6 +19,7 @@ import {
   SUPPLIER_STATUS_CONFIG,
   formatDate,
 } from "./supplier-detail-config";
+import { ResendButton } from "@/components/admin/ResendButton";
 
 async function getSupplierDetail(id: string) {
   const supabaseAdmin = createAdminClient();
@@ -219,7 +220,11 @@ export default async function SupplierDetailPage({
                             Download Signed Contract
                           </a>
                         )}
+                        {c.status === "SENT" && (
+                          <ResendButton contractId={c.id} />
+                        )}
                         {c.status !== "DRAFT" &&
+                          c.status !== "SENT" &&
                           !(c.status === "SIGNED" && c.document_url) &&
                           "—"}
                       </td>
