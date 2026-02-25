@@ -5,10 +5,11 @@
  * 管理字段编辑状态，debounce 自动保存到 PATCH API。
  */
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { FieldGroup } from "./FieldGroup";
 import { ScoreBar } from "./ScoreBar";
 import { GapReportPanel } from "./GapReportPanel";
+import { Send } from "lucide-react";
 import {
   ALL_CATEGORIES,
   getFieldsByCategory,
@@ -44,8 +45,16 @@ export function OnboardingForm({
   const [version, setVersion] = useState(initialVersion);
   const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // 组件卸载时清理 debounce timer，防止状态更新 leak
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const saveField = useCallback(
     async (key: string, value: unknown) => {
@@ -104,6 +113,38 @@ export function OnboardingForm({
     [saveField],
   );
 
+  const handleSubmit = async () => {
+    if (submitting || saving) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/buildings/${buildingId}/submit`, {
+        method: "POST",
+      });
+      const data = (await res.json()) as {
+        status?: string;
+        error?: string;
+        missingFields?: { key: string; label: string }[];
+      };
+
+      if (!res.ok) {
+        if (data.missingFields && data.missingFields.length > 0) {
+          const labels = data.missingFields.map((f) => f.label).join("、");
+          setError(`以下必填字段尚未填写：${labels}`);
+        } else {
+          setError(data.error ?? "提交失败，请重试");
+        }
+        return;
+      }
+
+      setStatus(data.status as BuildingStatus);
+    } catch {
+      setError("网络错误，请检查连接");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const grouped = getFieldsByCategory();
 
   return (
@@ -114,13 +155,30 @@ export function OnboardingForm({
           <h1 className="text-xl font-bold text-[var(--color-text-primary)] truncate">
             {buildingName}
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {saving && (
               <span className="text-xs text-[var(--color-text-muted)]">
                 保存中...
               </span>
             )}
             <StatusLabel status={status} />
+            {status === "previewable" && (
+              <button
+                onClick={handleSubmit}
+                disabled={submitting || saving}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+              >
+                <Send className="w-3.5 h-3.5" />
+                {submitting ? "提交中..." : "提交审核"}
+              </button>
+            )}
+            {(status === "ready_to_publish" || status === "published") && (
+              <span className="text-xs text-[var(--color-text-muted)]">
+                {status === "ready_to_publish"
+                  ? "已提交，等待团队审核"
+                  : "已发布"}
+              </span>
+            )}
           </div>
         </div>
         <ScoreBar score={score.score} />
