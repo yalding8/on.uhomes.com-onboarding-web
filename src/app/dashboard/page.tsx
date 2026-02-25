@@ -22,13 +22,13 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: supplier } = await supabase
+  const { data: supplier, error: supplierError } = await supabase
     .from("suppliers")
     .select("id, company_name, status")
     .eq("user_id", user.id)
     .single();
 
-  if (!supplier) redirect("/");
+  if (supplierError || !supplier) redirect("/");
 
   // 获取合同（PENDING_CONTRACT 或新状态流程中的供应商都需要）
   let contract: {
