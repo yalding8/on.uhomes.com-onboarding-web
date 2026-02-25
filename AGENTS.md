@@ -60,3 +60,16 @@
 1. 该文件是否已存在对应的测试文件（`__tests__/`）？如有，修改后需同步更新测试。
 2. 修改是否涉及数据库表结构？如有，需评估是否需要新增 Supabase migration。
 3. 修改是否影响路由或环境变量？如有，需同步更新 `README.md`。
+
+## 7. 提交前必须通过的本地检查
+
+每次 commit 前，**必须**在本地依次通过以下检查，否则 CI 会失败并触发自动回滚：
+
+```bash
+npx prettier --write .   # 格式化所有文件
+npx tsc --noEmit         # TypeScript 类型检查
+bash scripts/check-file-lines.sh  # 文件行数检查（≤ 300 行）
+```
+
+> CI 门禁（Main Branch Guard）运行顺序：Prettier → ESLint → tsc → 行数检查 → Vitest → Build。
+> 任意一步失败，后续步骤全部跳过，且会尝试自动 revert。
