@@ -65,8 +65,8 @@
 - [x] 3. Checkpoint — 核心纯函数验证
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 4. 数据融合与提取管道 _(第二轮：依赖 External Worker)_
-  - [ ] 4.1 实现多源数据融合模块
+- [x] 4. 数据融合与提取管道 _(第二轮：依赖 External Worker)_
+  - [x] 4.1 实现多源数据融合模块
     - 创建 `src/lib/onboarding/data-merge.ts`
     - 实现 `mergeExtractionResults(results: ExtractionResult[]): Record<string, FieldValue>`
     - 优先级：contract_pdf > google_sheets > website_crawl
@@ -78,7 +78,7 @@
     - **Property 3: 多源数据融合优先级与来源追踪**
     - **Validates: Requirements 1.6, 1.7**
 
-  - [ ] 4.3 实现异步补充保护逻辑
+  - [x] 4.3 实现异步补充保护逻辑
     - 在 `data-merge.ts` 中添加 `mergeWithProtection(existing, incoming): Record<string, FieldValue>`
     - 已确认字段（confirmedBy 不为空）不被覆盖
     - _Requirements: 8.3_
@@ -87,14 +87,14 @@
     - **Property 12: 异步补充保护已确认字段**
     - **Validates: Requirements 8.3**
 
-  - [ ] 4.5 实现提取触发 API
+  - [x] 4.5 实现提取触发 API
     - 创建 `src/app/api/extraction/trigger/route.ts`
     - POST 接口：接收 buildingId、supplierId、contractPdfUrl、websiteUrl、googleSheetsUrl
     - 创建 3 个 extraction_jobs 记录（pending 状态）
     - 向 External Worker 发送 HTTP 请求触发提取（使用 service_role key 鉴权）
     - _Requirements: 1.1_
 
-  - [ ] 4.6 实现提取回调 API
+  - [x] 4.6 实现提取回调 API
     - 创建 `src/app/api/extraction/callback/route.ts`
     - POST 接口：接收 External Worker 的提取结果
     - 验证请求签名（service_role key）

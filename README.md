@@ -17,7 +17,7 @@
 | Task 9  | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                           | 🚧 待开发 |
 | P1-BD   | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请             | ✅ 完成   |
 | P1-Core | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页 | ✅ 完成   |
-| P1-AI   | AI 多源提取管道 + 数据融合                                              | 🚧 第二轮 |
+| P1-AI   | AI 多源提取管道 + 数据融合（纯函数 + API 已完成，待 Worker 联调）       | ✅ 完成   |
 | P1-Pub  | 内部预览 + 发布到主站                                                   | 🚧 第二轮 |
 
 **当前里程碑**：P0 合同签署全流程 + P1-BD 管理后台 + P1-Core Building Onboarding 编辑页均已完成。剩余第二轮任务：AI 多源提取管道、内部预览与发布、重型微服务。
@@ -61,6 +61,7 @@ npm run dev
 | `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`）          |
 | `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                                      |
 | `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                             |
+| `EXTRACTION_WORKER_URL`         | External Worker 基础 URL（可选，未配置时跳过 Worker 调度）     |
 
 > 每次新增环境变量后，必须同步更新本表。
 
@@ -156,6 +157,8 @@ USING (
 | `/api/webhooks/docusign`              | POST  | HMAC Signature                | DocuSign 签署完成回调，更新合同 + 供应商状态        |
 | `/api/buildings/[buildingId]/fields`  | GET   | Supabase Auth Session         | 获取 building 字段数据 + 评分 + Gap Report          |
 | `/api/buildings/[buildingId]/fields`  | PATCH | Supabase Auth Session         | 更新字段值（乐观锁 + 审计日志）                     |
+| `/api/extraction/trigger`             | POST  | `Authorization: Bearer` (service_role) | 触发多源数据提取，创建 3 个 extraction_jobs   |
+| `/api/extraction/callback`            | POST  | `Authorization: Bearer` (service_role) | 接收 Worker 提取结果，融合数据并更新评分      |
 
 ## Demo 流程（本地）
 
