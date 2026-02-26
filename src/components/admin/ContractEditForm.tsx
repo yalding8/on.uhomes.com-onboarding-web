@@ -13,12 +13,14 @@ import { Eye, Pencil } from "lucide-react";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
 import { ContractDocumentPreview } from "@/components/contracts/ContractDocumentPreview";
 import { ContractFieldGrid } from "./ContractFieldGrid";
+import { ContractPdfUpload } from "./ContractPdfUpload";
 
 export interface ContractEditFormProps {
   contractId: string;
   initialFields: Partial<ContractFields>;
   supplierInfo: { company_name: string; city: string | null };
   contractStatus: ContractStatus;
+  uploadedDocumentUrl: string | null;
 }
 
 const STATUS_LABELS: Record<ContractStatus, string> = {
@@ -35,6 +37,7 @@ export function ContractEditForm({
   initialFields,
   supplierInfo,
   contractStatus,
+  uploadedDocumentUrl,
 }: ContractEditFormProps) {
   const prefilled = useMemo<Partial<ContractFields>>(() => {
     const result = { ...initialFields };
@@ -59,6 +62,21 @@ export function ContractEditForm({
   const [showPreview, setShowPreview] = useState(false);
 
   const isEditable = status === "DRAFT";
+
+  const handleFieldsExtracted = useCallback(
+    (extracted: Partial<ContractFields>) => {
+      setFields((prev) => {
+        const merged = { ...prev };
+        for (const [k, v] of Object.entries(extracted)) {
+          if (v && typeof v === "string" && v.trim()) {
+            merged[k as keyof ContractFields] = v;
+          }
+        }
+        return merged;
+      });
+    },
+    [],
+  );
 
   const handleFieldChange = useCallback(
     (key: keyof ContractFields, value: string) => {
@@ -187,12 +205,21 @@ export function ContractEditForm({
       {showPreview ? (
         <ContractDocumentPreview fields={fields} />
       ) : (
-        <ContractFieldGrid
-          fields={fields}
-          errors={errors}
-          isEditable={isEditable}
-          onFieldChange={handleFieldChange}
-        />
+        <>
+          {isEditable && (
+            <ContractPdfUpload
+              contractId={contractId}
+              uploadedUrl={uploadedDocumentUrl}
+              onFieldsExtracted={handleFieldsExtracted}
+            />
+          )}
+          <ContractFieldGrid
+            fields={fields}
+            errors={errors}
+            isEditable={isEditable}
+            onFieldChange={handleFieldChange}
+          />
+        </>
       )}
 
       {isEditable && (

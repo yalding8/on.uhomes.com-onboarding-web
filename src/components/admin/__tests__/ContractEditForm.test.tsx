@@ -46,6 +46,7 @@ function renderForm(overrides: Partial<ContractEditFormProps> = {}) {
     initialFields: makeFields(),
     supplierInfo: { company_name: "Acme Corp", city: "Shanghai" },
     contractStatus: "DRAFT",
+    uploadedDocumentUrl: null,
     ...overrides,
   };
   return render(<ContractEditForm {...props} />);

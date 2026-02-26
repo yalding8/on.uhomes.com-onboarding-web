@@ -39,7 +39,7 @@ export default async function ContractEditPage({ params }: RouteParams) {
   // 1. 查询合同记录
   const { data: contract, error: contractError } = await supabaseAdmin
     .from("contracts")
-    .select("id, supplier_id, status, contract_fields")
+    .select("id, supplier_id, status, contract_fields, uploaded_document_url")
     .eq("id", contractId)
     .single();
 
@@ -100,6 +100,9 @@ export default async function ContractEditPage({ params }: RouteParams) {
           city: (application?.city as string | null) ?? null,
         }}
         contractStatus={contract.status as ContractStatus}
+        uploadedDocumentUrl={
+          (contract.uploaded_document_url as string | null) ?? null
+        }
       />
     </div>
   );
