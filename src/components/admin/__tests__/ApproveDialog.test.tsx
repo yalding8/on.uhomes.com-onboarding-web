@@ -67,27 +67,27 @@ describe("ApproveDialog", () => {
 
   it("渲染合同类型选择器，默认选中 STANDARD_PROMOTION_2026", () => {
     renderDialog();
-    const select = screen.getByLabelText("合同类型") as HTMLSelectElement;
+    const select = screen.getByLabelText("Contract Type") as HTMLSelectElement;
     expect(select.value).toBe("STANDARD_PROMOTION_2026");
     expect(select.options).toHaveLength(CONTRACT_TYPES.length);
   });
 
   it("PENDING 状态下确认按钮可用", () => {
     renderDialog();
-    const btn = screen.getByRole("button", { name: "确认审批" });
+    const btn = screen.getByRole("button", { name: "Confirm Approval" });
     expect(btn).not.toBeDisabled();
   });
 
   it("非 PENDING 状态下确认按钮禁用", () => {
     renderDialog({ application: makeApplication({ status: "CONVERTED" }) });
-    const btn = screen.getByRole("button", { name: "已转化" });
+    const btn = screen.getByRole("button", { name: "Converted" });
     expect(btn).toBeDisabled();
   });
 
   it("非 PENDING 状态显示无法审批提示", () => {
     renderDialog({ application: makeApplication({ status: "REJECTED" }) });
     expect(
-      screen.getByText(/当前状态为「已拒绝」，无法审批/),
+      screen.getByText(/Current status is "Rejected", cannot approve/),
     ).toBeInTheDocument();
   });
 
@@ -95,7 +95,9 @@ describe("ApproveDialog", () => {
     const onConfirm = vi.fn(() => Promise.resolve());
     renderDialog({ onConfirm });
 
-    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Confirm Approval" }),
+    );
 
     expect(onConfirm).toHaveBeenCalledWith("STANDARD_PROMOTION_2026");
   });
@@ -105,17 +107,19 @@ describe("ApproveDialog", () => {
     renderDialog({ onConfirm });
 
     await userEvent.selectOptions(
-      screen.getByLabelText("合同类型"),
+      screen.getByLabelText("Contract Type"),
       "PREMIUM_PROMOTION_2026",
     );
-    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Confirm Approval" }),
+    );
 
     expect(onConfirm).toHaveBeenCalledWith("PREMIUM_PROMOTION_2026");
   });
 
   it("取消按钮调用 onCancel", async () => {
     const { props } = renderDialog();
-    await userEvent.click(screen.getByRole("button", { name: "取消" }));
+    await userEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(props.onCancel).toHaveBeenCalled();
   });
 
@@ -144,7 +148,7 @@ describe("ApproveDialog", () => {
     );
     renderDialog({ onConfirm });
 
-    const btn = screen.getByRole("button", { name: "确认审批" });
+    const btn = screen.getByRole("button", { name: "Confirm Approval" });
     await userEvent.click(btn);
 
     // loading 中按钮应禁用
@@ -161,29 +165,39 @@ describe("ApproveDialog", () => {
 
   it("onConfirm 抛错时显示错误信息并恢复按钮", async () => {
     const onConfirm = vi.fn(() =>
-      Promise.reject(new Error("审批失败：网络错误")),
+      Promise.reject(new Error("Approval failed: network error")),
     );
     renderDialog({ onConfirm });
 
-    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Confirm Approval" }),
+    );
 
     await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("审批失败：网络错误");
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Approval failed: network error",
+      );
     });
 
     // 按钮恢复可用
-    expect(screen.getByRole("button", { name: "确认审批" })).not.toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Confirm Approval" }),
+    ).not.toBeDisabled();
   });
 
   it("loading 期间 Escape 键不触发关闭", async () => {
     const onConfirm = vi.fn(() => new Promise<void>(() => {}));
     const { props } = renderDialog({ onConfirm });
 
-    await userEvent.click(screen.getByRole("button", { name: "确认审批" }));
+    await userEvent.click(
+      screen.getByRole("button", { name: "Confirm Approval" }),
+    );
 
     // 等待进入 loading 状态
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /确认审批/ })).toBeDisabled();
+      expect(
+        screen.getByRole("button", { name: /Confirm Approval/ }),
+      ).toBeDisabled();
     });
 
     fireEvent.keyDown(document, { key: "Escape" });

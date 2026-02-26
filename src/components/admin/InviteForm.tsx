@@ -38,12 +38,12 @@ const INITIAL_FORM: FormData = {
 export function validateInviteForm(data: FormData): FormErrors {
   const errors: FormErrors = {};
   if (!data.email.trim()) {
-    errors.email = "邮箱为必填项";
+    errors.email = "Email is required";
   } else if (!EMAIL_REGEX.test(data.email.trim())) {
-    errors.email = "邮箱格式不合法";
+    errors.email = "Invalid email format";
   }
   if (!data.company_name.trim()) {
-    errors.company_name = "公司名称为必填项";
+    errors.company_name = "Company name is required";
   }
   return errors;
 }
@@ -91,15 +91,18 @@ export function InviteForm() {
       if (!response.ok) {
         setResult({
           type: "error",
-          message: data.error || "操作失败，请稍后重试",
+          message: data.error || "Operation failed, please try again",
         });
         return;
       }
 
-      setResult({ type: "success", message: "供应商邀请已发送" });
+      setResult({ type: "success", message: "Invitation sent successfully" });
       setForm(INITIAL_FORM);
     } catch {
-      setResult({ type: "error", message: "操作失败，请稍后重试" });
+      setResult({
+        type: "error",
+        message: "Operation failed, please try again",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -130,7 +133,7 @@ export function InviteForm() {
           htmlFor="invite-email"
           className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
         >
-          联系邮箱 <span className="text-[var(--color-primary)]">*</span>
+          Email <span className="text-[var(--color-primary)]">*</span>
         </label>
         <input
           id="invite-email"
@@ -157,14 +160,14 @@ export function InviteForm() {
           htmlFor="invite-company"
           className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
         >
-          公司名称 <span className="text-[var(--color-primary)]">*</span>
+          Company Name <span className="text-[var(--color-primary)]">*</span>
         </label>
         <input
           id="invite-company"
           type="text"
           value={form.company_name}
           onChange={(e) => handleChange("company_name", e.target.value)}
-          placeholder="公司全称"
+          placeholder="Full company name"
           className={`w-full px-3 py-2 rounded-lg border text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] ${
             errors.company_name
               ? "border-[var(--color-primary)]"
@@ -184,14 +187,14 @@ export function InviteForm() {
           htmlFor="invite-phone"
           className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
         >
-          联系电话
+          Phone
         </label>
         <input
           id="invite-phone"
           type="tel"
           value={form.phone}
           onChange={(e) => handleChange("phone", e.target.value)}
-          placeholder="选填"
+          placeholder="Optional"
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
       </div>
@@ -202,14 +205,14 @@ export function InviteForm() {
           htmlFor="invite-city"
           className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
         >
-          城市
+          City
         </label>
         <input
           id="invite-city"
           type="text"
           value={form.city}
           onChange={(e) => handleChange("city", e.target.value)}
-          placeholder="选填"
+          placeholder="Optional"
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
       </div>
@@ -220,7 +223,7 @@ export function InviteForm() {
           htmlFor="invite-website"
           className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
         >
-          网站
+          Website
         </label>
         <input
           id="invite-website"
@@ -238,7 +241,7 @@ export function InviteForm() {
         disabled={submitting}
         className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {submitting ? "发送中..." : "发送邀请"}
+        {submitting ? "Sending..." : "Send Invitation"}
       </button>
     </form>
   );

@@ -8,21 +8,22 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import type { ContractStatus, ContractFields } from "@/lib/contracts/types";
+import { ContractDocumentPreview } from "@/components/contracts/ContractDocumentPreview";
 
-/** 9 个动态字段的中文标签映射 */
+/** Field labels for the 9 dynamic contract fields */
 export const FIELD_LABELS: Record<keyof ContractFields, string> = {
-  partner_company_name: "合作公司名称",
-  partner_contact_name: "联系人姓名",
-  partner_address: "公司地址",
-  partner_city: "所在城市",
-  partner_country: "所在国家",
-  commission_rate: "佣金比例 (%)",
-  contract_start_date: "合同开始日期",
-  contract_end_date: "合同结束日期",
-  covered_properties: "覆盖房源",
+  partner_company_name: "Partner Company",
+  partner_contact_name: "Contact Name",
+  partner_address: "Address",
+  partner_city: "City",
+  partner_country: "Country",
+  commission_rate: "Commission Rate (%)",
+  contract_start_date: "Contract Start Date",
+  contract_end_date: "Contract End Date",
+  covered_properties: "Covered Properties",
 };
 
-/** 字段展示顺序 */
+/** Field display order */
 export const FIELD_ORDER: ReadonlyArray<keyof ContractFields> = [
   "partner_company_name",
   "partner_contact_name",
@@ -35,38 +36,38 @@ export const FIELD_ORDER: ReadonlyArray<keyof ContractFields> = [
   "covered_properties",
 ];
 
-/** 状态徽章 */
+/** Status badge */
 export function StatusBadge({ status }: { status: ContractStatus }) {
   switch (status) {
     case "SIGNED":
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--color-success-light)] text-[var(--color-success)]">
           <CheckCircle2 className="w-4 h-4 mr-1.5" />
-          已签署
+          Signed
         </span>
       );
     case "CANCELED":
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)]">
-          已取消
+          Canceled
         </span>
       );
     case "PENDING_REVIEW":
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--color-warning-light)] text-[var(--color-warning)]">
-          待审阅
+          Pending Review
         </span>
       );
     default:
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--color-primary-light)] text-[var(--color-primary)]">
-          处理中
+          Processing
         </span>
       );
   }
 }
 
-/** 根据合同状态渲染不同内容 */
+/** Render different content based on contract status */
 export function StatusContent({
   status,
   fields,
@@ -78,7 +79,7 @@ export function StatusContent({
   fields: ContractFields | null;
   documentUrl: string | null;
   isLoading: boolean;
-  onAction: (action: "confirm" | "request_changes") => void;
+  onAction: (action: "confirm" | "request_changes" | "resend") => void;
 }) {
   switch (status) {
     case "DRAFT":
@@ -94,7 +95,12 @@ export function StatusContent({
     case "CONFIRMED":
       return <ConfirmedContent />;
     case "SENT":
-      return <SentContent />;
+      return (
+        <SentContent
+          isLoading={isLoading}
+          onResend={() => onAction("resend")}
+        />
+      );
     case "SIGNED":
       return <SignedContent documentUrl={documentUrl} />;
     case "CANCELED":
@@ -102,7 +108,6 @@ export function StatusContent({
   }
 }
 
-/** DRAFT 状态：合同正在准备中 */
 function DraftContent() {
   return (
     <div className="text-center py-12">
@@ -110,16 +115,15 @@ function DraftContent() {
         <Clock className="w-8 h-8" />
       </div>
       <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-        合同正在准备中
+        Contract is Being Prepared
       </h4>
       <p className="text-sm text-[var(--color-text-secondary)]">
-        BD 团队正在为您准备合作协议，请耐心等待。
+        Our BD team is preparing the partnership agreement for you. Please wait.
       </p>
     </div>
   );
 }
 
-/** PENDING_REVIEW 状态：展示字段详情 + 操作按钮 */
 function PendingReviewContent({
   fields,
   isLoading,
@@ -132,33 +136,13 @@ function PendingReviewContent({
   return (
     <div className="space-y-6">
       <p className="text-sm text-[var(--color-text-secondary)]">
-        请仔细审阅以下合同条款，确认无误后点击{"\u201C"}确认并进入签署{"\u201D"}
-        。
+        Please review the contract terms below carefully. Click &quot;Confirm
+        &amp; Sign&quot; once you are satisfied.
       </p>
 
-      {fields && (
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          data-testid="contract-fields"
-        >
-          {FIELD_ORDER.map((key) => (
-            <div
-              key={key}
-              className="p-3 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]"
-            >
-              <dt className="text-xs text-[var(--color-text-muted)] mb-1">
-                {FIELD_LABELS[key]}
-              </dt>
-              <dd
-                className="text-sm font-medium text-[var(--color-text-primary)]"
-                data-testid={`field-${key}`}
-              >
-                {fields[key] || "—"}
-              </dd>
-            </div>
-          ))}
-        </div>
-      )}
+      <div data-testid="contract-fields">
+        <ContractDocumentPreview fields={fields} />
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
@@ -170,10 +154,10 @@ function PendingReviewContent({
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              处理中...
+              Processing...
             </>
           ) : (
-            "确认并进入签署"
+            "Confirm & Sign"
           )}
         </button>
         <button
@@ -183,19 +167,18 @@ function PendingReviewContent({
           className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium transition-colors disabled:opacity-70"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          请求修改
+          Request Changes
         </button>
       </div>
 
       <p className="text-xs text-[var(--color-text-muted)]">
-        点击{"\u201C"}确认并进入签署{"\u201D"}后，系统将通过 DocuSign
-        发送签署邮件至您的注册邮箱。
+        After clicking &quot;Confirm &amp; Sign&quot;, a DocuSign signing email
+        will be sent to your registered email address.
       </p>
     </div>
   );
 }
 
-/** CONFIRMED 状态：正在创建签署请求 */
 function ConfirmedContent() {
   return (
     <div className="text-center py-12">
@@ -203,33 +186,56 @@ function ConfirmedContent() {
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
       <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-        正在创建签署请求...
+        Creating Signing Request...
       </h4>
       <p className="text-sm text-[var(--color-text-secondary)]">
-        系统正在通过 DocuSign 创建签署信封，请稍候。
+        The system is creating a DocuSign envelope. Please wait.
       </p>
     </div>
   );
 }
 
-/** SENT 状态：签署邮件已发送 */
-function SentContent() {
+function SentContent({
+  isLoading,
+  onResend,
+}: {
+  isLoading: boolean;
+  onResend: () => void;
+}) {
   return (
     <div className="text-center py-12">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--color-success-light)] text-[var(--color-success)] mb-4">
         <Mail className="w-8 h-8" />
       </div>
       <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-        签署邮件已发送，请查收邮箱
+        Signing Email Sent — Check Your Inbox
       </h4>
-      <p className="text-sm text-[var(--color-text-secondary)]">
-        DocuSign 签署链接已发送至您的注册邮箱，请按照邮件指引完成电子签名。
+      <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+        A DocuSign signing link has been sent to your registered email. Please
+        follow the instructions to complete the e-signature.
       </p>
+      <button
+        type="button"
+        disabled={isLoading}
+        onClick={onResend}
+        className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium text-sm transition-colors disabled:opacity-70"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Sending...
+          </>
+        ) : (
+          <>
+            <Mail className="w-4 h-4 mr-2" />
+            Resend Signing Email
+          </>
+        )}
+      </button>
     </div>
   );
 }
 
-/** SIGNED 状态：签署完成 + 下载链接 */
 function SignedContent({ documentUrl }: { documentUrl: string | null }) {
   return (
     <div className="text-center py-12">
@@ -237,10 +243,11 @@ function SignedContent({ documentUrl }: { documentUrl: string | null }) {
         <CheckCircle2 className="w-8 h-8" />
       </div>
       <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-        合同签署完成
+        Contract Signed Successfully
       </h4>
       <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-        您的合作协议已签署生效，感谢您的信任与合作。
+        Your partnership agreement has been signed and is now in effect. Thank
+        you for your trust and cooperation.
       </p>
       {documentUrl && (
         <a
@@ -250,14 +257,12 @@ function SignedContent({ documentUrl }: { documentUrl: string | null }) {
           className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] font-medium transition-colors"
         >
           <Download className="w-4 h-4 mr-2" />
-          下载已签署合同 (PDF)
+          Download Signed Contract (PDF)
         </a>
       )}
     </div>
   );
 }
-
-/** CANCELED 状态：合同已取消 */
 function CanceledContent() {
   return (
     <div className="text-center py-12">
@@ -265,10 +270,11 @@ function CanceledContent() {
         <AlertCircle className="w-8 h-8" />
       </div>
       <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-        合同已取消
+        Contract Canceled
       </h4>
       <p className="text-sm text-[var(--color-text-secondary)]">
-        该合同已被取消，如有疑问请联系 BD 团队。
+        This contract has been canceled. Please contact the BD team if you have
+        any questions.
       </p>
     </div>
   );

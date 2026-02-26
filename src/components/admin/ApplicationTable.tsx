@@ -22,15 +22,15 @@ const STATUS_CONFIG: Record<
   { label: string; className: string }
 > = {
   PENDING: {
-    label: "待处理",
+    label: "Pending",
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   CONVERTED: {
-    label: "已转化",
+    label: "Converted",
     className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
   REJECTED: {
-    label: "已拒绝",
+    label: "Rejected",
     className: "bg-[var(--color-primary-light)] text-[var(--color-primary)]",
   },
 };
@@ -47,7 +47,7 @@ function StatusBadge({ status }: { status: ApplicationRow["status"] }) {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("zh-CN", {
+  return new Date(iso).toLocaleString("en-US", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -71,7 +71,7 @@ function ApproveButton({
       disabled={!isPending}
       className="px-3 py-1 rounded text-xs font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     >
-      {isPending ? "审批" : STATUS_CONFIG[application.status].label}
+      {isPending ? "Approve" : STATUS_CONFIG[application.status].label}
     </button>
   );
 }
@@ -87,15 +87,15 @@ export function ApplicationTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-              <th className="text-left px-4 py-3 font-medium">公司名称</th>
-              <th className="text-left px-4 py-3 font-medium">联系邮箱</th>
-              <th className="text-left px-4 py-3 font-medium">联系电话</th>
-              <th className="text-left px-4 py-3 font-medium">城市</th>
-              <th className="text-left px-4 py-3 font-medium">国家</th>
-              <th className="text-left px-4 py-3 font-medium">网站</th>
-              <th className="text-left px-4 py-3 font-medium">状态</th>
-              <th className="text-left px-4 py-3 font-medium">提交时间</th>
-              <th className="text-left px-4 py-3 font-medium">操作</th>
+              <th className="text-left px-4 py-3 font-medium">Company</th>
+              <th className="text-left px-4 py-3 font-medium">Email</th>
+              <th className="text-left px-4 py-3 font-medium">Phone</th>
+              <th className="text-left px-4 py-3 font-medium">City</th>
+              <th className="text-left px-4 py-3 font-medium">Country</th>
+              <th className="text-left px-4 py-3 font-medium">Website</th>
+              <th className="text-left px-4 py-3 font-medium">Status</th>
+              <th className="text-left px-4 py-3 font-medium">Submitted</th>
+              <th className="text-left px-4 py-3 font-medium">Action</th>
             </tr>
           </thead>
           <tbody>

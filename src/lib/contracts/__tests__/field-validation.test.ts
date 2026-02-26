@@ -69,28 +69,28 @@ describe("validateContractFields", () => {
     const fields = { ...validFields(), commission_rate: "" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.commission_rate).toContain("必填");
+    expect(result.errors.commission_rate).toContain("required");
   });
 
   it("commission_rate 非数值时返回错误", () => {
     const fields = { ...validFields(), commission_rate: "abc" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.commission_rate).toContain("有效数值");
+    expect(result.errors.commission_rate).toContain("valid number");
   });
 
   it("commission_rate 小于 0 时返回错误", () => {
     const fields = { ...validFields(), commission_rate: "-1" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.commission_rate).toContain("0 到 100");
+    expect(result.errors.commission_rate).toContain("between 0 and 100");
   });
 
   it("commission_rate 大于 100 时返回错误", () => {
     const fields = { ...validFields(), commission_rate: "101" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.commission_rate).toContain("0 到 100");
+    expect(result.errors.commission_rate).toContain("between 0 and 100");
   });
 
   it("commission_rate 边界值 0 合法", () => {
@@ -116,28 +116,28 @@ describe("validateContractFields", () => {
     const fields = { ...validFields(), contract_start_date: "" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.contract_start_date).toContain("必填");
+    expect(result.errors.contract_start_date).toContain("required");
   });
 
   it("contract_start_date 格式无效时返回错误", () => {
     const fields = { ...validFields(), contract_start_date: "not-a-date" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.contract_start_date).toContain("有效日期");
+    expect(result.errors.contract_start_date).toContain("not a valid date");
   });
 
   it("contract_end_date 为空时返回错误", () => {
     const fields = { ...validFields(), contract_end_date: "" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.contract_end_date).toContain("必填");
+    expect(result.errors.contract_end_date).toContain("required");
   });
 
   it("contract_end_date 格式无效时返回错误", () => {
     const fields = { ...validFields(), contract_end_date: "xyz" };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.contract_end_date).toContain("有效日期");
+    expect(result.errors.contract_end_date).toContain("not a valid date");
   });
 
   it("contract_end_date 早于 start_date 时返回错误", () => {
@@ -148,7 +148,7 @@ describe("validateContractFields", () => {
     };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.contract_end_date).toContain("晚于");
+    expect(result.errors.contract_end_date).toContain("after");
   });
 
   it("contract_end_date 等于 start_date 时返回错误", () => {
@@ -159,7 +159,7 @@ describe("validateContractFields", () => {
     };
     const result = validateContractFields(fields);
     expect(result.valid).toBe(false);
-    expect(result.errors.contract_end_date).toContain("晚于");
+    expect(result.errors.contract_end_date).toContain("after");
   });
 
   // --- 多字段同时错误 ---
@@ -176,7 +176,7 @@ describe("validateContractFields", () => {
       contract_end_date: "2027-01-01",
     };
     const result = validateContractFields(fields);
-    expect(result.errors.contract_start_date).toContain("有效日期");
+    expect(result.errors.contract_start_date).toContain("not a valid date");
     expect(result.errors.contract_end_date).toBeUndefined();
   });
 });

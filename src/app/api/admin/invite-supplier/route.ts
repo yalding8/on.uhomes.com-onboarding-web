@@ -1,15 +1,13 @@
 /**
- * 手动邀请供应商 API — BD 直接邀请（不依赖 application）
+ * Manually invite a supplier — BD direct invite (bypasses applications table)
  *
  * POST /api/admin/invite-supplier
- * 鉴权：Session-based，验证 role='bd'
- *
- * Requirements: 8.2, 8.3, 8.4
+ * Auth: Session-based, requires role='bd'
  */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -29,13 +27,13 @@ function validatePayload(
     typeof payload.company_name === "string" ? payload.company_name.trim() : "";
 
   if (!email) {
-    return { valid: false, error: "邮箱为必填项" };
+    return { valid: false, error: "Email is required" };
   }
   if (!EMAIL_REGEX.test(email)) {
-    return { valid: false, error: "邮箱格式不合法" };
+    return { valid: false, error: "Invalid email format" };
   }
   if (!companyName) {
-    return { valid: false, error: "公司名称为必填项" };
+    return { valid: false, error: "Company name is required" };
   }
 
   return {
@@ -61,7 +59,7 @@ function validatePayload(
 
 export async function POST(request: Request) {
   try {
-    // 1. BD 鉴权
+    // 1. Verify BD role
     const authResult = await verifyBdRole();
     if (isBdAuthError(authResult)) {
       return authResult;
@@ -74,14 +72,9 @@ export async function POST(request: Request) {
     }
     const { email, company_name, phone, city, website } = validation.data;
 
-    // 2. Admin Client
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } },
-    );
+    const supabaseAdmin = createAdminClient();
 
-    // 3. 检查邮箱是否已存在于 suppliers 表
+    // 2. Check for duplicate email in suppliers table
     const { data: existing } = await supabaseAdmin
       .from("suppliers")
       .select("id")
@@ -90,12 +83,12 @@ export async function POST(request: Request) {
 
     if (existing) {
       return NextResponse.json(
-        { error: "该邮箱已注册为供应商" },
+        { error: "This email is already registered as a supplier" },
         { status: 409 },
       );
     }
 
-    // 4. 创建 Auth 用户
+    // 3. Create Auth user — must happen first as supplier requires user_id
     const { data: authUser, error: authError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
@@ -107,7 +100,7 @@ export async function POST(request: Request) {
     }
     const userId = authUser.user.id;
 
-    // 5. 插入 suppliers 记录
+    // 4. Create supplier record — rollback Auth user on failure
     const { data: supplier, error: supplierError } = await supabaseAdmin
       .from("suppliers")
       .insert({
@@ -118,11 +111,14 @@ export async function POST(request: Request) {
         city: city ?? null,
         website: website ?? null,
         status: "PENDING_CONTRACT",
+        role: "supplier",
+        bd_user_id: authResult.supplier.id,
       })
       .select()
       .single();
 
     if (supplierError || !supplier) {
+      await supabaseAdmin.auth.admin.deleteUser(userId);
       return NextResponse.json(
         {
           error: "Failed to create supplier record",
@@ -132,14 +128,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. 插入 contracts 记录
-    // Contract starts as DRAFT; BD will edit fields and push for review before DocuSign envelope creation
+    // 5. Create contract record — rollback supplier + Auth user on failure
     const { error: contractError } = await supabaseAdmin
       .from("contracts")
       .insert({
         supplier_id: supplier.id,
         status: "DRAFT",
         signature_provider: "DOCUSIGN",
+        contract_fields: {},
         provider_metadata: {
           type: "STANDARD_PROMOTION_2026",
           source: "manual_invite",
@@ -147,6 +143,8 @@ export async function POST(request: Request) {
       });
 
     if (contractError) {
+      await supabaseAdmin.from("suppliers").delete().eq("id", supplier.id);
+      await supabaseAdmin.auth.admin.deleteUser(userId);
       return NextResponse.json(
         {
           error: "Failed to create contract record",
@@ -158,7 +156,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "供应商邀请已发送",
+      message: "Supplier invitation sent",
       supplier_id: supplier.id,
     });
   } catch (error) {

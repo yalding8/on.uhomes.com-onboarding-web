@@ -6,6 +6,7 @@
 import { NextResponse } from "next/server";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin as checkAdmin } from "./permissions";
 
 export interface BdSupplier {
   id: string;
@@ -19,6 +20,7 @@ export interface BdSupplier {
 export interface BdAuthResult {
   user: User;
   supplier: BdSupplier;
+  isAdmin: boolean;
 }
 
 /**
@@ -55,7 +57,12 @@ export async function verifyBdRole(): Promise<BdAuthResult | Response> {
     );
   }
 
-  return { user, supplier: supplier as BdSupplier };
+  const bdSupplier = supplier as BdSupplier;
+  return {
+    user,
+    supplier: bdSupplier,
+    isAdmin: checkAdmin(bdSupplier.contact_email),
+  };
 }
 
 /**
@@ -65,4 +72,19 @@ export function isBdAuthError(
   result: BdAuthResult | Response,
 ): result is Response {
   return result instanceof Response;
+}
+
+/**
+ * 验证当前请求用户为 admin（BD + 在 admin 邮箱白名单中）。
+ */
+export async function verifyAdminRole(): Promise<BdAuthResult | Response> {
+  const result = await verifyBdRole();
+  if (isBdAuthError(result)) return result;
+  if (!result.isAdmin) {
+    return NextResponse.json(
+      { error: "Forbidden. Admin role required." },
+      { status: 403 },
+    );
+  }
+  return result;
 }

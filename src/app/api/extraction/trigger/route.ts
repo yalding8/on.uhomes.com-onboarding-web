@@ -12,6 +12,7 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_URL, getServiceRoleKey } from "@/lib/env";
 
 // ── Types ──
 
@@ -34,18 +35,16 @@ interface ExtractionJob {
 // ── Helpers ──
 
 function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  return createClient(SUPABASE_URL, getServiceRoleKey(), {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
 
 function verifyServiceKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
   const token = authHeader.replace("Bearer ", "");
-  return token === process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return token === getServiceRoleKey();
 }
 
 /**
@@ -64,14 +63,17 @@ async function dispatchToWorker(
   const workerBaseUrl = process.env.EXTRACTION_WORKER_URL;
   if (!workerBaseUrl) return;
 
-  const callbackUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL ? process.env.VERCEL_URL ?? "http://localhost:3000" : "http://localhost:3000"}/api/extraction/callback`;
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+  const callbackUrl = `${baseUrl}/api/extraction/callback`;
 
   try {
     await fetch(`${workerBaseUrl}/extract`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        Authorization: `Bearer ${getServiceRoleKey()}`,
       },
       body: JSON.stringify({
         jobId,

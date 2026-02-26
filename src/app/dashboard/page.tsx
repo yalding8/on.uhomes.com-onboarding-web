@@ -13,6 +13,7 @@ import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
 import { calculateScore } from "@/lib/onboarding/scoring-engine";
 import type { FieldValue } from "@/lib/onboarding/field-value";
 import type { BuildingStatus } from "@/lib/onboarding/status-engine";
+import { LogoutButton } from "@/components/admin/LogoutButton";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -22,13 +23,13 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: supplier } = await supabase
+  const { data: supplier, error: supplierError } = await supabase
     .from("suppliers")
     .select("id, company_name, status")
     .eq("user_id", user.id)
     .single();
 
-  if (!supplier) redirect("/");
+  if (supplierError || !supplier) redirect("/");
 
   // 获取合同（PENDING_CONTRACT 或新状态流程中的供应商都需要）
   let contract: {
@@ -107,12 +108,22 @@ export default async function DashboardPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="bg-[var(--color-bg-secondary)] rounded-2xl border border-[var(--color-border)] p-6 md:p-8">
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            Welcome, {supplier.company_name || user.email}
-          </h1>
-          <p className="text-[var(--color-text-secondary)] mt-1">
-            Your onboarding portal
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                Welcome, {supplier.company_name || user.email}
+              </h1>
+              <p className="text-[var(--color-text-secondary)] mt-1">
+                Your onboarding portal
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline text-sm text-[var(--color-text-secondary)]">
+                {user.email}
+              </span>
+              <LogoutButton />
+            </div>
+          </div>
         </div>
 
         {/* 合同区域 — 新状态流程（DRAFT / PENDING_REVIEW / CONFIRMED / SENT） */}

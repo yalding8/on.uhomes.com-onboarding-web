@@ -13,13 +13,12 @@ import { Sidebar } from "./Sidebar";
  *
  * Requirements: 2.3, 2.4
  */
-export function MobileSidebar() {
+export function MobileSidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname();
-  // key 变化时 React 重新挂载 MobileSidebarInner，isOpen 自动重置为 false
-  return <MobileSidebarInner key={pathname} />;
+  return <MobileSidebarInner key={pathname} isAdmin={isAdmin} />;
 }
 
-function MobileSidebarInner() {
+function MobileSidebarInner({ isAdmin }: { isAdmin: boolean }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const close = useCallback(() => setIsOpen(false), []);
@@ -62,7 +61,7 @@ function MobileSidebarInner() {
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <Sidebar onNavigate={close} />
+            <Sidebar isAdmin={isAdmin} onNavigate={close} />
           </aside>
         </div>
       )}

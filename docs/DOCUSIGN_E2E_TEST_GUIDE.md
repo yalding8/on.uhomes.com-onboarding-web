@@ -25,8 +25,10 @@
 
 1. 找到 "Service Integration" 区域
 2. 点击 "GENERATE RSA" 按钮
-3. 弹窗会显示 Public Key 和 **Private Key**
+3. 弹窗会显示 Public Key
+   和 **Private Key**
 4. **立即复制 Private Key 并保存**（离开页面后无法再查看）
+
 5. 将 Private Key 转为 Base64 编码：
 
 ```bash
@@ -34,7 +36,7 @@
 cat docusign_private.pem | base64 | tr -d '\n'
 ```
 
-输出的 Base64 字符串就是 `DOCUSIGN_PRIVATE_KEY` 的值。
+输出的 Base64 字符串就是 `DOCUSIGN_PRIVATE_KEY` 的值，将其填入 `.env.local`。
 
 ### Step 0.4：获取 User ID 和 Account ID
 
@@ -45,7 +47,7 @@ cat docusign_private.pem | base64 | tr -d '\n'
 
 ### Step 0.5：授予 JWT 同意（一次性操作）
 
-在浏览器中访问以下 URL（替换 `{CLIENT_ID}` 为你的 Integration Key）：
+在浏览器中访问以下 URL（将 `{CLIENT_ID}` 替换为你的 Integration Key）：
 
 ```
 https://account-d.docusign.com/oauth/auth?response_type=code&scope=signature%20impersonation&client_id={CLIENT_ID}&redirect_uri=https://httpbin.org/get
@@ -146,12 +148,10 @@ supabase db push
 
 ### Step 5：BD 审批供应商
 
-```bash
-curl -X POST $BASE/api/admin/approve-supplier \
-  -H "Content-Type: application/json" \
-  -H "x-admin-secret: 你的ADMIN_SECRET值" \
-  -d '{"application_id": "Step4拿到的UUID"}'
-```
+1. 以 BD 账号登录（`/login` → OTP 验证）
+2. 跳转到 `/admin/applications`
+3. 找到 Step 4 提交的申请（状态 `Pending`）
+4. 点击 **"Approve"** → 弹出对话框确认信息 → 点击 **"Confirm Approval"**
 
 **验证数据库变化**：
 

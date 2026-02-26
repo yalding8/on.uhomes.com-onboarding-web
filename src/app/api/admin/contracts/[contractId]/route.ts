@@ -1,32 +1,24 @@
 /**
- * BD 合同字段保存与推送审阅 API
+ * BD Contract Field Save & Push for Review API
  *
- * PUT  /api/admin/contracts/[contractId] — 保存合同字段（仅 DRAFT 状态）
- * POST /api/admin/contracts/[contractId] — 推送审阅（DRAFT → PENDING_REVIEW）
+ * PUT  /api/admin/contracts/[contractId] — Save contract fields (DRAFT status only)
+ * POST /api/admin/contracts/[contractId] — Push for review (DRAFT → PENDING_REVIEW)
  *
- * 鉴权：Session-based，验证 role='bd'
+ * Auth: Session-based, verify role='bd'
  *
  * Requirements: 3.4, 4.1, 4.2, 4.3
  */
 
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { validateContractFields } from "@/lib/contracts/field-validation";
 import { validateTransition } from "@/lib/contracts/status-machine";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
+import type { BdAuthResult } from "@/lib/admin/auth";
 
 interface RouteContext {
   params: Promise<{ contractId: string }>;
-}
-
-/** 创建 service-role Supabase 客户端 */
-function createAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
 }
 
 interface ContractData {
@@ -40,11 +32,25 @@ type FetchContractResult =
   | { contract: ContractData; errorResponse: null }
   | { contract: null; errorResponse: NextResponse };
 
-/**
- * 查询合同记录，返回合同数据或错误 Response
- */
+async function verifyBdAccess(
+  auth: BdAuthResult,
+  supplierId: string,
+): Promise<NextResponse | null> {
+  if (auth.isAdmin) return null;
+  const supabaseAdmin = createAdminClient();
+  const { data: target } = await supabaseAdmin
+    .from("suppliers")
+    .select("bd_user_id")
+    .eq("id", supplierId)
+    .single();
+  if (target?.bd_user_id !== auth.supplier.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
 async function fetchContract(
-  supabase: { from: ReturnType<typeof createClient>["from"] },
+  supabase: { from: ReturnType<typeof createAdminClient>["from"] },
   contractId: string,
 ): Promise<FetchContractResult> {
   const { data, error } = await supabase
@@ -67,11 +73,11 @@ async function fetchContract(
 }
 
 /**
- * PUT: 保存合同字段到 contract_fields（仅 DRAFT 状态）
+ * PUT: Save contract fields to contract_fields (DRAFT status only)
  */
 export async function PUT(request: Request, context: RouteContext) {
   try {
-    // 1. BD 鉴权
+    // 1. BD auth
     const authResult = await verifyBdRole();
     if (isBdAuthError(authResult)) {
       return authResult;
@@ -80,14 +86,18 @@ export async function PUT(request: Request, context: RouteContext) {
     const { contractId } = await context.params;
     const supabaseAdmin = createAdminClient();
 
-    // 2. 查询合同
+    // 2. Fetch contract
     const { contract, errorResponse } = await fetchContract(
       supabaseAdmin,
       contractId,
     );
     if (errorResponse) return errorResponse;
 
-    // 3. 验证状态为 DRAFT
+    // 2b. BD scoping
+    const accessDenied = await verifyBdAccess(authResult, contract.supplier_id);
+    if (accessDenied) return accessDenied;
+
+    // 3. Verify status is DRAFT
     if (contract.status !== "DRAFT") {
       return NextResponse.json(
         {
@@ -97,7 +107,7 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
-    // 4. 解析并保存字段数据
+    // 4. Parse and save field data
     const body = (await request.json()) as { fields: Partial<ContractFields> };
     const fields = body.fields;
 
@@ -108,7 +118,7 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
-    // 5. 更新 contract_fields
+    // 5. Update contract_fields
     const { error: updateError } = await supabaseAdmin
       .from("contracts")
       .update({ contract_fields: fields })
@@ -124,7 +134,10 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
-    return NextResponse.json({ success: true, message: "合同字段已保存" });
+    return NextResponse.json({
+      success: true,
+      message: "Contract fields saved",
+    });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unknown server error";
@@ -133,12 +146,12 @@ export async function PUT(request: Request, context: RouteContext) {
 }
 
 /**
- * POST: 推送审阅（DRAFT → PENDING_REVIEW）
- * 验证所有必填字段完整后更新状态
+ * POST: Push for review (DRAFT → PENDING_REVIEW)
+ * Validate all required fields are complete before updating status
  */
 export async function POST(request: Request, context: RouteContext) {
   try {
-    // 1. BD 鉴权
+    // 1. BD auth
     const authResult = await verifyBdRole();
     if (isBdAuthError(authResult)) {
       return authResult;
@@ -147,14 +160,18 @@ export async function POST(request: Request, context: RouteContext) {
     const { contractId } = await context.params;
     const supabaseAdmin = createAdminClient();
 
-    // 2. 查询合同
+    // 2. Fetch contract
     const { contract, errorResponse } = await fetchContract(
       supabaseAdmin,
       contractId,
     );
     if (errorResponse) return errorResponse;
 
-    // 3. 验证状态转换合法性
+    // 2b. BD scoping
+    const accessDenied = await verifyBdAccess(authResult, contract.supplier_id);
+    if (accessDenied) return accessDenied;
+
+    // 3. Validate state transition
     const transition = validateTransition(contract.status, "PENDING_REVIEW");
     if (!transition.valid) {
       return NextResponse.json(
@@ -165,7 +182,7 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 4. 验证所有必填字段已填写完整
+    // 4. Validate all required fields are filled
     const fields = (contract.contract_fields ?? {}) as Partial<ContractFields>;
     const validation = validateContractFields(fields);
 
@@ -176,7 +193,7 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 5. 更新状态为 PENDING_REVIEW
+    // 5. Update status to PENDING_REVIEW
     const { error: updateError } = await supabaseAdmin
       .from("contracts")
       .update({ status: "PENDING_REVIEW" })
@@ -194,7 +211,7 @@ export async function POST(request: Request, context: RouteContext) {
 
     return NextResponse.json({
       success: true,
-      message: "合同已推送审阅",
+      message: "Contract pushed for review",
       status: "PENDING_REVIEW",
     });
   } catch (error) {

@@ -7,8 +7,11 @@
  * Requirements: 3.1, 3.2, 3.4
  */
 
-import { createClient } from "@supabase/supabase-js";
+import { redirect } from "next/navigation";
 import { ApplicationList } from "@/components/admin/ApplicationList";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 
 export interface ApplicationRow {
   id: string;
@@ -23,11 +26,7 @@ export interface ApplicationRow {
 }
 
 async function getApplications(): Promise<ApplicationRow[]> {
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  const supabaseAdmin = createAdminClient();
 
   const { data, error } = await supabaseAdmin
     .from("applications")
@@ -44,17 +43,31 @@ async function getApplications(): Promise<ApplicationRow[]> {
 }
 
 export default async function ApplicationsPage() {
+  // Admin-only: regular BDs cannot view applications
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { data: me } = await supabase
+    .from("suppliers")
+    .select("contact_email")
+    .eq("user_id", user.id)
+    .eq("role", "bd")
+    .single();
+  if (!me || !checkAdmin(me.contact_email)) redirect("/admin/suppliers");
+
   const applications = await getApplications();
 
   return (
     <div>
       <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
-        申请列表
+        Applications
       </h1>
 
       {applications.length === 0 ? (
         <div className="text-center py-16 text-[var(--color-text-muted)]">
-          暂无申请记录
+          No applications yet
         </div>
       ) : (
         <ApplicationList applications={applications} />

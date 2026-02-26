@@ -18,11 +18,12 @@
 
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { SUPABASE_URL, getServiceRoleKey } from "@/lib/env";
 import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
 import { calculateScore } from "@/lib/onboarding/scoring-engine";
 import { resolveStatus } from "@/lib/onboarding/status-engine";
 import type { BuildingStatus } from "@/lib/onboarding/status-engine";
-import type { FieldValue, Confidence, DataSource } from "@/lib/onboarding/field-value";
+import type { FieldValue, DataSource } from "@/lib/onboarding/field-value";
 import {
   mergeExtractionResults,
   mergeWithProtection,
@@ -43,18 +44,16 @@ interface CallbackPayload {
 // ── Helpers ──
 
 function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  return createClient(SUPABASE_URL, getServiceRoleKey(), {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }
 
 function verifyServiceKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
   const token = authHeader.replace("Bearer ", "");
-  return token === process.env.SUPABASE_SERVICE_ROLE_KEY;
+  return token === getServiceRoleKey();
 }
 
 // ── Route Handler ──

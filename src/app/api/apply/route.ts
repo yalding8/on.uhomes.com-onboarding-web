@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function POST(request: Request) {
   try {
@@ -14,10 +14,7 @@ export async function POST(request: Request) {
     }
 
     // Connect via service role to bypass RLS during system-level insert
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = createAdminClient();
 
     // Ensure we don't crash from duplicate inserts before an auth user binds
     // If the same email submits twice, we can log it separately or just update

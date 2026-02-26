@@ -18,13 +18,14 @@ export type SupplierStatusFilter = SupplierRow["status"] | "ALL";
 
 interface SupplierListProps {
   suppliers: SupplierRow[];
+  isAdmin?: boolean;
 }
 
 const FILTER_OPTIONS: { value: SupplierStatusFilter; label: string }[] = [
-  { value: "ALL", label: "全部" },
-  { value: "NEW", label: "新建" },
-  { value: "PENDING_CONTRACT", label: "待签约" },
-  { value: "SIGNED", label: "已签约" },
+  { value: "ALL", label: "All" },
+  { value: "NEW", label: "New" },
+  { value: "PENDING_CONTRACT", label: "Pending Contract" },
+  { value: "SIGNED", label: "Signed" },
 ];
 
 /** 计算各状态的供应商数量 */
@@ -52,7 +53,10 @@ export function filterSuppliers(
   return suppliers.filter((s) => s.status === filter);
 }
 
-export function SupplierList({ suppliers }: SupplierListProps) {
+export function SupplierList({
+  suppliers,
+  isAdmin = false,
+}: SupplierListProps) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<SupplierStatusFilter>("ALL");
 
@@ -72,7 +76,7 @@ export function SupplierList({ suppliers }: SupplierListProps) {
       <div
         className="flex flex-wrap gap-2 mb-4"
         role="tablist"
-        aria-label="按状态筛选"
+        aria-label="Filter by status"
       >
         {FILTER_OPTIONS.map(({ value, label }) => {
           const isActive = activeFilter === value;
@@ -97,10 +101,14 @@ export function SupplierList({ suppliers }: SupplierListProps) {
 
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-[var(--color-text-muted)]">
-          该状态下暂无供应商记录
+          No suppliers found for this status
         </div>
       ) : (
-        <SupplierTable suppliers={filtered} onRowClick={handleRowClick} />
+        <SupplierTable
+          suppliers={filtered}
+          onRowClick={handleRowClick}
+          isAdmin={isAdmin}
+        />
       )}
     </>
   );

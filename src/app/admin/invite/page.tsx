@@ -10,7 +10,7 @@ export default function InvitePage() {
   return (
     <div>
       <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
-        邀请供应商
+        Invite Supplier
       </h1>
       <InviteForm />
     </div>

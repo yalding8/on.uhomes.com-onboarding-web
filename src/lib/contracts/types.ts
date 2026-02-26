@@ -6,6 +6,9 @@
  * DRAFT / PENDING_REVIEW / CONFIRMED → CANCELED
  */
 
+/** 合同类型：标准合同 / 自定义上传合同 */
+export type ContractType = "STANDARD" | "CUSTOM";
+
 /** 合同状态联合类型，对应 contracts 表 status CHECK 约束 */
 export type ContractStatus =
   | "DRAFT"

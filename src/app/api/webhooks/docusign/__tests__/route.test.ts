@@ -314,7 +314,14 @@ describe("新建合同初始状态", () => {
  */
 describe("Property 7: Webhook 幂等性", () => {
   fcTest.prop(
-    [arbUuid, arbUuid, fc.date().map((d) => d.toISOString()), fc.webUrl()],
+    [
+      arbUuid,
+      arbUuid,
+      fc
+        .date({ min: new Date(0), max: new Date("2100-01-01") })
+        .map((d) => d.toISOString()),
+      fc.webUrl(),
+    ],
     { numRuns: 100 },
   )(
     "已 SIGNED 合同的重复回调不应修改任何字段",

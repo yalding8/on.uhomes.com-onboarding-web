@@ -20,7 +20,7 @@ export const VALID_TRANSITIONS: Readonly<
   DRAFT: ["PENDING_REVIEW", "CANCELED"],
   PENDING_REVIEW: ["CONFIRMED", "DRAFT", "CANCELED"],
   CONFIRMED: ["SENT", "CANCELED"],
-  SENT: ["SIGNED"],
+  SENT: ["SIGNED", "SENT"],
   SIGNED: [],
   CANCELED: [],
 } as const;

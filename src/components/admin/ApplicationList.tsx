@@ -22,10 +22,10 @@ interface ApplicationListProps {
 }
 
 const FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: "ALL", label: "全部" },
-  { value: "PENDING", label: "待处理" },
-  { value: "CONVERTED", label: "已转化" },
-  { value: "REJECTED", label: "已拒绝" },
+  { value: "ALL", label: "All" },
+  { value: "PENDING", label: "Pending" },
+  { value: "CONVERTED", label: "Converted" },
+  { value: "REJECTED", label: "Rejected" },
 ];
 
 /** 计算各状态的申请数量 */
@@ -83,7 +83,7 @@ export function ApplicationList({ applications }: ApplicationListProps) {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || "审批失败");
+        throw new Error(data.error || "Approval failed");
       }
 
       setSelectedApp(null);
@@ -102,7 +102,7 @@ export function ApplicationList({ applications }: ApplicationListProps) {
       <div
         className="flex flex-wrap gap-2 mb-4"
         role="tablist"
-        aria-label="按状态筛选"
+        aria-label="Filter by status"
       >
         {FILTER_OPTIONS.map(({ value, label }) => {
           const isActive = activeFilter === value;
@@ -127,7 +127,7 @@ export function ApplicationList({ applications }: ApplicationListProps) {
 
       {filtered.length === 0 ? (
         <div className="text-center py-12 text-[var(--color-text-muted)]">
-          该状态下暂无申请记录
+          No applications found for this status
         </div>
       ) : (
         <ApplicationTable applications={filtered} onApprove={handleApprove} />

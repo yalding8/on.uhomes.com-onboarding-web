@@ -11,23 +11,29 @@ interface NavItem {
   icon: ComponentType<{ className?: string }>;
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { label: "申请列表", href: "/admin/applications", icon: Inbox },
-  { label: "供应商列表", href: "/admin/suppliers", icon: Users },
-  { label: "邀请供应商", href: "/admin/invite", icon: UserPlus },
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  { label: "Applications", href: "/admin/applications", icon: Inbox },
+  { label: "Suppliers", href: "/admin/suppliers", icon: Users },
+  { label: "Invite Supplier", href: "/admin/invite", icon: UserPlus },
+];
+
+const BD_NAV_ITEMS: NavItem[] = [
+  { label: "My Suppliers", href: "/admin/suppliers", icon: Users },
+  { label: "Invite Supplier", href: "/admin/invite", icon: UserPlus },
 ];
 
 interface SidebarProps {
-  /** 点击导航项后的回调，移动端用于关闭菜单 */
+  isAdmin?: boolean;
   onNavigate?: () => void;
 }
 
-export function Sidebar({ onNavigate }: SidebarProps) {
+export function Sidebar({ isAdmin = false, onNavigate }: SidebarProps) {
   const pathname = usePathname();
+  const items = isAdmin ? ADMIN_NAV_ITEMS : BD_NAV_ITEMS;
 
   return (
     <nav className="flex flex-col gap-1 p-4">
-      {NAV_ITEMS.map((item) => {
+      {items.map((item) => {
         const isActive = pathname.startsWith(item.href);
         const Icon = item.icon;
         return (

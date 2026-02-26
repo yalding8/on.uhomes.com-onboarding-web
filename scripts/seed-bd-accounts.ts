@@ -40,9 +40,21 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
+// Admin accounts (also have role='bd' in DB; admin is code-level via permissions.ts)
+// Regular BD accounts — add new BDs here and rerun script
 const BD_ACCOUNTS = [
-  { email: "ning.ding@uhomes.com", company_name: "异乡好居 BD - Ning" },
-  { email: "abby.zhang@uhomes.com", company_name: "异乡好居 BD - Abby" },
+  { email: "ning.ding@uhomes.com", company_name: "异乡好居 Admin - Ning" },
+  { email: "abby.zhang@uhomes.com", company_name: "异乡好居 Admin - Abby" },
+  // BD accounts
+  { email: "lorenzo.pisano@uhomes.com", company_name: "异乡好居 BD - Lorenzo" },
+  { email: "larry.satkoski@uhomes.com", company_name: "异乡好居 BD - Larry" },
+  { email: "weitao.wang@uhomes.com", company_name: "异乡好居 BD - Weitao" },
+  {
+    email: "victoria.mackay@uhomes.com",
+    company_name: "异乡好居 BD - Victoria",
+  },
+  { email: "ben.vermillion@uhomes.com", company_name: "异乡好居 BD - Ben" },
+  { email: "shuxuan.an@uhomes.com", company_name: "异乡好居 BD - Shuxuan" },
 ];
 
 async function ensureRoleColumn() {
@@ -133,7 +145,30 @@ async function seedBdAccount(email: string, companyName: string) {
     console.log(`✅ 创建 auth 用户: ${email} (user_id=${userId})`);
   }
 
-  // 3. 插入 suppliers 记录
+  // 3. 检查是否已有该 user_id 的 supplier 记录（可能 contact_email 不同）
+  const { data: existingByUserId } = await supabaseAdmin
+    .from("suppliers")
+    .select("id, contact_email, role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingByUserId) {
+    // 已有记录，更新 role 为 bd
+    const { error } = await supabaseAdmin
+      .from("suppliers")
+      .update({ role: "bd" })
+      .eq("id", existingByUserId.id);
+    if (error) {
+      console.error(`❌ 更新 role 失败 (${email}):`, error.message);
+    } else {
+      console.log(
+        `✅ ${email} (已有 supplier 记录, contact_email=${existingByUserId.contact_email}) 已更新为 BD 角色`,
+      );
+    }
+    return;
+  }
+
+  // 4. 插入 suppliers 记录
   const { error: supplierError } = await supabaseAdmin
     .from("suppliers")
     .insert({

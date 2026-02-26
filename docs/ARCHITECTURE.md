@@ -38,3 +38,17 @@ graph TB
 - **前端承载**：部署于 **Vercel**；负责承载响应式界面与 Supabase SSR Client 数据直出，提供用户鉴权中间件护城河。
 - **数据库中心**：使用 **Supabase**。依托内部基于 Postgres 建立安全屏障 (RLS)，隔离各家海外供应商仅可访问自身数据视图与上传文件。
 - **爬虫及文档算力层 (Worker)**：拟选址使用 **Railway** 作为运行环境，通过 HTTP 协议暴露触发端口，运行 Playwright 解决 Javascript 强渲染等爬虫阻力以及通过 LLM 读取分析外文租赁长协数据。
+
+## 3. API 路由表
+
+| Method | Path                                  | Auth               | Description                               |
+| ------ | ------------------------------------- | ------------------ | ----------------------------------------- |
+| POST   | `/api/apply`                          | Public             | Landing Page 提交入驻意向                 |
+| POST   | `/api/admin/invite-supplier`          | Session (BD)       | BD 邀请供应商，自动分配 bd_user_id        |
+| POST   | `/api/admin/approve-supplier`         | Session (BD)       | BD 审核通过申请，创建供应商账号           |
+| POST   | `/api/admin/assign-bd`                | Session (Admin)    | Admin 分配/更换供应商的负责 BD            |
+| PUT    | `/api/admin/contracts/[contractId]`   | Session (BD)       | 保存合同字段（仅 DRAFT 状态）             |
+| POST   | `/api/admin/contracts/[contractId]`   | Session (BD)       | 提交合同审核（DRAFT → PENDING_REVIEW）    |
+| POST   | `/api/contracts/[contractId]/confirm` | Session (BD/Admin) | 确认合同并发送签署（含 resend）           |
+| POST   | `/api/webhooks/docusign`              | HMAC Signature     | DocuSign 签署完成回调（主签约通道）       |
+| POST   | `/api/webhooks/opensign`              | HMAC Signature     | ~~OpenSign 回调（已废弃，仅兼容旧合同）~~ |
