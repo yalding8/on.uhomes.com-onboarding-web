@@ -49,7 +49,10 @@ const BD_ACCOUNTS = [
   { email: "lorenzo.pisano@uhomes.com", company_name: "异乡好居 BD - Lorenzo" },
   { email: "larry.satkoski@uhomes.com", company_name: "异乡好居 BD - Larry" },
   { email: "weitao.wang@uhomes.com", company_name: "异乡好居 BD - Weitao" },
-  { email: "victoria.mackay@uhomes.com", company_name: "异乡好居 BD - Victoria" },
+  {
+    email: "victoria.mackay@uhomes.com",
+    company_name: "异乡好居 BD - Victoria",
+  },
   { email: "ben.vermillion@uhomes.com", company_name: "异乡好居 BD - Ben" },
   { email: "shuxuan.an@uhomes.com", company_name: "异乡好居 BD - Shuxuan" },
 ];
