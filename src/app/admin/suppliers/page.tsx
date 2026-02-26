@@ -72,7 +72,7 @@ async function getSuppliers(
   });
 
   // BD names for admin view
-  let bdNameMap = new Map<string, string>();
+  const bdNameMap = new Map<string, string>();
   if (isAdmin) {
     const bdIds = [
       ...new Set(suppliers.map((s) => s.bd_user_id).filter(Boolean)),
