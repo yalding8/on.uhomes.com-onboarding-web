@@ -1,3 +1,9 @@
+/**
+ * @deprecated OpenSign webhook — kept only for 2 legacy SENT contracts.
+ * All new contracts use DocuSign. Remove this route once legacy contracts
+ * are SIGNED or CANCELED.
+ */
+
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -81,7 +87,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Phase 4.1 scope: data aggregation pipeline for auto-onboarding listing (tracked in GitHub Issues).
+    // Phase 4.1: data aggregation pipeline (tracked in GitHub Issues).
 
     return NextResponse.json({
       success: true,

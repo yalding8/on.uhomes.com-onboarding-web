@@ -8,20 +8,12 @@ import { NextResponse } from "next/server";
 import { createClient as createSessionClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
-import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
+import type {
+  ContractRow,
+  SupplierRow,
+} from "@/lib/contracts/confirm-handlers";
 
-export interface ContractRow {
-  id: string;
-  supplier_id: string;
-  status: ContractStatus;
-  contract_fields: ContractFields | null;
-}
-
-export interface SupplierRow {
-  id: string;
-  contact_email: string;
-  company_name: string;
-}
+export type { ContractRow, SupplierRow };
 
 export interface AuthResult {
   supplier: SupplierRow;
