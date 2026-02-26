@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApplicationList } from "../ApplicationList";
 import type { ApplicationRow } from "@/app/admin/applications/page";
@@ -80,11 +80,11 @@ describe("Application Approval Workflow", () => {
     expect(screen.getByRole("tab", { name: /pending/i })).toBeVisible();
     expect(screen.getByRole("tab", { name: /converted/i })).toBeVisible();
     expect(screen.getByRole("tab", { name: /rejected/i })).toBeVisible();
-    // All 4 applications visible by default
-    expect(screen.getByText("Alpha Corp")).toBeVisible();
-    expect(screen.getByText("Beta LLC")).toBeVisible();
-    expect(screen.getByText("Gamma Inc")).toBeVisible();
-    expect(screen.getByText("Delta Co")).toBeVisible();
+    // All 4 applications visible (desktop table + mobile cards = 2 each)
+    expect(screen.getAllByText("Alpha Corp").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Beta LLC").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Gamma Inc").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Delta Co").length).toBeGreaterThanOrEqual(1);
   });
 
   // AA-02, AA-06: ALL 标签 — 计数正确
@@ -101,8 +101,8 @@ describe("Application Approval Workflow", () => {
 
     await user.click(screen.getByRole("tab", { name: /pending/i }));
 
-    expect(screen.getByText("Alpha Corp")).toBeVisible();
-    expect(screen.getByText("Beta LLC")).toBeVisible();
+    expect(screen.getAllByText("Alpha Corp").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Beta LLC").length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText("Gamma Inc")).toBeNull();
     expect(screen.queryByText("Delta Co")).toBeNull();
   });
@@ -115,7 +115,7 @@ describe("Application Approval Workflow", () => {
     await user.click(screen.getByRole("tab", { name: /converted/i }));
 
     expect(screen.queryByText("Alpha Corp")).toBeNull();
-    expect(screen.getByText("Gamma Inc")).toBeVisible();
+    expect(screen.getAllByText("Gamma Inc").length).toBeGreaterThanOrEqual(1);
   });
 
   // AA-05: REJECTED 筛选
@@ -126,7 +126,7 @@ describe("Application Approval Workflow", () => {
     await user.click(screen.getByRole("tab", { name: /rejected/i }));
 
     expect(screen.queryByText("Alpha Corp")).toBeNull();
-    expect(screen.getByText("Delta Co")).toBeVisible();
+    expect(screen.getAllByText("Delta Co").length).toBeGreaterThanOrEqual(1);
   });
 
   // AA-06: 计数
@@ -159,11 +159,12 @@ describe("Application Approval Workflow", () => {
     const approveButtons = screen.getAllByRole("button", { name: "Approve" });
     await user.click(approveButtons[0]);
 
-    expect(screen.getByText("Alpha Corp")).toBeVisible();
-    expect(screen.getByText("alpha@example.com")).toBeVisible();
-    expect(screen.getByText("+1 111 1111")).toBeVisible();
-    expect(screen.getByText("London")).toBeVisible();
-    expect(screen.getByText("UK")).toBeVisible();
+    const dialog = screen.getByRole("dialog");
+    expect(within(dialog).getByText("Alpha Corp")).toBeVisible();
+    expect(within(dialog).getByText("alpha@example.com")).toBeVisible();
+    expect(within(dialog).getByText("+1 111 1111")).toBeVisible();
+    expect(within(dialog).getByText("London")).toBeVisible();
+    expect(within(dialog).getByText("UK")).toBeVisible();
   });
 
   // AA-09: 选择合同类型
@@ -224,8 +225,12 @@ describe("Application Approval Workflow", () => {
   // AA-14: 已转化行 — Approve 按钮 disabled
   it("AA-14: CONVERTED row has disabled status button", () => {
     render(<ApplicationList applications={makeApplications()} />);
-    const convertedBtn = screen.getByRole("button", { name: "Converted" });
-    expect(convertedBtn).toBeDisabled();
+    // Desktop table + mobile cards both render the button
+    const convertedBtns = screen.getAllByRole("button", { name: "Converted" });
+    expect(convertedBtns.length).toBeGreaterThanOrEqual(1);
+    for (const btn of convertedBtns) {
+      expect(btn).toBeDisabled();
+    }
   });
 
   // AA-15: 空列表
