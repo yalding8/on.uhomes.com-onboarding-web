@@ -6,10 +6,12 @@
  * Requirements: 3.1, 3.2, 3.5, 4.2, 4.4
  */
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ContractEditForm } from "@/components/admin/ContractEditForm";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
 
 interface RouteParams {
@@ -17,6 +19,20 @@ interface RouteParams {
 }
 
 export default async function ContractEditPage({ params }: RouteParams) {
+  // Auth: verify BD session
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { data: me } = await supabase
+    .from("suppliers")
+    .select("id, contact_email")
+    .eq("user_id", user.id)
+    .eq("role", "bd")
+    .single();
+  if (!me) redirect("/login");
+
   const { contractId } = await params;
   const supabaseAdmin = createAdminClient();
 
@@ -29,6 +45,16 @@ export default async function ContractEditPage({ params }: RouteParams) {
 
   if (contractError || !contract) {
     notFound();
+  }
+
+  // BD scoping: non-admin BD can only edit contracts for assigned suppliers
+  if (!checkAdmin(me.contact_email)) {
+    const { data: target } = await supabaseAdmin
+      .from("suppliers")
+      .select("bd_user_id")
+      .eq("id", contract.supplier_id)
+      .single();
+    if (target?.bd_user_id !== me.id) notFound();
   }
 
   // 2. 查询关联供应商信息

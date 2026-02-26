@@ -1,12 +1,13 @@
 /**
  * Authentication helpers for contract confirm/resend API.
  *
- * Supports both supplier (ownership check) and BD (skip ownership) roles.
+ * Supports supplier (ownership), admin BD (full access), and regular BD (assigned only).
  */
 
 import { NextResponse } from "next/server";
 import { createClient as createSessionClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
 
 export interface ContractRow {
@@ -25,10 +26,11 @@ export interface SupplierRow {
 export interface AuthResult {
   supplier: SupplierRow;
   isBd: boolean;
+  isAdmin: boolean;
 }
 
 /**
- * Authenticate current user. Returns their supplier record and BD flag.
+ * Authenticate current user. Returns their supplier record, BD flag, and admin flag.
  */
 export async function authenticateUser(): Promise<
   { auth: AuthResult; error: null } | { auth: null; error: NextResponse }
@@ -59,18 +61,22 @@ export async function authenticateUser(): Promise<
     };
   }
 
+  const isBd = supplier.role === "bd";
   return {
     auth: {
       supplier: supplier as SupplierRow & { role: string },
-      isBd: supplier.role === "bd",
+      isBd,
+      isAdmin: isBd && checkAdmin(supplier.contact_email),
     },
     error: null,
   };
 }
 
 /**
- * Fetch contract record. BD skips ownership check.
- * Returns the contract's actual supplier for DocuSign operations.
+ * Fetch contract record.
+ * - Supplier: must own the contract.
+ * - Admin BD: full access to any contract.
+ * - Regular BD: only contracts for suppliers assigned to them (bd_user_id).
  */
 export async function fetchContract(
   contractId: string,
@@ -99,6 +105,7 @@ export async function fetchContract(
 
   const contract = data as ContractRow;
 
+  // Supplier: must own the contract
   if (!auth.isBd && contract.supplier_id !== auth.supplier.id) {
     return {
       contract: null,
@@ -110,6 +117,26 @@ export async function fetchContract(
     };
   }
 
+  // Regular BD: check assignment via bd_user_id
+  if (auth.isBd && !auth.isAdmin && contract.supplier_id !== auth.supplier.id) {
+    const { data: target } = await adminClient
+      .from("suppliers")
+      .select("bd_user_id")
+      .eq("id", contract.supplier_id)
+      .single();
+    if (target?.bd_user_id !== auth.supplier.id) {
+      return {
+        contract: null,
+        contractSupplier: null,
+        error: NextResponse.json(
+          { error: "Contract supplier not assigned to you" },
+          { status: 403 },
+        ),
+      };
+    }
+  }
+
+  // Resolve the contract's actual supplier for DocuSign operations
   let contractSupplier: SupplierRow;
   if (auth.isBd && contract.supplier_id !== auth.supplier.id) {
     const { data: ownerSupplier } = await adminClient

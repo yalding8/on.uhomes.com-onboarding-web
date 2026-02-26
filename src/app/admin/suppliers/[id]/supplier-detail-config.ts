@@ -25,6 +25,7 @@ export interface SupplierDetail {
   role: string;
   status: string;
   created_at: string;
+  bd_user_id: string | null;
 }
 
 /** Contract status labels */

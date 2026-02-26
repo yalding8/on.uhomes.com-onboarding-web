@@ -14,6 +14,7 @@ import type { SupplierRow } from "@/app/admin/suppliers/page";
 interface SupplierTableProps {
   suppliers: SupplierRow[];
   onRowClick: (supplier: SupplierRow) => void;
+  isAdmin?: boolean;
 }
 
 const STATUS_CONFIG: Record<
@@ -56,7 +57,11 @@ function formatDate(iso: string): string {
   });
 }
 
-export function SupplierTable({ suppliers, onRowClick }: SupplierTableProps) {
+export function SupplierTable({
+  suppliers,
+  onRowClick,
+  isAdmin = false,
+}: SupplierTableProps) {
   return (
     <>
       {/* 桌面端表格 — >=768px */}
@@ -68,6 +73,9 @@ export function SupplierTable({ suppliers, onRowClick }: SupplierTableProps) {
               <th className="text-left px-4 py-3 font-medium">Email</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
               <th className="text-left px-4 py-3 font-medium">Buildings</th>
+              {isAdmin && (
+                <th className="text-left px-4 py-3 font-medium">Assigned BD</th>
+              )}
               <th className="text-left px-4 py-3 font-medium">Created</th>
             </tr>
           </thead>
@@ -90,6 +98,11 @@ export function SupplierTable({ suppliers, onRowClick }: SupplierTableProps) {
                 <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                   {s.building_count}
                 </td>
+                {isAdmin && (
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">
+                    {s.bd_display_name ?? "—"}
+                  </td>
+                )}
                 <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">
                   {formatDate(s.created_at)}
                 </td>
@@ -117,6 +130,7 @@ export function SupplierTable({ suppliers, onRowClick }: SupplierTableProps) {
             <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
               <p>{s.contact_email}</p>
               <p>Buildings: {s.building_count}</p>
+              {isAdmin && s.bd_display_name && <p>BD: {s.bd_display_name}</p>}
               <p className="text-[var(--color-text-muted)] text-xs">
                 {formatDate(s.created_at)}
               </p>

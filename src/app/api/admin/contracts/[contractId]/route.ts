@@ -15,6 +15,7 @@ import { validateContractFields } from "@/lib/contracts/field-validation";
 import { validateTransition } from "@/lib/contracts/status-machine";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
+import type { BdAuthResult } from "@/lib/admin/auth";
 
 interface RouteContext {
   params: Promise<{ contractId: string }>;
@@ -31,9 +32,23 @@ type FetchContractResult =
   | { contract: ContractData; errorResponse: null }
   | { contract: null; errorResponse: NextResponse };
 
-/**
- * Fetch contract record, return contract data or error Response
- */
+async function verifyBdAccess(
+  auth: BdAuthResult,
+  supplierId: string,
+): Promise<NextResponse | null> {
+  if (auth.isAdmin) return null;
+  const supabaseAdmin = createAdminClient();
+  const { data: target } = await supabaseAdmin
+    .from("suppliers")
+    .select("bd_user_id")
+    .eq("id", supplierId)
+    .single();
+  if (target?.bd_user_id !== auth.supplier.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  return null;
+}
+
 async function fetchContract(
   supabase: { from: ReturnType<typeof createAdminClient>["from"] },
   contractId: string,
@@ -77,6 +92,10 @@ export async function PUT(request: Request, context: RouteContext) {
       contractId,
     );
     if (errorResponse) return errorResponse;
+
+    // 2b. BD scoping
+    const accessDenied = await verifyBdAccess(authResult, contract.supplier_id);
+    if (accessDenied) return accessDenied;
 
     // 3. Verify status is DRAFT
     if (contract.status !== "DRAFT") {
@@ -147,6 +166,10 @@ export async function POST(request: Request, context: RouteContext) {
       contractId,
     );
     if (errorResponse) return errorResponse;
+
+    // 2b. BD scoping
+    const accessDenied = await verifyBdAccess(authResult, contract.supplier_id);
+    if (accessDenied) return accessDenied;
 
     // 3. Validate state transition
     const transition = validateTransition(contract.status, "PENDING_REVIEW");

@@ -112,6 +112,7 @@ export async function POST(request: Request) {
         website: website ?? null,
         status: "PENDING_CONTRACT",
         role: "supplier",
+        bd_user_id: authResult.supplier.id,
       })
       .select()
       .single();

@@ -4,12 +4,14 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 
 export type UserRole = "supplier" | "bd" | "data_team";
 
 export interface RoleInfo {
   role: UserRole;
   supplierId: string;
+  isAdmin: boolean;
 }
 
 /**
@@ -22,14 +24,16 @@ export async function getCurrentUserRole(
 ): Promise<RoleInfo | null> {
   const { data, error } = await supabase
     .from("suppliers")
-    .select("id, role")
+    .select("id, role, contact_email")
     .eq("user_id", userId)
     .single();
 
   if (error || !data) return null;
 
+  const role = (data.role ?? "supplier") as UserRole;
   return {
-    role: (data.role ?? "supplier") as UserRole,
+    role,
     supplierId: data.id,
+    isAdmin: role === "bd" && checkAdmin(data.contact_email),
   };
 }

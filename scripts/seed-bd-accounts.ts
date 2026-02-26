@@ -40,9 +40,13 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
+// Admin accounts (also have role='bd' in DB; admin is code-level via permissions.ts)
+// Regular BD accounts — add new BDs here and rerun script
 const BD_ACCOUNTS = [
-  { email: "ning.ding@uhomes.com", company_name: "异乡好居 BD - Ning" },
-  { email: "abby.zhang@uhomes.com", company_name: "异乡好居 BD - Abby" },
+  { email: "ning.ding@uhomes.com", company_name: "异乡好居 Admin - Ning" },
+  { email: "abby.zhang@uhomes.com", company_name: "异乡好居 Admin - Abby" },
+  // Add new BD accounts below:
+  // { email: "new.bd@uhomes.com", company_name: "异乡好居 BD - Name" },
 ];
 
 async function ensureRoleColumn() {

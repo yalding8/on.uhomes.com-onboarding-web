@@ -18,6 +18,7 @@ export type SupplierStatusFilter = SupplierRow["status"] | "ALL";
 
 interface SupplierListProps {
   suppliers: SupplierRow[];
+  isAdmin?: boolean;
 }
 
 const FILTER_OPTIONS: { value: SupplierStatusFilter; label: string }[] = [
@@ -52,7 +53,10 @@ export function filterSuppliers(
   return suppliers.filter((s) => s.status === filter);
 }
 
-export function SupplierList({ suppliers }: SupplierListProps) {
+export function SupplierList({
+  suppliers,
+  isAdmin = false,
+}: SupplierListProps) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<SupplierStatusFilter>("ALL");
 
@@ -100,7 +104,11 @@ export function SupplierList({ suppliers }: SupplierListProps) {
           No suppliers found for this status
         </div>
       ) : (
-        <SupplierTable suppliers={filtered} onRowClick={handleRowClick} />
+        <SupplierTable
+          suppliers={filtered}
+          onRowClick={handleRowClick}
+          isAdmin={isAdmin}
+        />
       )}
     </>
   );

@@ -9,6 +9,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { MobileSidebar } from "@/components/admin/MobileSidebar";
 import { LogoutButton } from "@/components/admin/LogoutButton";
@@ -32,7 +33,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   // 2. 查询 suppliers 表验证 role='bd'（双重保障）
   const { data: supplier } = await supabase
     .from("suppliers")
-    .select("role")
+    .select("id, role, contact_email")
     .eq("user_id", user.id)
     .eq("role", "bd")
     .single();
@@ -41,15 +42,17 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     redirect("/dashboard");
   }
 
+  const userIsAdmin = checkAdmin(supplier.contact_email);
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)]">
       {/* 顶部栏 */}
       <header className="sticky top-0 z-30 flex items-center justify-between h-14 px-4 md:px-6 border-b border-[var(--color-border)] bg-[var(--color-bg-primary)]">
         <div className="flex items-center gap-2">
           {/* 移动端汉堡菜单按钮 + overlay 面板 */}
-          <MobileSidebar />
+          <MobileSidebar isAdmin={userIsAdmin} />
           <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-            BD Admin
+            {userIsAdmin ? "Admin" : "BD"}
           </span>
         </div>
 
@@ -65,7 +68,7 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
       <div className="flex">
         {/* 桌面端侧边栏 — >=768px 常驻显示 */}
         <aside className="hidden md:block w-56 shrink-0 border-r border-[var(--color-border)] bg-[var(--color-bg-secondary)] min-h-[calc(100vh-3.5rem)]">
-          <Sidebar />
+          <Sidebar isAdmin={userIsAdmin} />
         </aside>
 
         {/* 内容区 */}

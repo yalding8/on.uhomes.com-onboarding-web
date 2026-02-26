@@ -7,8 +7,11 @@
  * Requirements: 3.1, 3.2, 3.4
  */
 
+import { redirect } from "next/navigation";
 import { ApplicationList } from "@/components/admin/ApplicationList";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 
 export interface ApplicationRow {
   id: string;
@@ -40,6 +43,20 @@ async function getApplications(): Promise<ApplicationRow[]> {
 }
 
 export default async function ApplicationsPage() {
+  // Admin-only: regular BDs cannot view applications
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+  const { data: me } = await supabase
+    .from("suppliers")
+    .select("contact_email")
+    .eq("user_id", user.id)
+    .eq("role", "bd")
+    .single();
+  if (!me || !checkAdmin(me.contact_email)) redirect("/admin/suppliers");
+
   const applications = await getApplications();
 
   return (
