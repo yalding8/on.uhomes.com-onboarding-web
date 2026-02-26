@@ -8,6 +8,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import type { ContractStatus, ContractFields } from "@/lib/contracts/types";
+import { ContractDocumentPreview } from "@/components/contracts/ContractDocumentPreview";
 
 /** Field labels for the 9 dynamic contract fields */
 export const FIELD_LABELS: Record<keyof ContractFields, string> = {
@@ -139,29 +140,9 @@ function PendingReviewContent({
         &amp; Sign&quot; once you are satisfied.
       </p>
 
-      {fields && (
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 gap-4"
-          data-testid="contract-fields"
-        >
-          {FIELD_ORDER.map((key) => (
-            <div
-              key={key}
-              className="p-3 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]"
-            >
-              <dt className="text-xs text-[var(--color-text-muted)] mb-1">
-                {FIELD_LABELS[key]}
-              </dt>
-              <dd
-                className="text-sm font-medium text-[var(--color-text-primary)]"
-                data-testid={`field-${key}`}
-              >
-                {fields[key] || "—"}
-              </dd>
-            </div>
-          ))}
-        </div>
-      )}
+      <div data-testid="contract-fields">
+        <ContractDocumentPreview fields={fields} />
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button
