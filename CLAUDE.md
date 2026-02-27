@@ -80,10 +80,10 @@ bash scripts/check-file-lines.sh  # 文件行数检查（≤ 300 行）
 
 ### Remote 配置
 
-| 名称       | 地址                                                                 |
-| :--------- | :------------------------------------------------------------------- |
-| `origin`   | `https://github.com/yalding8/on.uhomes.com-onboarding-web.git`（GitHub） |
-| `gitlab`   | `ssh://git@git.uhomes.com:20022/ning_ding/on.uhomes.com.git`（GitLab）  |
+| 名称     | 地址                                                                     |
+| :------- | :----------------------------------------------------------------------- |
+| `origin` | `https://github.com/yalding8/on.uhomes.com-onboarding-web.git`（GitHub） |
+| `gitlab` | `ssh://git@git.uhomes.com:20022/ning_ding/on.uhomes.com.git`（GitLab）   |
 
 如果 `gitlab` remote 尚未配置，先执行：
 
