@@ -1,24 +1,18 @@
-/**
- * Data Merge 单元测试
- *
- * 覆盖:
- * - mergeExtractionResults: 多源融合优先级
- * - mergeWithProtection: 已确认字段保护
- *
- * Requirements: 1.6, 1.7, 8.3
- */
+/** Data Merge 单元测试 — mergeExtractionResults / mergeWithProtection */
 
 import { describe, it, expect } from "vitest";
-import {
-  mergeExtractionResults,
-  mergeWithProtection,
-} from "../data-merge";
+import { mergeExtractionResults, mergeWithProtection } from "../data-merge";
 import type { ExtractionResult } from "../data-merge";
 import type { FieldValue } from "../field-value";
 
 // ── Helpers ──
 
-function makeFieldValue(overrides: Partial<FieldValue> & { value: unknown; source: FieldValue["source"] }): FieldValue {
+function makeFieldValue(
+  overrides: Partial<FieldValue> & {
+    value: unknown;
+    source: FieldValue["source"];
+  },
+): FieldValue {
   return {
     confidence: "high",
     updatedBy: "system",
@@ -64,11 +58,15 @@ describe("mergeExtractionResults", () => {
       },
       {
         source: "google_sheets",
-        fields: { building_name: { value: "From Sheets", confidence: "medium" } },
+        fields: {
+          building_name: { value: "From Sheets", confidence: "medium" },
+        },
       },
       {
         source: "contract_pdf",
-        fields: { building_name: { value: "From Contract", confidence: "high" } },
+        fields: {
+          building_name: { value: "From Contract", confidence: "high" },
+        },
       },
     ];
 
@@ -104,7 +102,9 @@ describe("mergeExtractionResults", () => {
       },
       {
         source: "website_crawl",
-        fields: { key_amenities: { value: ["gym", "pool"], confidence: "medium" } },
+        fields: {
+          key_amenities: { value: ["gym", "pool"], confidence: "medium" },
+        },
       },
       {
         source: "google_sheets",
@@ -168,7 +168,10 @@ describe("mergeWithProtection", () => {
   it("writes new fields that don't exist in existing", () => {
     const existing: Record<string, FieldValue> = {};
     const incoming: Record<string, FieldValue> = {
-      building_name: makeFieldValue({ value: "Tower A", source: "contract_pdf" }),
+      building_name: makeFieldValue({
+        value: "Tower A",
+        source: "contract_pdf",
+      }),
     };
 
     const merged = mergeWithProtection(existing, incoming);
@@ -186,7 +189,10 @@ describe("mergeWithProtection", () => {
       }),
     };
     const incoming: Record<string, FieldValue> = {
-      building_name: makeFieldValue({ value: "From Extraction", source: "contract_pdf" }),
+      building_name: makeFieldValue({
+        value: "From Extraction",
+        source: "contract_pdf",
+      }),
     };
 
     const merged = mergeWithProtection(existing, incoming);
@@ -238,7 +244,10 @@ describe("mergeWithProtection", () => {
 
   it("preserves existing fields not present in incoming", () => {
     const existing: Record<string, FieldValue> = {
-      building_name: makeFieldValue({ value: "Tower A", source: "contract_pdf" }),
+      building_name: makeFieldValue({
+        value: "Tower A",
+        source: "contract_pdf",
+      }),
       city: makeFieldValue({ value: "Toronto", source: "manual_input" }),
     };
     const incoming: Record<string, FieldValue> = {
@@ -267,9 +276,18 @@ describe("mergeWithProtection", () => {
       }),
     };
     const incoming: Record<string, FieldValue> = {
-      confirmed_field: makeFieldValue({ value: "Override attempt", source: "contract_pdf" }),
-      unconfirmed_field: makeFieldValue({ value: "New", source: "contract_pdf" }),
-      new_field: makeFieldValue({ value: "Brand New", source: "google_sheets" }),
+      confirmed_field: makeFieldValue({
+        value: "Override attempt",
+        source: "contract_pdf",
+      }),
+      unconfirmed_field: makeFieldValue({
+        value: "New",
+        source: "contract_pdf",
+      }),
+      new_field: makeFieldValue({
+        value: "Brand New",
+        source: "google_sheets",
+      }),
     };
 
     const merged = mergeWithProtection(existing, incoming);

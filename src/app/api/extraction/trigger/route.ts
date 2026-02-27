@@ -100,11 +100,20 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as TriggerPayload;
-    const { buildingId, supplierId, contractPdfUrl, websiteUrl, googleSheetsUrl } = body;
+    const {
+      buildingId,
+      supplierId,
+      contractPdfUrl,
+      websiteUrl,
+      googleSheetsUrl,
+    } = body;
 
     if (!buildingId || !supplierId || !contractPdfUrl) {
       return NextResponse.json(
-        { error: "Missing required fields: buildingId, supplierId, contractPdfUrl" },
+        {
+          error:
+            "Missing required fields: buildingId, supplierId, contractPdfUrl",
+        },
         { status: 400 },
       );
     }
@@ -160,15 +169,11 @@ export async function POST(request: Request) {
 
     // 向 External Worker 发送提取请求（不阻塞响应）
     const dispatchPromises = insertedJobs.map((job) =>
-      dispatchToWorker(
-        job.source as ExtractionSource,
-        job.id as string,
-        {
-          buildingId,
-          supplierId,
-          sourceUrl: sourceUrls[job.source as ExtractionSource],
-        },
-      ),
+      dispatchToWorker(job.source as ExtractionSource, job.id as string, {
+        buildingId,
+        supplierId,
+        sourceUrl: sourceUrls[job.source as ExtractionSource],
+      }),
     );
 
     // 并行触发所有 worker，但不等待完成

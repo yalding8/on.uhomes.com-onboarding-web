@@ -51,18 +51,18 @@ npm run dev
 
 ## 环境变量 (.env.local)
 
-| 变量名称                        | 说明                                                  |
-| :------------------------------ | :---------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                     |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                 |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                   |
-| `DOCUSIGN_CLIENT_ID`            | DocuSign Integration Key（Client ID）                 |
-| `DOCUSIGN_USER_ID`              | DocuSign User ID，用于 JWT impersonation              |
-| `DOCUSIGN_ACCOUNT_ID`           | DocuSign Account ID                                   |
-| `DOCUSIGN_PRIVATE_KEY`          | Base64 编码的 RSA 私钥，用于 JWT 认证                 |
-| `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`） |
-| `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                             |
-| `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                    |
+| 变量名称                        | 说明                                                       |
+| :------------------------------ | :--------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                          |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                      |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                        |
+| `DOCUSIGN_CLIENT_ID`            | DocuSign Integration Key（Client ID）                      |
+| `DOCUSIGN_USER_ID`              | DocuSign User ID，用于 JWT impersonation                   |
+| `DOCUSIGN_ACCOUNT_ID`           | DocuSign Account ID                                        |
+| `DOCUSIGN_PRIVATE_KEY`          | Base64 编码的 RSA 私钥，用于 JWT 认证                      |
+| `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`）      |
+| `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                                  |
+| `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                         |
 | `EXTRACTION_WORKER_URL`         | External Worker 基础 URL（可选，未配置时跳过 Worker 调度） |
 
 > 每次新增环境变量后，必须同步更新本表。

@@ -65,7 +65,8 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as CallbackPayload;
-    const { buildingId, source, extractedFields, status, errorMessage, jobId } = body;
+    const { buildingId, source, extractedFields, status, errorMessage, jobId } =
+      body;
 
     if (!buildingId || !source || !status) {
       return NextResponse.json(
@@ -81,18 +82,26 @@ export async function POST(request: Request) {
 
     const jobStatus = status === "failed" ? "failed" : "completed";
     const jobFilter = jobId
-      ? admin.from("extraction_jobs").update({
-          status: jobStatus,
-          extracted_data: extractedFields ?? {},
-          error_message: errorMessage ?? null,
-          completed_at: now,
-        }).eq("id", jobId)
-      : admin.from("extraction_jobs").update({
-          status: jobStatus,
-          extracted_data: extractedFields ?? {},
-          error_message: errorMessage ?? null,
-          completed_at: now,
-        }).eq("building_id", buildingId).eq("source", source).eq("status", "running");
+      ? admin
+          .from("extraction_jobs")
+          .update({
+            status: jobStatus,
+            extracted_data: extractedFields ?? {},
+            error_message: errorMessage ?? null,
+            completed_at: now,
+          })
+          .eq("id", jobId)
+      : admin
+          .from("extraction_jobs")
+          .update({
+            status: jobStatus,
+            extracted_data: extractedFields ?? {},
+            error_message: errorMessage ?? null,
+            completed_at: now,
+          })
+          .eq("building_id", buildingId)
+          .eq("source", source)
+          .eq("status", "running");
 
     const { error: jobUpdateError } = await jobFilter;
     if (jobUpdateError) {
