@@ -99,8 +99,8 @@ git remote add gitlab ssh://git@git.uhomes.com:20022/ning_ding/on.uhomes.com.git
 # 1. 推送到 GitHub（主仓库）
 git push origin <branch>
 
-# 2. 同步到 GitLab（分支 + tags）
-git push gitlab --all
+# 2. 同步到 GitLab（分支 + tags，使用 --no-thin 避免服务端 unpack 失败）
+git push gitlab --all --no-thin
 git push gitlab --tags
 ```
 
