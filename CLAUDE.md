@@ -73,3 +73,35 @@ bash scripts/check-file-lines.sh  # 文件行数检查（≤ 300 行）
 
 > CI 门禁（Main Branch Guard）运行顺序：Prettier → ESLint → tsc → 行数检查 → Vitest → Build。
 > 任意一步失败，后续步骤全部跳过，且会尝试自动 revert。
+
+## 8. Git 推送与多仓库同步
+
+本项目同时托管在 **GitHub**（主仓库）和 **GitLab**（内部镜像）。每次执行 `git push` 到 GitHub 后，**必须同步推送到 GitLab**。
+
+### Remote 配置
+
+| 名称       | 地址                                                                 |
+| :--------- | :------------------------------------------------------------------- |
+| `origin`   | `https://github.com/yalding8/on.uhomes.com-onboarding-web.git`（GitHub） |
+| `gitlab`   | `ssh://git@git.uhomes.com:20022/ning_ding/on.uhomes.com.git`（GitLab）  |
+
+如果 `gitlab` remote 尚未配置，先执行：
+
+```bash
+git remote add gitlab ssh://git@git.uhomes.com:20022/ning_ding/on.uhomes.com.git
+```
+
+### 推送规则
+
+每次向 GitHub 推送代码时，紧接着执行 GitLab 同步：
+
+```bash
+# 1. 推送到 GitHub（主仓库）
+git push origin <branch>
+
+# 2. 同步到 GitLab（分支 + tags）
+git push gitlab --all
+git push gitlab --tags
+```
+
+> **注意**：两个 push 操作都需要用户确认后才可执行。
