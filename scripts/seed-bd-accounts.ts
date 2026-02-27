@@ -45,6 +45,7 @@ const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 const BD_ACCOUNTS = [
   { email: "ning.ding@uhomes.com", company_name: "异乡好居 Admin - Ning" },
   { email: "abby.zhang@uhomes.com", company_name: "异乡好居 Admin - Abby" },
+  { email: "lei.tian@uhomes.com", company_name: "异乡好居 Admin - Lei" },
   // BD accounts
   { email: "lorenzo.pisano@uhomes.com", company_name: "异乡好居 BD - Lorenzo" },
   { email: "larry.satkoski@uhomes.com", company_name: "异乡好居 BD - Larry" },

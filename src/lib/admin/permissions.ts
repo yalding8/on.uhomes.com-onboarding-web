@@ -8,6 +8,7 @@
 const ADMIN_EMAILS: ReadonlyArray<string> = [
   "ning.ding@uhomes.com",
   "abby.zhang@uhomes.com",
+  "lei.tian@uhomes.com",
 ];
 
 export function isAdmin(email: string): boolean {
