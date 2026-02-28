@@ -32,11 +32,26 @@
 - **样式**: React 19 / Tailwind CSS 4
 - **表单与校验**: react-hook-form + Zod
 - **图标**: lucide-react
-- **测试**: Vitest
+- **测试**: Vitest 3 + happy-dom + Testing Library
 - **部署**: Vercel（主应用）+ Fly.io（Extraction Worker）
 - **后端 / 数据库**: Supabase（PostgreSQL + Auth OTP + RLS）
 - **AI 提取**: DeepSeek LLM（OpenAI 兼容 API）
 - **爬虫**: Playwright（Chromium headless）
+
+## 前置要求
+
+- **Node.js 22 LTS**（项目通过 `.node-version` 锁定，推荐使用 [fnm](https://github.com/Schniz/fnm) 管理版本）
+- npm 10+
+
+```bash
+# 安装 fnm（如未安装）
+brew install fnm
+
+# 自动切换到项目指定的 Node 版本
+fnm use
+```
+
+> Node 25 与 Vitest 的 DOM 环境（jsdom/happy-dom）存在兼容性问题，会导致测试 worker 卡死。请务必使用 Node 22。
 
 ## 快速开始
 
