@@ -47,12 +47,18 @@ function resolveRoute(input: RouteInput): RouteDecision {
     if (
       status === "PENDING_CONTRACT" &&
       pathname !== "/dashboard" &&
-      !pathname.startsWith("/auth")
+      !pathname.startsWith("/auth") &&
+      !pathname.startsWith("/api/")
     ) {
       return { action: "redirect", target: "/dashboard" };
     }
 
-    if (status === "NEW" && pathname !== "/" && !pathname.startsWith("/auth")) {
+    if (
+      status === "NEW" &&
+      pathname !== "/" &&
+      !pathname.startsWith("/auth") &&
+      !pathname.startsWith("/api/")
+    ) {
       return { action: "redirect", target: "/" };
     }
 
@@ -236,6 +242,26 @@ describe("中间件路由决策逻辑", () => {
         role: "supplier",
         status: "PENDING_CONTRACT",
         pathname: "/dashboard",
+      });
+      expect(result).toEqual({ action: "pass" });
+    });
+
+    it("PENDING_CONTRACT supplier 访问 /api/ 时放行", () => {
+      const result = resolveRoute({
+        isAuthenticated: true,
+        role: "supplier",
+        status: "PENDING_CONTRACT",
+        pathname: "/api/contracts/123/confirm",
+      });
+      expect(result).toEqual({ action: "pass" });
+    });
+
+    it("NEW supplier 访问 /api/ 时放行", () => {
+      const result = resolveRoute({
+        isAuthenticated: true,
+        role: "supplier",
+        status: "NEW",
+        pathname: "/api/apply",
       });
       expect(result).toEqual({ action: "pass" });
     });

@@ -81,14 +81,20 @@ export async function updateSession(request: NextRequest) {
     if (
       status === "PENDING_CONTRACT" &&
       pathname !== "/dashboard" &&
-      !pathname.startsWith("/auth")
+      !pathname.startsWith("/auth") &&
+      !pathname.startsWith("/api/")
     ) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
     // Condition 3: NEW User -> Redirect to / (Landing Page) if they try to access internal pages
     // This also catches logged-in NEW users hitting /login — they should go to /
-    if (status === "NEW" && pathname !== "/" && !pathname.startsWith("/auth")) {
+    if (
+      status === "NEW" &&
+      pathname !== "/" &&
+      !pathname.startsWith("/auth") &&
+      !pathname.startsWith("/api/")
+    ) {
       return NextResponse.redirect(new URL("/", request.url));
     }
   } else {
