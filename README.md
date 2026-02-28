@@ -14,7 +14,7 @@
 | Task 6  | Supabase 建表：applications / suppliers / contracts / buildings         | ✅ 完成   |
 | Task 7  | Auth 认证 + 路由中间件（三态重定向）                                    | ✅ 完成   |
 | Task 8  | P0 核心视图：Landing / Login / Dashboard                                | ✅ 完成   |
-| Task 9  | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                           | 🚧 待开发 |
+| Task 9  | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                           | ✅ 完成   |
 | P1-BD   | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请             | ✅ 完成   |
 | P1-Core | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页 | ✅ 完成   |
 | P1-Sign | Online Contract Signing：DocuSign eSignature 集成（替代 Mock OpenSign） | ✅ 完成   |
@@ -23,7 +23,7 @@
 | P1-AI   | AI 多源提取管道 + 数据融合（纯函数 + API 已完成，待 Worker 联调）       | ✅ 完成   |
 | P1-Pub  | 内部预览 + 发布到主站                                                   | 🚧 第二轮 |
 
-**当前里程碑**：P0 基础设施 + P1-BD 管理后台 + P1-Core Building Onboarding + P1-Sign DocuSign 在线签约 + P1-i18n 全站英文化 + P1-Q 全流程质量加固均已完成。剩余第二轮任务：AI 多源提取管道、内部预览与发布、重型微服务。
+**当前里程碑**：P0 基础设施 + P1 全部核心功能 + Task 9 Worker 微服务均已完成。剩余：P1-Pub 内部预览与发布。
 
 ## 基础设施与选型
 
@@ -33,8 +33,10 @@
 - **表单与校验**: react-hook-form + Zod
 - **图标**: lucide-react
 - **测试**: Vitest
-- **部署**: Vercel（PR Preview + Edge Network）
+- **部署**: Vercel（主应用）+ Fly.io（Extraction Worker）
 - **后端 / 数据库**: Supabase（PostgreSQL + Auth OTP + RLS）
+- **AI 提取**: DeepSeek LLM（OpenAI 兼容 API）
+- **爬虫**: Playwright（Chromium headless）
 
 ## 快速开始
 
@@ -51,21 +53,74 @@ npm run dev
 
 ## 环境变量 (.env.local)
 
-| 变量名称                        | 说明                                                       |
-| :------------------------------ | :--------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                          |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                      |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                        |
-| `DOCUSIGN_CLIENT_ID`            | DocuSign Integration Key（Client ID）                      |
-| `DOCUSIGN_USER_ID`              | DocuSign User ID，用于 JWT impersonation                   |
-| `DOCUSIGN_ACCOUNT_ID`           | DocuSign Account ID                                        |
-| `DOCUSIGN_PRIVATE_KEY`          | Base64 编码的 RSA 私钥，用于 JWT 认证                      |
-| `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`）      |
-| `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                                  |
-| `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                         |
-| `EXTRACTION_WORKER_URL`         | External Worker 基础 URL（可选，未配置时跳过 Worker 调度） |
+| 变量名称                        | 说明                                                  |
+| :------------------------------ | :---------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Supabase 项目 URL                                     |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase 匿名公钥，用于前端路由态读取                 |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Supabase 管理员 Key，仅限服务端使用                   |
+| `DOCUSIGN_CLIENT_ID`            | DocuSign Integration Key（Client ID）                 |
+| `DOCUSIGN_USER_ID`              | DocuSign User ID，用于 JWT impersonation              |
+| `DOCUSIGN_ACCOUNT_ID`           | DocuSign Account ID                                   |
+| `DOCUSIGN_PRIVATE_KEY`          | Base64 编码的 RSA 私钥，用于 JWT 认证                 |
+| `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`） |
+| `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                             |
+| `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                    |
+| `EXTRACTION_WORKER_URL`         | Extraction Worker 基础 URL（Fly.io 部署地址）         |
 
 > 每次新增环境变量后，必须同步更新本表。
+
+## Extraction Worker（`worker/`）
+
+独立的 Node.js 微服务，负责从合同 PDF 和楼盘网站自动提取结构化数据。
+
+### 架构
+
+```
+主应用 POST /api/extraction/trigger
+  → Worker POST /extract（立即返回 202）
+  → 后台异步处理：PDF 解析 / Playwright 爬虫 → DeepSeek LLM 提取
+  → Worker POST /api/extraction/callback 回调结果
+  → 主应用融合数据、更新评分
+```
+
+### 支持的提取源
+
+| Source          | 输入              | 提取方式                        |
+| :-------------- | :---------------- | :------------------------------ |
+| `contract_pdf`  | Supabase 签名 URL | 下载 PDF → pdf-parse → LLM 提取 |
+| `website_crawl` | 楼盘网站 URL      | Playwright 爬取 → LLM 提取      |
+| `google_sheets` | Google Sheets URL | 🚧 后续迭代                     |
+
+### Worker 环境变量
+
+| 变量名称                    | 说明                                   |
+| :-------------------------- | :------------------------------------- |
+| `PORT`                      | 服务端口（默认 3000）                  |
+| `SUPABASE_SERVICE_ROLE_KEY` | 与主应用相同，用于回调认证             |
+| `DEEPSEEK_API_KEY`          | DeepSeek API Key                       |
+| `QWEN_API_KEY`              | 通义千问 API Key（可选，作为备用 LLM） |
+| `JOB_TIMEOUT_MS`            | 单任务超时时间（默认 300000 = 5 分钟） |
+
+### 本地运行
+
+```bash
+cd worker
+cp .env.example .env  # 填入真实 Key
+npm install
+npx playwright install chromium
+npx tsx src/index.ts   # 启动 Worker（默认 http://localhost:3000）
+```
+
+### 部署
+
+Worker 部署在 Fly.io，线上地址：`https://uhomes-extraction-worker.fly.dev`
+
+```bash
+cd worker
+flyctl deploy          # 部署到 Fly.io
+flyctl logs            # 查看日志
+flyctl status          # 查看状态
+```
 
 ## Supabase Storage 配置：`signed-contracts` 存储桶
 
@@ -188,6 +243,26 @@ curl -X POST http://localhost:3000/api/apply \
 | `building_onboarding_data` | Building Onboarding 字段值 + 乐观锁版本号 |
 | `field_audit_logs`         | 字段修改审计日志                          |
 | `extraction_jobs`          | AI 提取任务记录                           |
+
+## 项目结构
+
+```
+├── src/                     # 主应用（Next.js App Router）
+│   ├── app/                 # 页面路由 + API 路由
+│   ├── components/          # UI 组件
+│   └── lib/                 # 工具库（API、LLM、Supabase 等）
+├── worker/                  # Extraction Worker 微服务
+│   ├── src/
+│   │   ├── extractors/      # 提取器（contract-pdf、website-crawl）
+│   │   ├── llm/             # LLM 客户端 + Prompt + 字段映射
+│   │   ├── pdf/             # PDF 下载与解析
+│   │   ├── crawl/           # Playwright 浏览器管理 + 爬虫
+│   │   └── schema/          # 字段定义（复制自主应用）
+│   ├── Dockerfile
+│   └── fly.toml             # Fly.io 部署配置
+├── supabase/                # 数据库迁移
+└── docs/                    # 项目文档
+```
 
 ## 文档索引
 
