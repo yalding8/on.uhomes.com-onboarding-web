@@ -319,6 +319,7 @@ describe("Property 7: Webhook 幂等性", () => {
       arbUuid,
       fc
         .date({ min: new Date(0), max: new Date("2100-01-01") })
+        .filter((d) => !isNaN(d.getTime()))
         .map((d) => d.toISOString()),
       fc.webUrl(),
     ],
