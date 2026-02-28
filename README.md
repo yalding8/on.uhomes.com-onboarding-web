@@ -283,6 +283,8 @@ curl -X POST http://localhost:3000/api/apply \
 
 - `docs/ARCHITECTURE.md` — 架构决策与系统交互链路
 - `docs/API_REFERENCE.md` — 接口通信规范
-- `docs/E2E_TEST_GUIDE.md` — P0 供应商签约全流程 E2E 测试指南
+- `docs/FULL_FLOW_TEST_GUIDE.md` — **全流程 E2E 测试指南（中英双语，含 AI 提取）**
+- `docs/E2E_TEST_GUIDE.md` — P0 供应商签约全流程手动测试指南
 - `docs/DOCUSIGN_E2E_TEST_GUIDE.md` — DocuSign 在线签约 E2E 测试指南
+- `docs/UAT_TEST_GUIDE.md` / `docs/UAT_TEST_GUIDE_CN.md` — UAT 验收测试指南（英/中）
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
