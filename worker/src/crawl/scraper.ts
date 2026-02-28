@@ -32,14 +32,14 @@ export async function scrapePage(
       );
     }
 
-    // 导航（等待网络空闲）
+    // 导航（等待 DOM 加载完成，不用 networkidle 因为很多 SPA 永远不会 idle）
     await page.goto(url, {
-      waitUntil: "networkidle",
+      waitUntil: "domcontentloaded",
       timeout: 30_000,
     });
 
-    // 等待主内容加载
-    await page.waitForTimeout(2000);
+    // 等待动态内容渲染
+    await page.waitForTimeout(5000);
 
     // 提取页面内容
     const content = await page.evaluate(() => {
