@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
@@ -19,6 +19,17 @@ export default function LoginPage() {
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const [agreed, setAgreed] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const startResendCooldown = useCallback(() => {
+    setResendCooldown(60);
+  }, []);
 
   // Step 1: Request OTP -> supabase.auth.signInWithOtp()
   const handleRequestOtp = async (e: React.FormEvent) => {
@@ -47,6 +58,7 @@ export default function LoginPage() {
 
     setStep(2);
     setStatus("idle");
+    startResendCooldown();
   };
 
   // Step 2: Verify OTP -> supabase.auth.verifyOtp()
@@ -125,7 +137,7 @@ export default function LoginPage() {
             </div>
 
             {errorMessage && (
-              <p className="text-[var(--color-primary)] text-sm">
+              <p className="text-[var(--color-warning)] text-sm">
                 {errorMessage}
               </p>
             )}
@@ -160,14 +172,14 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={status === "loading" || !agreed}
-              className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors disabled:opacity-70"
+              className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 active:scale-[0.98] transition-all disabled:opacity-70"
             >
               {status === "loading" ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
               ) : (
                 <>
                   Continue with Email
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ms-2 h-4 w-4" />
                 </>
               )}
             </button>
@@ -197,6 +209,8 @@ export default function LoginPage() {
               <input
                 id="otp"
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 required
                 maxLength={8}
                 disabled={status === "loading" || status === "success"}
@@ -208,7 +222,7 @@ export default function LoginPage() {
             </div>
 
             {errorMessage && (
-              <p className="text-[var(--color-primary)] text-sm text-center">
+              <p className="text-[var(--color-warning)] text-sm text-center">
                 {errorMessage}
               </p>
             )}
@@ -218,10 +232,10 @@ export default function LoginPage() {
               disabled={
                 status === "loading" || status === "success" || otp.length < 8
               }
-              className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors disabled:opacity-70"
+              className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 active:scale-[0.98] transition-all disabled:opacity-70"
             >
               {status === "loading" ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="me-2 h-4 w-4 animate-spin" />
               ) : status === "success" ? (
                 "Verified"
               ) : (
@@ -229,13 +243,37 @@ export default function LoginPage() {
               )}
             </button>
 
-            <div className="text-center">
+            <div className="flex flex-col items-center gap-2">
               <button
                 type="button"
                 onClick={() => setStep(1)}
                 className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)] transition-colors"
               >
                 Use a different email address
+              </button>
+              <button
+                type="button"
+                disabled={resendCooldown > 0 || status === "loading"}
+                onClick={async () => {
+                  setErrorMessage("");
+                  setStatus("loading");
+                  const { error } = await supabase.auth.signInWithOtp({
+                    email,
+                    options: { shouldCreateUser: true },
+                  });
+                  if (error) {
+                    setErrorMessage(error.message);
+                    setStatus("error");
+                    return;
+                  }
+                  setStatus("idle");
+                  startResendCooldown();
+                }}
+                className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {resendCooldown > 0
+                  ? `Resend code in ${resendCooldown}s`
+                  : "Resend verification code"}
               </button>
             </div>
           </form>

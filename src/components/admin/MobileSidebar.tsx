@@ -28,7 +28,7 @@ function MobileSidebarInner({ isAdmin }: { isAdmin: boolean }) {
       {/* 汉堡按钮 — 仅移动端可见 */}
       <button
         type="button"
-        aria-label={isOpen ? "关闭导航菜单" : "打开导航菜单"}
+        aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
         aria-expanded={isOpen}
         onClick={() => setIsOpen((prev) => !prev)}
         className="md:hidden p-1.5 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
@@ -50,11 +50,11 @@ function MobileSidebarInner({ isAdmin }: { isAdmin: boolean }) {
           <aside className="relative w-64 max-w-[80vw] h-full bg-[var(--color-bg-secondary)] border-r border-[var(--color-border)] shadow-lg">
             <div className="flex items-center justify-between h-14 px-4 border-b border-[var(--color-border)]">
               <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-                导航
+                Navigation
               </span>
               <button
                 type="button"
-                aria-label="关闭导航菜单"
+                aria-label="Close navigation menu"
                 onClick={close}
                 className="p-1.5 rounded-lg text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
               >

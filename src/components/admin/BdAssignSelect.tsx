@@ -67,7 +67,7 @@ export function BdAssignSelect({
         <Loader2 className="w-4 h-4 animate-spin text-[var(--color-text-muted)]" />
       )}
       {error && (
-        <span className="text-xs text-[var(--color-primary)]">{error}</span>
+        <span className="text-xs text-[var(--color-warning)]">{error}</span>
       )}
     </div>
   );

@@ -167,7 +167,7 @@ export function ContractEditForm({
           className={`mb-4 rounded-md px-4 py-3 text-sm ${
             message.type === "success"
               ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-              : "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+              : "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
           }`}
         >
           {message.text}
@@ -228,7 +228,7 @@ export function ContractEditForm({
             type="button"
             onClick={handleSave}
             disabled={saving || pushing}
-            className="px-4 py-2 rounded-md border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-md border border-[var(--color-border)] text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? "Saving..." : "Save"}
           </button>
@@ -236,7 +236,7 @@ export function ContractEditForm({
             type="button"
             onClick={handlePushForReview}
             disabled={saving || pushing}
-            className="px-4 py-2 rounded-md text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-md text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {pushing ? "Pushing..." : "Push for Review"}
           </button>

@@ -69,14 +69,16 @@ export function SupplierTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-              <th className="text-left px-4 py-3 font-medium">Company</th>
-              <th className="text-left px-4 py-3 font-medium">Email</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
-              <th className="text-left px-4 py-3 font-medium">Buildings</th>
+              <th className="text-start px-4 py-3 font-medium">Company</th>
+              <th className="text-start px-4 py-3 font-medium">Email</th>
+              <th className="text-start px-4 py-3 font-medium">Status</th>
+              <th className="text-start px-4 py-3 font-medium">Buildings</th>
               {isAdmin && (
-                <th className="text-left px-4 py-3 font-medium">Assigned BD</th>
+                <th className="text-start px-4 py-3 font-medium">
+                  Assigned BD
+                </th>
               )}
-              <th className="text-left px-4 py-3 font-medium">Created</th>
+              <th className="text-start px-4 py-3 font-medium">Created</th>
             </tr>
           </thead>
           <tbody>
@@ -119,7 +121,7 @@ export function SupplierTable({
             key={s.id}
             type="button"
             onClick={() => onRowClick(s)}
-            className="w-full text-left rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+            className="w-full text-start rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-[var(--color-text-primary)]">

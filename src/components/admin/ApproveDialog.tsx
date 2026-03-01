@@ -157,7 +157,7 @@ export function ApproveDialog({
           {error && (
             <p
               role="alert"
-              className="text-sm text-[var(--color-primary)] bg-[var(--color-primary-light)] rounded px-3 py-2"
+              className="text-sm text-[var(--color-warning)] bg-[var(--color-warning-light)] rounded px-3 py-2"
             >
               {error}
             </p>

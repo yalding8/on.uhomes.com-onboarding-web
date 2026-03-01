@@ -120,7 +120,7 @@ export function InviteForm() {
           className={`mb-4 px-4 py-3 rounded text-sm ${
             result.type === "success"
               ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-              : "bg-[var(--color-primary-light)] text-[var(--color-primary)]"
+              : "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
           }`}
         >
           {result.message}
@@ -143,12 +143,12 @@ export function InviteForm() {
           placeholder="supplier@example.com"
           className={`w-full px-3 py-2 rounded-lg border text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] ${
             errors.email
-              ? "border-[var(--color-primary)]"
+              ? "border-[var(--color-warning)]"
               : "border-[var(--color-border)]"
           } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]`}
         />
         {errors.email && (
-          <p className="mt-1 text-xs text-[var(--color-primary)]">
+          <p className="mt-1 text-xs text-[var(--color-warning)]">
             {errors.email}
           </p>
         )}
@@ -170,12 +170,12 @@ export function InviteForm() {
           placeholder="Full company name"
           className={`w-full px-3 py-2 rounded-lg border text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] ${
             errors.company_name
-              ? "border-[var(--color-primary)]"
+              ? "border-[var(--color-warning)]"
               : "border-[var(--color-border)]"
           } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]`}
         />
         {errors.company_name && (
-          <p className="mt-1 text-xs text-[var(--color-primary)]">
+          <p className="mt-1 text-xs text-[var(--color-warning)]">
             {errors.company_name}
           </p>
         )}
@@ -239,7 +239,7 @@ export function InviteForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {submitting ? "Sending..." : "Send Invitation"}
       </button>

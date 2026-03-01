@@ -42,9 +42,9 @@ export function ResendButton({ contractId }: { contractId: string }) {
         className="inline-flex items-center text-[var(--color-primary)] hover:underline text-sm disabled:opacity-70"
       >
         {loading ? (
-          <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+          <Loader2 className="w-3.5 h-3.5 me-1 animate-spin" />
         ) : (
-          <Mail className="w-3.5 h-3.5 mr-1" />
+          <Mail className="w-3.5 h-3.5 me-1" />
         )}
         Resend Email
       </button>

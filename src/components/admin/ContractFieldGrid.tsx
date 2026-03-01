@@ -68,7 +68,7 @@ export function ContractFieldGrid({
                 rows={3}
                 className={`w-full rounded-md border px-3 py-2 text-sm text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed ${
                   error
-                    ? "border-[var(--color-primary)]"
+                    ? "border-[var(--color-warning)]"
                     : "border-[var(--color-border)]"
                 } focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]`}
               />
@@ -84,14 +84,14 @@ export function ContractFieldGrid({
                 max={inputType === "number" ? "100" : undefined}
                 className={`w-full rounded-md border px-3 py-2 text-sm text-[var(--color-text-primary)] bg-[var(--color-bg-primary)] disabled:bg-[var(--color-bg-secondary)] disabled:cursor-not-allowed ${
                   error
-                    ? "border-[var(--color-primary)]"
+                    ? "border-[var(--color-warning)]"
                     : "border-[var(--color-border)]"
                 } focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]`}
               />
             )}
 
             {error && (
-              <p className="mt-1 text-xs text-[var(--color-primary)]">
+              <p className="mt-1 text-xs text-[var(--color-warning)]">
                 {error}
               </p>
             )}

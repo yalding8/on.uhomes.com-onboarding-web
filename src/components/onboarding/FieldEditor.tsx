@@ -36,7 +36,7 @@ export function FieldEditor({
         >
           {field.label}
           {field.required && (
-            <span className="ml-0.5" style={{ color: "var(--color-primary)" }}>
+            <span className="ms-0.5" style={{ color: "var(--color-primary)" }}>
               *
             </span>
           )}

@@ -33,10 +33,10 @@ export function ApplicationSuccess({ showSignIn }: ApplicationSuccessProps) {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center justify-center rounded-lg bg-[var(--color-primary)] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors"
+            className="inline-flex items-center justify-center rounded-lg bg-[var(--color-primary)] px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 active:scale-[0.98] transition-all"
           >
             Sign In
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="ms-2 h-5 w-5" />
           </Link>
         </>
       )}

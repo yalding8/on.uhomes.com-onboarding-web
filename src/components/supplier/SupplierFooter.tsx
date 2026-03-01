@@ -2,10 +2,10 @@ export function SupplierFooter() {
   return (
     <footer className="border-t border-[var(--color-border)] bg-[var(--color-bg-primary)]">
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="text-center md:text-left">
+        <div className="text-center md:text-start">
           <p className="font-bold text-[var(--color-primary)]">
             uhomes.com
-            <span className="text-[var(--color-text-primary)] ml-1">
+            <span className="text-[var(--color-text-primary)] ms-1">
               Partners
             </span>
           </p>

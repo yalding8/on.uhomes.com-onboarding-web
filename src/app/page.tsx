@@ -17,7 +17,7 @@ export default async function Home() {
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="font-bold text-lg tracking-tight text-[var(--color-primary)]">
             uhomes.com
-            <span className="text-[var(--color-text-primary)] ml-2">
+            <span className="text-[var(--color-text-primary)] ms-2">
               Partners
             </span>
           </div>
@@ -43,7 +43,7 @@ export default async function Home() {
         {/* Hero Copy */}
         <div className="max-w-2xl">
           <div className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-1.5 text-sm font-medium mb-6">
-            <span className="flex h-2 w-2 rounded-full bg-[var(--color-success)] mr-2 tracking-wide text-[var(--color-text-secondary)]"></span>
+            <span className="flex h-2 w-2 rounded-full bg-[var(--color-success)] me-2 tracking-wide text-[var(--color-text-secondary)]"></span>
             Accepting New Partners
           </div>
           <h1 className="text-4xl lg:text-5xl font-bold text-[var(--color-text-primary)] leading-tight tracking-tight mb-6">
@@ -61,7 +61,7 @@ export default async function Home() {
               <div className="flex-shrink-0 mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
                 <Zap className="h-4 w-4 text-[var(--color-primary)] opacity-90" />
               </div>
-              <div className="ml-4">
+              <div className="ms-4">
                 <h4 className="text-base font-semibold text-[var(--color-text-primary)]">
                   Automated Onboarding
                 </h4>
@@ -76,7 +76,7 @@ export default async function Home() {
               <div className="flex-shrink-0 mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
                 <MapPin className="h-4 w-4 text-[var(--color-primary)] opacity-90" />
               </div>
-              <div className="ml-4">
+              <div className="ms-4">
                 <h4 className="text-base font-semibold text-[var(--color-text-primary)]">
                   Unrivaled Distribution
                 </h4>
@@ -91,7 +91,7 @@ export default async function Home() {
               <div className="flex-shrink-0 mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
                 <ShieldCheck className="h-4 w-4 text-[var(--color-primary)] opacity-90" />
               </div>
-              <div className="ml-4">
+              <div className="ms-4">
                 <h4 className="text-base font-semibold text-[var(--color-text-primary)]">
                   Secure & Managed
                 </h4>
@@ -151,10 +151,10 @@ export default async function Home() {
       {/* Footer */}
       <footer className="w-full border-t border-[var(--color-border)] bg-[var(--color-bg-primary)]">
         <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-center md:text-left">
+          <div className="text-center md:text-start">
             <p className="font-bold text-[var(--color-primary)]">
               uhomes.com
-              <span className="text-[var(--color-text-primary)] ml-1">
+              <span className="text-[var(--color-text-primary)] ms-1">
                 Partners
               </span>
             </p>

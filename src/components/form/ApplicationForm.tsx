@@ -95,7 +95,7 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto bg-[var(--color-bg-primary)] rounded-2xl shadow-xl overflow-hidden border border-[var(--color-border)] text-left">
+    <div className="w-full max-w-xl mx-auto bg-[var(--color-bg-primary)] rounded-2xl shadow-xl overflow-hidden border border-[var(--color-border)] text-start">
       <div className="bg-[var(--color-bg-secondary)] px-8 py-6 border-b border-[var(--color-border)]">
         <h3 className="text-xl font-semibold text-[var(--color-text-primary)] text-center">
           Become a Supplier
@@ -107,7 +107,7 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
         </p>
 
         {submitError && (
-          <div className="mt-4 p-3 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)] text-sm font-medium border border-[var(--color-primary)]/20 text-center">
+          <div className="mt-4 p-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-sm font-medium border border-[var(--color-warning)]/20 text-center">
             {submitError}
           </div>
         )}
@@ -120,18 +120,18 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
             Company Name *
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
               <Building2 className="h-5 w-5 text-[var(--color-text-muted)]" />
             </div>
             <input
               {...register("company_name")}
               disabled={isSubmitting}
-              className={`block w-full rounded-lg border ${errors.company_name ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+              className={`block w-full rounded-lg border ${errors.company_name ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} ps-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
               placeholder="Your Property Management LLC"
             />
           </div>
           {errors.company_name && (
-            <p className="text-[var(--color-primary)] text-xs mt-1">
+            <p className="text-[var(--color-warning)] text-xs mt-1">
               {errors.company_name.message}
             </p>
           )}
@@ -143,7 +143,7 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
             Work Email *
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
               <Mail className="h-5 w-5 text-[var(--color-text-muted)]" />
             </div>
             <input
@@ -151,12 +151,12 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
               type="email"
               readOnly={!!prefillEmail}
               disabled={isSubmitting}
-              className={`block w-full rounded-lg border ${errors.contact_email ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors ${prefillEmail ? "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] cursor-not-allowed" : ""}`}
+              className={`block w-full rounded-lg border ${errors.contact_email ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} ps-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors ${prefillEmail ? "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] cursor-not-allowed" : ""}`}
               placeholder="hello@example.com"
             />
           </div>
           {errors.contact_email && (
-            <p className="text-[var(--color-primary)] text-xs mt-1">
+            <p className="text-[var(--color-warning)] text-xs mt-1">
               {errors.contact_email.message}
             </p>
           )}
@@ -181,7 +181,7 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
             )}
           />
           {errors.contact_phone && (
-            <p className="text-[var(--color-primary)] text-xs mt-1">
+            <p className="text-[var(--color-warning)] text-xs mt-1">
               {errors.contact_phone.message}
             </p>
           )}
@@ -196,11 +196,11 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
             <input
               {...register("city")}
               disabled={isSubmitting}
-              className={`block w-full rounded-lg border ${errors.city ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+              className={`block w-full rounded-lg border ${errors.city ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
               placeholder="e.g. London"
             />
             {errors.city && (
-              <p className="text-[var(--color-primary)] text-xs mt-1">
+              <p className="text-[var(--color-warning)] text-xs mt-1">
                 {errors.city.message}
               </p>
             )}
@@ -211,18 +211,18 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
               Country / Region *
             </label>
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
                 <Globe className="h-5 w-5 text-[var(--color-text-muted)]" />
               </div>
               <input
                 {...register("country")}
                 disabled={isSubmitting}
-                className={`block w-full rounded-lg border ${errors.country ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+                className={`block w-full rounded-lg border ${errors.country ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} ps-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
                 placeholder="e.g. United Kingdom"
               />
             </div>
             {errors.country && (
-              <p className="text-[var(--color-primary)] text-xs mt-1">
+              <p className="text-[var(--color-warning)] text-xs mt-1">
                 {errors.country.message}
               </p>
             )}
@@ -240,11 +240,11 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
           <input
             {...register("website_url")}
             disabled={isSubmitting}
-            className={`block w-full rounded-lg border ${errors.website_url ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+            className={`block w-full rounded-lg border ${errors.website_url ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
             placeholder="https://www.example.com"
           />
           {errors.website_url && (
-            <p className="text-[var(--color-primary)] text-xs mt-1">
+            <p className="text-[var(--color-warning)] text-xs mt-1">
               {errors.website_url.message}
             </p>
           )}
@@ -253,14 +253,14 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="mt-4 flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors disabled:opacity-70"
+          className="mt-4 flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 active:scale-[0.98] transition-all disabled:opacity-70"
         >
           {isSubmitting ? (
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            <Loader2 className="me-2 h-5 w-5 animate-spin" />
           ) : (
             <>
               Submit Request
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ms-2 h-5 w-5" />
             </>
           )}
         </button>

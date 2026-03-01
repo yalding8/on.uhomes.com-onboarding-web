@@ -30,7 +30,7 @@ const STATUS_CONFIG: Record<
   },
   REJECTED: {
     label: "Rejected",
-    className: "bg-[var(--color-primary-light)] text-[var(--color-primary)]",
+    className: "bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)]",
   },
 };
 
@@ -66,7 +66,7 @@ function ApproveButton({
       type="button"
       onClick={() => onApprove(application)}
       disabled={!isPending}
-      className="px-3 py-1 rounded text-xs font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      className="px-3 py-1 rounded text-xs font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
     >
       {isPending ? "Approve" : STATUS_CONFIG[application.status].label}
     </button>
@@ -130,12 +130,12 @@ export function ApplicationTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-              <th className="text-left px-4 py-3 font-medium w-8" />
-              <th className="text-left px-4 py-3 font-medium">Company</th>
-              <th className="text-left px-4 py-3 font-medium">Email</th>
-              <th className="text-left px-4 py-3 font-medium">Location</th>
-              <th className="text-left px-4 py-3 font-medium">Status</th>
-              <th className="text-left px-4 py-3 font-medium">Action</th>
+              <th className="text-start px-4 py-3 font-medium w-8" />
+              <th className="text-start px-4 py-3 font-medium">Company</th>
+              <th className="text-start px-4 py-3 font-medium">Email</th>
+              <th className="text-start px-4 py-3 font-medium">Location</th>
+              <th className="text-start px-4 py-3 font-medium">Status</th>
+              <th className="text-start px-4 py-3 font-medium">Action</th>
             </tr>
           </thead>
           <tbody>

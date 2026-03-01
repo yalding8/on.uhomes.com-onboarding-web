@@ -208,7 +208,7 @@ export function PhoneInput({
                   <span className="text-[var(--color-text-primary)] truncate">
                     {cc.name}
                   </span>
-                  <span className="ml-auto text-[var(--color-text-muted)]">
+                  <span className="ms-auto text-[var(--color-text-muted)]">
                     {cc.dialCode}
                   </span>
                 </li>

@@ -123,7 +123,7 @@ export function ContractPdfUpload({
       </p>
 
       {error && (
-        <div className="mb-3 rounded-md bg-[var(--color-primary-light)] px-3 py-2 text-xs text-[var(--color-primary)]">
+        <div className="mb-3 rounded-md bg-[var(--color-warning-light)] px-3 py-2 text-xs text-[var(--color-warning)]">
           {error}
         </div>
       )}
