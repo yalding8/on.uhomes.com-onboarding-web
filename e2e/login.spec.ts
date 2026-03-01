@@ -15,7 +15,7 @@ test.describe("Login Page", () => {
   test("LG-01: page loads with email input and continue button", async ({
     page,
   }) => {
-    await expect(page.getByText("Welcome to uhomes")).toBeVisible();
+    await expect(page.getByText("Welcome to uhomes.com")).toBeVisible();
     await expect(page.locator("#email")).toBeVisible();
     await expect(
       page.getByRole("button", { name: /continue with email/i }),

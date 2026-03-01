@@ -22,7 +22,7 @@ After login, you will be redirected to the Admin panel automatically.
 
 | Step | Action                                                        | Expected Result                                                                           |
 | ---- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 1    | Open https://on-uhomes-com-onboarding-web.vercel.app/login    | See "Welcome to uhomes" heading, email input field, and "Continue with Email" button      |
+| 1    | Open https://on-uhomes-com-onboarding-web.vercel.app/login    | See "Welcome to uhomes.com" heading, email input field, and "Continue with Email" button  |
 | 2    | Leave email empty, click **Continue with Email**              | Error message: "Please enter a valid email address"                                       |
 | 3    | Enter your `@uhomes.com` email, click **Continue with Email** | Page transitions to OTP step. You see "We've sent an 8-digit secure code to [your email]" |
 | 4    | Check your email inbox                                        | You should receive an email with an 8-digit verification code                             |
@@ -150,7 +150,7 @@ After login, suppliers are redirected to their Dashboard.
 
 | Step | Action                                                              | Expected Result                                           |
 | ---- | ------------------------------------------------------------------- | --------------------------------------------------------- |
-| 1    | Open https://on-uhomes-com-onboarding-web.vercel.app/login          | See "Welcome to uhomes" with email input                  |
+| 1    | Open https://on-uhomes-com-onboarding-web.vercel.app/login          | See "Welcome to uhomes.com" with email input              |
 | 2    | Enter your registered supplier email, click **Continue with Email** | Transitions to OTP step. Message shows your email address |
 | 3    | Click **Use a different email address**                             | Returns to email input step                               |
 | 4    | Re-enter email, click **Continue with Email** again                 | Back to OTP step                                          |

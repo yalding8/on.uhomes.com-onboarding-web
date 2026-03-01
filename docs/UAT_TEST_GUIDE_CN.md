@@ -22,7 +22,7 @@
 
 | 步骤 | 操作                                                       | 预期结果                                                                     |
 | ---- | ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1    | 打开 https://on-uhomes-com-onboarding-web.vercel.app/login | 看到 "Welcome to uhomes" 标题、邮箱输入框和 "Continue with Email" 按钮       |
+| 1    | 打开 https://on-uhomes-com-onboarding-web.vercel.app/login | 看到 "Welcome to uhomes.com" 标题、邮箱输入框和 "Continue with Email" 按钮   |
 | 2    | 不输入邮箱，直接点击 **Continue with Email**               | 显示错误提示："Please enter a valid email address"                           |
 | 3    | 输入你的 `@uhomes.com` 邮箱，点击 **Continue with Email**  | 页面切换到验证码步骤，显示 "We've sent an 8-digit secure code to [你的邮箱]" |
 | 4    | 查看邮箱收件箱                                             | 收到一封包含 8 位数字验证码的邮件                                            |
@@ -148,14 +148,14 @@
 
 ### SUP-03：供应商 OTP 验证码登录
 
-| 步骤 | 操作                                                       | 预期结果                                 |
-| ---- | ---------------------------------------------------------- | ---------------------------------------- |
-| 1    | 打开 https://on-uhomes-com-onboarding-web.vercel.app/login | 看到 "Welcome to uhomes" 及邮箱输入框    |
-| 2    | 输入已注册的供应商邮箱，点击 **Continue with Email**       | 切换到验证码步骤，显示你的邮箱地址       |
-| 3    | 点击 **Use a different email address**                     | 返回到邮箱输入步骤                       |
-| 4    | 重新输入邮箱，再次点击 **Continue with Email**             | 再次进入验证码步骤                       |
-| 5    | 查看邮箱中的 8 位验证码                                    | 收件箱收到验证码                         |
-| 6    | 输入验证码，点击 **Secure Login**                          | 显示 "Verified"，然后跳转到 `/dashboard` |
+| 步骤 | 操作                                                       | 预期结果                                  |
+| ---- | ---------------------------------------------------------- | ----------------------------------------- |
+| 1    | 打开 https://on-uhomes-com-onboarding-web.vercel.app/login | 看到 "Welcome to uhomes.com" 及邮箱输入框 |
+| 2    | 输入已注册的供应商邮箱，点击 **Continue with Email**       | 切换到验证码步骤，显示你的邮箱地址        |
+| 3    | 点击 **Use a different email address**                     | 返回到邮箱输入步骤                        |
+| 4    | 重新输入邮箱，再次点击 **Continue with Email**             | 再次进入验证码步骤                        |
+| 5    | 查看邮箱中的 8 位验证码                                    | 收件箱收到验证码                          |
+| 6    | 输入验证码，点击 **Secure Login**                          | 显示 "Verified"，然后跳转到 `/dashboard`  |
 
 ---
 
