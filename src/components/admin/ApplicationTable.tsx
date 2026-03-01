@@ -3,13 +3,12 @@
 /**
  * 申请列表渲染组件 — Client Component
  *
- * 负责桌面端表格和移动端卡片的渲染，
- * 包含审批按钮（仅 PENDING 状态可用）。
- *
- * 从 ApplicationList 拆分而来，保持 300 行限制。
+ * 桌面端紧凑表格（5 列 + 可展开详情行）和移动端卡片。
  * Requirements: 3.2, 4.1
  */
 
+import { useState, Fragment } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import type { ApplicationRow } from "@/app/admin/applications/page";
 
 interface ApplicationTableProps {
@@ -47,12 +46,10 @@ function StatusBadge({ status }: { status: ApplicationRow["status"] }) {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", {
+  return new Date(iso).toLocaleDateString("en-US", {
     year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
+    month: "short",
+    day: "numeric",
   });
 }
 
@@ -76,10 +73,56 @@ function ApproveButton({
   );
 }
 
+function location(app: ApplicationRow): string {
+  return [app.city, app.country].filter(Boolean).join(", ") || "—";
+}
+
+function ExpandedDetails({ app }: { app: ApplicationRow }) {
+  return (
+    <tr className="bg-[var(--color-bg-secondary)]">
+      <td colSpan={5} className="px-4 py-3">
+        <div className="flex flex-wrap gap-x-8 gap-y-1 text-sm text-[var(--color-text-secondary)]">
+          <span>
+            <strong className="text-[var(--color-text-muted)]">Phone:</strong>{" "}
+            {app.contact_phone ?? "—"}
+          </span>
+          <span>
+            <strong className="text-[var(--color-text-muted)]">Website:</strong>{" "}
+            {app.website_url ? (
+              <a
+                href={app.website_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--color-primary)] hover:underline"
+              >
+                {app.website_url}
+              </a>
+            ) : (
+              "—"
+            )}
+          </span>
+          <span>
+            <strong className="text-[var(--color-text-muted)]">
+              Submitted:
+            </strong>{" "}
+            {formatDate(app.created_at)}
+          </span>
+        </div>
+      </td>
+    </tr>
+  );
+}
+
 export function ApplicationTable({
   applications,
   onApprove,
 }: ApplicationTableProps) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  const toggle = (id: string) => {
+    setExpandedId((prev) => (prev === id ? null : id));
+  };
+
   return (
     <>
       {/* 桌面端表格 — >=768px */}
@@ -87,65 +130,53 @@ export function ApplicationTable({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
+              <th className="text-left px-4 py-3 font-medium w-8" />
               <th className="text-left px-4 py-3 font-medium">Company</th>
               <th className="text-left px-4 py-3 font-medium">Email</th>
-              <th className="text-left px-4 py-3 font-medium">Phone</th>
-              <th className="text-left px-4 py-3 font-medium">City</th>
-              <th className="text-left px-4 py-3 font-medium">
-                Country / Region
-              </th>
-              <th className="text-left px-4 py-3 font-medium">Website</th>
+              <th className="text-left px-4 py-3 font-medium">Location</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
-              <th className="text-left px-4 py-3 font-medium">Submitted</th>
               <th className="text-left px-4 py-3 font-medium">Action</th>
             </tr>
           </thead>
           <tbody>
-            {applications.map((app) => (
-              <tr
-                key={app.id}
-                className="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors"
-              >
-                <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
-                  {app.company_name}
-                </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                  {app.contact_email}
-                </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                  {app.contact_phone ?? "—"}
-                </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                  {app.city ?? "—"}
-                </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                  {app.country ?? "—"}
-                </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                  {app.website_url ? (
-                    <a
-                      href={app.website_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[var(--color-primary)] hover:underline"
+            {applications.map((app) => {
+              const isExpanded = expandedId === app.id;
+              return (
+                <Fragment key={app.id}>
+                  <tr
+                    className="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer"
+                    onClick={() => toggle(app.id)}
+                  >
+                    <td className="px-4 py-3 text-[var(--color-text-muted)]">
+                      {isExpanded ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
+                      {app.company_name}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">
+                      {app.contact_email}
+                    </td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">
+                      {location(app)}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={app.status} />
+                    </td>
+                    <td
+                      className="px-4 py-3"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {app.website_url}
-                    </a>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge status={app.status} />
-                </td>
-                <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">
-                  {formatDate(app.created_at)}
-                </td>
-                <td className="px-4 py-3">
-                  <ApproveButton application={app} onApprove={onApprove} />
-                </td>
-              </tr>
-            ))}
+                      <ApproveButton application={app} onApprove={onApprove} />
+                    </td>
+                  </tr>
+                  {isExpanded && <ExpandedDetails app={app} />}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -166,15 +197,13 @@ export function ApplicationTable({
             <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
               <p>{app.contact_email}</p>
               {app.contact_phone && <p>{app.contact_phone}</p>}
-              {(app.city || app.country) && (
-                <p>{[app.city, app.country].filter(Boolean).join(", ")}</p>
-              )}
+              <p>{location(app)}</p>
               {app.website_url && (
                 <a
                   href={app.website_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[var(--color-primary)] hover:underline block"
+                  className="text-[var(--color-primary)] hover:underline block truncate"
                 >
                   {app.website_url}
                 </a>
