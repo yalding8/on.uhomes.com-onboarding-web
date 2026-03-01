@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Mail, ArrowRight, Loader2, ShieldCheck } from "lucide-react";
 
@@ -17,6 +18,7 @@ export default function LoginPage() {
     "idle" | "loading" | "error" | "success"
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [agreed, setAgreed] = useState(false);
 
   // Step 1: Request OTP -> supabase.auth.signInWithOtp()
   const handleRequestOtp = async (e: React.FormEvent) => {
@@ -91,7 +93,7 @@ export default function LoginPage() {
             <Mail className="h-8 w-8 text-[var(--color-primary)] opacity-90" />
           </div>
           <h2 className="text-2xl font-semibold tracking-tight text-[var(--color-text-primary)]">
-            Welcome to uhomes
+            Welcome to uhomes.com
           </h2>
           <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
             Supplier Onboarding Platform
@@ -128,9 +130,36 @@ export default function LoginPage() {
               </p>
             )}
 
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-[var(--color-border)] accent-[var(--color-primary)]"
+              />
+              <span className="text-xs text-[var(--color-text-muted)]">
+                I agree to the{" "}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] underline"
+                >
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  className="text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] underline"
+                >
+                  Privacy Policy
+                </Link>
+              </span>
+            </label>
+
             <button
               type="submit"
-              disabled={status === "loading"}
+              disabled={status === "loading" || !agreed}
               className="flex w-full items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 transition-colors disabled:opacity-70"
             >
               {status === "loading" ? (
@@ -142,9 +171,6 @@ export default function LoginPage() {
                 </>
               )}
             </button>
-            <p className="text-xs text-center text-[var(--color-text-muted)] pt-2">
-              By continuing, you agree to our Terms of Service.
-            </p>
           </form>
         )}
 
