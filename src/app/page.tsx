@@ -18,12 +18,12 @@ export default function Home() {
             href="/login"
             className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
           >
-            Supplier Sign In
+            Sign In
           </Link>
         </div>
       </nav>
 
-      <div className="w-full max-w-6xl mx-auto px-6 py-20 lg:py-32 grid lg:grid-cols-2 gap-16 lg:gap-8 items-center">
+      <div className="w-full max-w-6xl mx-auto px-6 py-12 lg:py-20 grid lg:grid-cols-2 gap-16 lg:gap-8 items-center">
         {/* Hero Copy */}
         <div className="max-w-2xl">
           <div className="inline-flex items-center rounded-full border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-1.5 text-sm font-medium mb-6">

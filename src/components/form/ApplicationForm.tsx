@@ -161,54 +161,53 @@ export function ApplicationForm() {
           )}
         </div>
 
-        {/* Email & Phone Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-              Work Email *
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-[var(--color-text-muted)]" />
-              </div>
-              <input
-                {...register("contact_email")}
-                type="email"
-                disabled={isSubmitting}
-                className={`block w-full rounded-lg border ${errors.contact_email ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
-                placeholder="hello@example.com"
-              />
+        {/* Work Email */}
+        <div>
+          <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+            Work Email *
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Mail className="h-5 w-5 text-[var(--color-text-muted)]" />
             </div>
-            {errors.contact_email && (
-              <p className="text-[var(--color-primary)] text-xs mt-1">
-                {errors.contact_email.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-              Contact Phone *
-            </label>
-            <Controller
-              name="contact_phone"
-              control={control}
-              render={({ field }) => (
-                <PhoneInput
-                  value={field.value}
-                  onChange={field.onChange}
-                  onBlur={field.onBlur}
-                  disabled={isSubmitting}
-                  error={!!errors.contact_phone}
-                />
-              )}
+            <input
+              {...register("contact_email")}
+              type="email"
+              disabled={isSubmitting}
+              className={`block w-full rounded-lg border ${errors.contact_email ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+              placeholder="hello@example.com"
             />
-            {errors.contact_phone && (
-              <p className="text-[var(--color-primary)] text-xs mt-1">
-                {errors.contact_phone.message}
-              </p>
-            )}
           </div>
+          {errors.contact_email && (
+            <p className="text-[var(--color-primary)] text-xs mt-1">
+              {errors.contact_email.message}
+            </p>
+          )}
+        </div>
+
+        {/* Contact Phone */}
+        <div>
+          <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+            Contact Phone *
+          </label>
+          <Controller
+            name="contact_phone"
+            control={control}
+            render={({ field }) => (
+              <PhoneInput
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                disabled={isSubmitting}
+                error={!!errors.contact_phone}
+              />
+            )}
+          />
+          {errors.contact_phone && (
+            <p className="text-[var(--color-primary)] text-xs mt-1">
+              {errors.contact_phone.message}
+            </p>
+          )}
         </div>
 
         {/* City & Country / Region Grid */}

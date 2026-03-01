@@ -166,7 +166,7 @@ export function PhoneInput({
 
       {/* Dropdown */}
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] shadow-lg">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 min-w-[260px] rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-primary)] shadow-lg">
           <div className="p-2 border-b border-[var(--color-border)]">
             <input
               ref={searchInputRef}
