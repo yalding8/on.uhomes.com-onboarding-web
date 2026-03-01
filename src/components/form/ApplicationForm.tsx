@@ -2,24 +2,29 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   Building2,
   Mail,
-  Phone,
   Globe,
   ArrowRight,
   Loader2,
   CheckCircle2,
 } from "lucide-react";
+import { PhoneInput } from "@/components/form/PhoneInput";
 
 // Schema corresponding exactly to PRD section 3.4
 const applicantSchema = z.object({
   company_name: z.string().min(2, "Company Name is required"),
   contact_email: z.string().email("Valid work email is required"),
-  contact_phone: z.string().min(6, "Valid phone number is required"),
+  contact_phone: z
+    .string()
+    .regex(
+      /^\+\d{1,4}\s\d{4,14}$/,
+      "Please select a country/region code and enter your phone number",
+    ),
   city: z.string().min(2, "City is required"),
   country: z.string().min(2, "Country / Region is required"),
   website_url: z
@@ -45,6 +50,7 @@ export function ApplicationForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<ApplicantFormValues>({
     resolver: zodResolver(applicantSchema),
@@ -184,18 +190,19 @@ export function ApplicationForm() {
             <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
               Contact Phone *
             </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Phone className="h-5 w-5 text-[var(--color-text-muted)]" />
-              </div>
-              <input
-                {...register("contact_phone")}
-                type="tel"
-                disabled={isSubmitting}
-                className={`block w-full rounded-lg border ${errors.contact_phone ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
-                placeholder="+1 (555) 000-0000"
-              />
-            </div>
+            <Controller
+              name="contact_phone"
+              control={control}
+              render={({ field }) => (
+                <PhoneInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  disabled={isSubmitting}
+                  error={!!errors.contact_phone}
+                />
+              )}
+            />
             {errors.contact_phone && (
               <p className="text-[var(--color-primary)] text-xs mt-1">
                 {errors.contact_phone.message}

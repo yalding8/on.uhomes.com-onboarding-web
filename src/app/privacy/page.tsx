@@ -32,12 +32,13 @@ export default function PrivacyPolicyPage() {
 
         <Section title="1. Introduction">
           <p>
-            uhomes.com (&quot;we&quot;, &quot;us&quot;, or &quot;our&quot;)
-            operates the Partner Onboarding Portal at{" "}
-            <strong>on.pylospay.com</strong> (the &quot;Service&quot;). This
-            Privacy Policy explains how we collect, use, disclose, and safeguard
-            your information when you use our Service. By accessing or using the
-            Service, you agree to the terms of this Privacy Policy.
+            UHOMES INTERNATIONAL CO., LIMITED (&quot;we&quot;, &quot;us&quot;,
+            or &quot;our&quot;), operating as uhomes.com, operates the Partner
+            Onboarding Portal at <strong>on.pylospay.com</strong> (the
+            &quot;Service&quot;). This Privacy Policy explains how we collect,
+            use, disclose, and safeguard your information when you use our
+            Service. By accessing or using the Service, you agree to the terms
+            of this Privacy Policy.
           </p>
         </Section>
 
@@ -162,6 +163,18 @@ export default function PrivacyPolicyPage() {
             </a>
             .
           </p>
+          <p className="mt-2">
+            If you are located in the European Economic Area (EEA) or the United
+            Kingdom, you may also contact our Data Protection Officer (DPO) at{" "}
+            <a
+              href="mailto:Privacy@uhomes.com"
+              className="text-[var(--color-primary)] hover:underline"
+            >
+              Privacy@uhomes.com
+            </a>{" "}
+            for any GDPR-related inquiries. You also have the right to lodge a
+            complaint with your local data protection supervisory authority.
+          </p>
         </Section>
 
         <Section title="8. International Data Transfers">
@@ -170,6 +183,12 @@ export default function PrivacyPolicyPage() {
             other than your country of residence. We take appropriate safeguards
             to ensure your data is protected in accordance with this Privacy
             Policy and applicable laws.
+          </p>
+          <p className="mt-2">
+            Our primary data processing is governed by the laws of the Hong Kong
+            Special Administrative Region. Where we transfer data outside of
+            Hong Kong, we ensure that adequate protections are in place as
+            required by applicable data protection legislation.
           </p>
         </Section>
 
@@ -198,8 +217,11 @@ export default function PrivacyPolicyPage() {
           </p>
           <p className="mt-2">
             <strong className="text-[var(--color-text-primary)]">
-              uhomes.com
+              UHOMES INTERNATIONAL CO., LIMITED
             </strong>
+            <br />
+            ROOM 605, 6/F, FA YUEN COMMERCIAL BUILDING, 75-77 FA YUEN STREET,
+            MONGKOK, KOWLOON, HONG KONG
             <br />
             Email:{" "}
             <a
@@ -207,6 +229,14 @@ export default function PrivacyPolicyPage() {
               className="text-[var(--color-primary)] hover:underline"
             >
               contact@uhomes.com
+            </a>
+            <br />
+            Data Protection Officer:{" "}
+            <a
+              href="mailto:Privacy@uhomes.com"
+              className="text-[var(--color-primary)] hover:underline"
+            >
+              Privacy@uhomes.com
             </a>
           </p>
         </Section>

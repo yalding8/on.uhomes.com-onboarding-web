@@ -32,7 +32,9 @@ export default function TermsOfServicePage() {
 
         <Section title="1. Acceptance of Terms">
           <p>
-            By accessing or using the uhomes.com Partner Onboarding Portal at{" "}
+            By accessing or using the Partner Onboarding Portal operated by
+            UHOMES INTERNATIONAL CO., LIMITED (&quot;uhomes.com&quot;,
+            &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) at{" "}
             <strong>on.pylospay.com</strong> (the &quot;Service&quot;), you
             agree to be bound by these Terms of Service (&quot;Terms&quot;). If
             you do not agree to these Terms, you may not use the Service.
@@ -89,11 +91,12 @@ export default function TermsOfServicePage() {
         <Section title="5. Intellectual Property">
           <p>
             All content, trademarks, and technology associated with the Service
-            are owned by uhomes.com or its licensors. You retain ownership of
-            the property data and images you submit, but grant uhomes.com a
-            worldwide, non-exclusive, royalty-free license to use, display, and
-            distribute such content on the uhomes.com platform and partner
-            networks for the purpose of listing and promoting your properties.
+            are owned by UHOMES INTERNATIONAL CO., LIMITED or its licensors. You
+            retain ownership of the property data and images you submit, but
+            grant UHOMES INTERNATIONAL CO., LIMITED a worldwide, non-exclusive,
+            royalty-free license to use, display, and distribute such content on
+            the uhomes.com platform and partner networks for the purpose of
+            listing and promoting your properties.
           </p>
         </Section>
 
@@ -118,16 +121,16 @@ export default function TermsOfServicePage() {
 
         <Section title="8. Limitation of Liability">
           <p>
-            To the maximum extent permitted by applicable law, uhomes.com shall
-            not be liable for any indirect, incidental, special, consequential,
-            or punitive damages arising out of or relating to your use of the
-            Service, including but not limited to loss of profits, data, or
-            business opportunities.
+            To the maximum extent permitted by applicable law, UHOMES
+            INTERNATIONAL CO., LIMITED shall not be liable for any indirect,
+            incidental, special, consequential, or punitive damages arising out
+            of or relating to your use of the Service, including but not limited
+            to loss of profits, data, or business opportunities.
           </p>
           <p className="mt-2">
             Our total aggregate liability shall not exceed the total commissions
-            paid to uhomes.com by you in the twelve (12) months preceding the
-            claim.
+            paid to UHOMES INTERNATIONAL CO., LIMITED by you in the twelve (12)
+            months preceding the claim.
           </p>
         </Section>
 
@@ -165,8 +168,11 @@ export default function TermsOfServicePage() {
         <Section title="12. Governing Law">
           <p>
             These Terms shall be governed by and construed in accordance with
-            the laws of the jurisdiction in which uhomes.com is incorporated,
-            without regard to its conflict of law provisions.
+            the laws of the Hong Kong Special Administrative Region, without
+            regard to its conflict of law provisions. Any disputes arising out
+            of or in connection with these Terms shall be subject to the
+            exclusive jurisdiction of the courts of the Hong Kong Special
+            Administrative Region.
           </p>
         </Section>
 
@@ -174,8 +180,11 @@ export default function TermsOfServicePage() {
           <p>If you have questions about these Terms, please contact us at:</p>
           <p className="mt-2">
             <strong className="text-[var(--color-text-primary)]">
-              uhomes.com
+              UHOMES INTERNATIONAL CO., LIMITED
             </strong>
+            <br />
+            ROOM 605, 6/F, FA YUEN COMMERCIAL BUILDING, 75-77 FA YUEN STREET,
+            MONGKOK, KOWLOON, HONG KONG
             <br />
             Email:{" "}
             <a
