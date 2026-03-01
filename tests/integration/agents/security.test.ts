@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createAuthenticatedFetch } from "../helpers/auth";
-import { createAdminClient, getServiceRoleKey } from "../helpers/admin-client";
+import { createAdminClient } from "../helpers/admin-client";
 import { createTestSupplier, createTestBuilding } from "../helpers/fixtures";
 import { cleanupByPrefix } from "../helpers/cleanup";
 

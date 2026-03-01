@@ -92,7 +92,7 @@ async function createSessionCookie(targetEmail) {
   return `${cookieName}.0=${encodeURIComponent(cookieValue)}`;
 }
 
-function signWebhook(payload) {
+function _signWebhook(payload) {
   const hmac = createHmac("sha256", webhookSecret);
   hmac.update(payload);
   return hmac.digest("base64");
@@ -203,7 +203,7 @@ try {
   // ━━━ Phase 2: BD 审批并创建供应商 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   console.log("\n━━━ Phase 2: BD 审批供应商 ━━━");
 
-  const bdCookie = await createSessionCookie(bdEmail);
+  await createSessionCookie(bdEmail);
 
   // 2a. 模拟 BD 审批（inviteUserByEmail 不接受测试域名邮箱，用 admin client 模拟）
   // 创建 auth user
@@ -336,7 +336,7 @@ try {
   console.log("\n━━━ Phase 4: 供应商审阅并签署合同 ━━━");
 
   // 创建供应商 session
-  const supplierCookie = await createSessionCookie(email);
+  await createSessionCookie(email);
 
   // Refresh supplier cookie for Phase 4
   const supplierCookie4 = await createSessionCookie(email);
