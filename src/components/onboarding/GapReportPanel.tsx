@@ -63,7 +63,7 @@ export function GapReportPanel({ gapReport }: GapReportPanelProps) {
                     key={item.fieldKey}
                     className="flex items-center justify-between text-xs"
                   >
-                    <span className="text-[var(--color-text-primary)] truncate mr-2">
+                    <span className="text-[var(--color-text-primary)] truncate me-2">
                       {item.label}
                     </span>
                     <span

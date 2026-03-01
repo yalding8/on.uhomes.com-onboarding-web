@@ -42,7 +42,7 @@ export function StatusBadge({ status }: { status: ContractStatus }) {
     case "SIGNED":
       return (
         <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[var(--color-success-light)] text-[var(--color-success)]">
-          <CheckCircle2 className="w-4 h-4 mr-1.5" />
+          <CheckCircle2 className="w-4 h-4 me-1.5" />
           Signed
         </span>
       );
@@ -149,11 +149,11 @@ function PendingReviewContent({
           type="button"
           disabled={isLoading}
           onClick={() => onAction("confirm")}
-          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] font-medium transition-colors disabled:opacity-70"
+          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] font-medium transition-all active:scale-[0.98] disabled:opacity-70"
         >
           {isLoading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 me-2 animate-spin" />
               Processing...
             </>
           ) : (
@@ -164,9 +164,9 @@ function PendingReviewContent({
           type="button"
           disabled={isLoading}
           onClick={() => onAction("request_changes")}
-          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium transition-colors disabled:opacity-70"
+          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium transition-all active:scale-[0.98] disabled:opacity-70"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
+          <ArrowLeft className="w-4 h-4 me-2" />
           Request Changes
         </button>
       </div>
@@ -218,16 +218,16 @@ function SentContent({
         type="button"
         disabled={isLoading}
         onClick={onResend}
-        className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium text-sm transition-colors disabled:opacity-70"
+        className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium text-sm transition-all active:scale-[0.98] disabled:opacity-70"
       >
         {isLoading ? (
           <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            <Loader2 className="w-4 h-4 me-2 animate-spin" />
             Sending...
           </>
         ) : (
           <>
-            <Mail className="w-4 h-4 mr-2" />
+            <Mail className="w-4 h-4 me-2" />
             Resend Signing Email
           </>
         )}
@@ -254,9 +254,9 @@ function SignedContent({ documentUrl }: { documentUrl: string | null }) {
           href={documentUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] font-medium transition-colors"
+          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] font-medium transition-all active:scale-[0.98]"
         >
-          <Download className="w-4 h-4 mr-2" />
+          <Download className="w-4 h-4 me-2" />
           Download Signed Contract (PDF)
         </a>
       )}

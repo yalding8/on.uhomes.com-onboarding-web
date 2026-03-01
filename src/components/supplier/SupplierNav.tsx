@@ -11,7 +11,7 @@ export function SupplierNav({ email }: SupplierNavProps) {
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/dashboard" className="font-bold text-lg tracking-tight">
           <span className="text-[var(--color-primary)]">uhomes.com</span>
-          <span className="text-[var(--color-text-primary)] ml-2">
+          <span className="text-[var(--color-text-primary)] ms-2">
             Partners
           </span>
         </Link>

@@ -52,7 +52,7 @@ export function ContractPreview({
     <div className="bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-xl shadow-sm overflow-hidden">
       {/* Header */}
       <div className="p-6 border-b border-[var(--color-border)] flex items-center justify-between">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center gap-3">
           <div className="p-2 bg-[var(--color-primary-light)] rounded-lg text-[var(--color-primary)]">
             <FileSignature className="w-6 h-6" />
           </div>
@@ -71,7 +71,7 @@ export function ContractPreview({
       {/* Body */}
       <div className="p-6 md:p-8 bg-[var(--color-bg-primary)]">
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-[var(--color-primary-light)] text-[var(--color-primary)] text-sm flex items-center gap-2">
+          <div className="mb-4 p-3 rounded-lg bg-[var(--color-warning-light)] text-[var(--color-warning)] text-sm flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {error}
           </div>

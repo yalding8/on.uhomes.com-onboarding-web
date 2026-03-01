@@ -60,7 +60,7 @@ export function BuildingCard({
   return (
     <Link
       href={`/onboarding/${buildingId}`}
-      className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 transition-shadow hover:shadow-md"
+      className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] p-5 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="min-w-0">

@@ -24,12 +24,12 @@ const COLORS: Record<ToastType, { bg: string; text: string; icon: string }> = {
     icon: "var(--color-success)",
   },
   error: {
-    bg: "var(--color-primary-light)",
+    bg: "var(--color-warning-light)",
     text: "var(--color-text-primary)",
-    icon: "var(--color-primary)",
+    icon: "var(--color-warning)",
   },
   warning: {
-    bg: "var(--color-primary-light)",
+    bg: "var(--color-warning-light)",
     text: "var(--color-text-primary)",
     icon: "var(--color-warning)",
   },

@@ -12,7 +12,14 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
     <div className="border-b border-[var(--color-border)] bg-[var(--color-bg-secondary)] py-3">
       <div className="max-w-6xl mx-auto px-6">
         {/* Desktop: horizontal stepper */}
-        <div className="hidden md:flex items-center">
+        <div
+          className="hidden md:flex items-center"
+          role="progressbar"
+          aria-valuenow={currentIndex + 1}
+          aria-valuemin={1}
+          aria-valuemax={SUPPLIER_STEPS.length}
+          aria-label={`Onboarding progress: step ${currentIndex + 1} of ${SUPPLIER_STEPS.length}, ${SUPPLIER_STEPS[currentIndex]?.label}`}
+        >
           {SUPPLIER_STEPS.map((step, i) => {
             const isCompleted = i < currentIndex;
             const isCurrent = i === currentIndex;
@@ -63,7 +70,14 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
         </div>
 
         {/* Mobile: compact progress bar */}
-        <div className="md:hidden">
+        <div
+          className="md:hidden"
+          role="progressbar"
+          aria-valuenow={currentIndex + 1}
+          aria-valuemin={1}
+          aria-valuemax={SUPPLIER_STEPS.length}
+          aria-label={`Onboarding progress: step ${currentIndex + 1} of ${SUPPLIER_STEPS.length}, ${SUPPLIER_STEPS[currentIndex]?.label}`}
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-semibold text-[var(--color-text-primary)]">
               {SUPPLIER_STEPS[currentIndex]?.label ?? "Unknown"}

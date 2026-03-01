@@ -21,12 +21,8 @@ export function SourceBadge({ source }: SourceBadgeProps) {
 
   return (
     <span
-      className="inline-flex items-center text-xs px-1.5 py-0.5 rounded"
-      style={{
-        color: cfg.color,
-        backgroundColor: "var(--color-bg-secondary)",
-        border: `1px solid var(--color-border)`,
-      }}
+      className="inline-flex items-center text-xs px-1.5 py-0.5 rounded border border-[var(--color-border)] bg-[var(--color-bg-secondary)]"
+      style={{ color: cfg.color }}
     >
       {cfg.label}
     </span>

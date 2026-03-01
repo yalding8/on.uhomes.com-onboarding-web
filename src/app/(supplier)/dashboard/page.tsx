@@ -11,6 +11,7 @@ import { ApplicationUnderReview } from "@/components/form/ApplicationUnderReview
 import { ContractPreview } from "@/components/signing/ContractPreview";
 import type { ContractStatus, ContractFields } from "@/lib/contracts/types";
 import { BuildingCard } from "@/components/onboarding/BuildingCard";
+import { Building2, Clock } from "lucide-react";
 import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
 import { calculateScore } from "@/lib/onboarding/scoring-engine";
 import type { FieldValue } from "@/lib/onboarding/field-value";
@@ -154,11 +155,16 @@ export default async function DashboardPage() {
               documentUrl={contract.document_url}
             />
           ) : (
-            <div className="p-4 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-border)]">
-              <p className="text-sm text-[var(--color-primary)] font-medium">
-                Your partnership agreement is being prepared by our BD team. You
-                will receive an email notification once it is available.
-              </p>
+            <div className="p-4 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-border)] flex items-start gap-3">
+              <Clock className="w-5 h-5 text-[var(--color-primary)] shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-[var(--color-primary)] font-medium">
+                  Your partnership agreement is being prepared by our BD team.
+                </p>
+                <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                  You will receive an email notification once it is available.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -188,11 +194,23 @@ export default async function DashboardPage() {
               ))}
             </div>
           ) : (
-            <div className="p-6 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] text-center">
-              <p className="text-[var(--color-text-secondary)]">
-                No properties yet. Your buildings will appear here once the data
-                extraction pipeline completes.
+            <div className="flex flex-col items-center py-12 px-6 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] text-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-primary-light)] mb-6">
+                <Building2 className="h-8 w-8 text-[var(--color-primary)] opacity-60" />
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+                Setting Up Your Properties
+              </h3>
+              <p className="text-sm text-[var(--color-text-secondary)] max-w-sm mb-4">
+                We&apos;re importing your building data. This usually takes 1–2
+                business days.
               </p>
+              <a
+                href="mailto:contact@uhomes.com"
+                className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium transition-colors"
+              >
+                Questions? Contact your BD Manager
+              </a>
             </div>
           )}
         </div>

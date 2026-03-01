@@ -44,7 +44,7 @@ export function FieldGroup({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-4 text-left hover:bg-[var(--color-bg-primary)] transition-colors"
+        className="w-full flex items-center justify-between p-4 text-start hover:bg-[var(--color-bg-primary)] transition-colors"
       >
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
