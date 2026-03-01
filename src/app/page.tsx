@@ -148,7 +148,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-6 text-sm text-[var(--color-text-secondary)]">
             <a
-              href="mailto:partner@uhomes.com"
+              href="mailto:contact@uhomes.com"
               className="hover:text-[var(--color-text-primary)] transition-colors"
             >
               Contact Us
