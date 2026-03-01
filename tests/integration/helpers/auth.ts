@@ -39,9 +39,7 @@ export async function createAuthenticatedFetch(
   throw lastError!;
 }
 
-async function exchangeMagicLink(
-  email: string,
-): Promise<{
+async function exchangeMagicLink(email: string): Promise<{
   access_token: string;
   refresh_token: string;
   expires_at?: number;
