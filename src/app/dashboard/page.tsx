@@ -14,6 +14,7 @@ import { calculateScore } from "@/lib/onboarding/scoring-engine";
 import type { FieldValue } from "@/lib/onboarding/field-value";
 import type { BuildingStatus } from "@/lib/onboarding/status-engine";
 import { LogoutButton } from "@/components/admin/LogoutButton";
+import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -156,6 +157,9 @@ export default async function DashboardPage() {
             )}
           </div>
         )}
+
+        {/* 平台介绍 — PENDING_CONTRACT */}
+        {supplier.status === "PENDING_CONTRACT" && <PlatformOverview />}
 
         {/* Building 列表 — SIGNED */}
         {supplier.status === "SIGNED" && (
