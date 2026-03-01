@@ -1,19 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import {
-  Building2,
-  Mail,
-  Globe,
-  ArrowRight,
-  Loader2,
-  CheckCircle2,
-} from "lucide-react";
+import { Building2, Mail, Globe, ArrowRight, Loader2 } from "lucide-react";
 import { PhoneInput } from "@/components/form/PhoneInput";
+import { ApplicationSuccess } from "@/components/form/ApplicationSuccess";
 
 // Schema corresponding exactly to PRD section 3.4
 const applicantSchema = z.object({
@@ -46,7 +39,6 @@ interface ApplicationFormProps {
 }
 
 export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
-  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -99,29 +91,7 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
   };
 
   if (isSuccess) {
-    return (
-      <div className="w-full max-w-xl mx-auto bg-[var(--color-bg-primary)] p-8 md:p-12 rounded-2xl shadow-xl text-center border border-[var(--color-border)]">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-success)]/10 mb-6">
-          <CheckCircle2 className="h-8 w-8 text-[var(--color-success)]" />
-        </div>
-        <h3 className="text-2xl font-semibold text-[var(--color-text-primary)] mb-4">
-          Application Received!
-        </h3>
-        <p className="text-[var(--color-text-secondary)] mb-8">
-          Thank you for showing interest in uhomes. Our Business Development
-          team will review your application and contact you via email shortly.
-        </p>
-        <button
-          onClick={() => {
-            setIsSuccess(false);
-            router.refresh();
-          }}
-          className="text-[var(--color-primary)] font-medium hover:text-[var(--color-primary-hover)] transition-colors"
-        >
-          Submit another application
-        </button>
-      </div>
-    );
+    return <ApplicationSuccess showSignIn={!prefillEmail} />;
   }
 
   return (
