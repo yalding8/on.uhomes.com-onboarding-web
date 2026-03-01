@@ -54,27 +54,25 @@ export default async function OnboardingPage({ params }: PageProps) {
   const status = (building.onboarding_status ?? "incomplete") as BuildingStatus;
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-primary)] p-4 md:p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* 返回 Dashboard */}
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </Link>
+    <div className="max-w-6xl mx-auto">
+      {/* 返回 Dashboard */}
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Dashboard
+      </Link>
 
-        <OnboardingForm
-          buildingId={buildingId}
-          buildingName={building.building_name ?? "Unnamed Building"}
-          initialFields={fieldValues}
-          initialScore={score}
-          initialGapReport={gapReport}
-          initialVersion={version}
-          initialStatus={status}
-        />
-      </div>
+      <OnboardingForm
+        buildingId={buildingId}
+        buildingName={building.building_name ?? "Unnamed Building"}
+        initialFields={fieldValues}
+        initialScore={score}
+        initialGapReport={gapReport}
+        initialVersion={version}
+        initialStatus={status}
+      />
     </div>
   );
 }
