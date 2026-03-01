@@ -19,5 +19,8 @@ export default defineConfig({
     include: ["tests/integration/agents/**/*.test.ts"],
     setupFiles: ["./tests/integration/setup.ts"],
     globalSetup: ["./tests/integration/global-setup.ts"],
+    env: {
+      INTEGRATION_BASE_URL: "http://localhost:3100",
+    },
   },
 });

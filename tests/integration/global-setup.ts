@@ -38,7 +38,7 @@ export default async function globalSetup(): Promise<void> {
   loadEnvFile(resolve(process.cwd(), ".env.local"));
   loadEnvFile(resolve(process.cwd(), ".env"));
 
-  const baseUrl = process.env.INTEGRATION_BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.INTEGRATION_BASE_URL || "http://localhost:3100";
 
   // 1. Verify dev server is running
   try {

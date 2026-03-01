@@ -10,7 +10,7 @@ import { createTestSupplier, createTestBuilding } from "../helpers/fixtures";
 import { cleanupByPrefix } from "../helpers/cleanup";
 
 const RUN_ID = `TEST_DI_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-const BASE = process.env.INTEGRATION_BASE_URL || "http://localhost:3000";
+const BASE = process.env.INTEGRATION_BASE_URL || "http://localhost:3100";
 const admin = () => createAdminClient();
 
 let bdSupplierId: string;

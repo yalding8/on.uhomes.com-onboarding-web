@@ -39,6 +39,6 @@ export function createTestContext(): TestContext {
   const rand = Math.random().toString(36).slice(2, 8);
   return {
     runId: `TEST_${ts}_${rand}`,
-    baseUrl: process.env.INTEGRATION_BASE_URL || "http://localhost:3000",
+    baseUrl: process.env.INTEGRATION_BASE_URL || "http://localhost:3100",
   };
 }

@@ -10,7 +10,7 @@ import { cleanupByPrefix } from "../helpers/cleanup";
 import { fillAllRequiredFields } from "../helpers/fixtures";
 
 const RUN_ID = `TEST_P57_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-const BASE = process.env.INTEGRATION_BASE_URL || "http://localhost:3000";
+const BASE = process.env.INTEGRATION_BASE_URL || "http://localhost:3100";
 const admin = () => createAdminClient();
 
 let supplierId: string;
