@@ -146,7 +146,7 @@ describe("StatusContent 单元测试", () => {
 
   it("PENDING_REVIEW 状态 fields 为 null 时显示无数据提示", () => {
     renderStatusContent("PENDING_REVIEW", null);
-    expect(screen.getByText("No contract data available.")).toBeInTheDocument();
+    expect(screen.getByText("Contract Not Yet Available")).toBeInTheDocument();
   });
 
   it("CONFIRMED 状态显示创建签署请求", () => {
