@@ -41,7 +41,11 @@ const applicantSchema = z.object({
 
 type ApplicantFormValues = z.infer<typeof applicantSchema>;
 
-export function ApplicationForm() {
+interface ApplicationFormProps {
+  prefillEmail?: string | null;
+}
+
+export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -56,7 +60,7 @@ export function ApplicationForm() {
     resolver: zodResolver(applicantSchema),
     defaultValues: {
       company_name: "",
-      contact_email: "",
+      contact_email: prefillEmail || "",
       contact_phone: "",
       city: "",
       country: "",
@@ -127,7 +131,9 @@ export function ApplicationForm() {
           Become a Supplier
         </h3>
         <p className="text-sm text-[var(--color-text-secondary)] text-center mt-1">
-          Fill out the form below to get early access.
+          {prefillEmail
+            ? "Complete your company details to get started."
+            : "Fill out the form below to get early access."}
         </p>
 
         {submitError && (
@@ -173,8 +179,9 @@ export function ApplicationForm() {
             <input
               {...register("contact_email")}
               type="email"
+              readOnly={!!prefillEmail}
               disabled={isSubmitting}
-              className={`block w-full rounded-lg border ${errors.contact_email ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+              className={`block w-full rounded-lg border ${errors.contact_email ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} pl-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors ${prefillEmail ? "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] cursor-not-allowed" : ""}`}
               placeholder="hello@example.com"
             />
           </div>

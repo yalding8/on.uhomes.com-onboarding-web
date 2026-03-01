@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { ApplicationForm } from "@/components/form/ApplicationForm";
+import { LogoutButton } from "@/components/admin/LogoutButton";
+import { createClient } from "@/lib/supabase/server";
 import { MapPin, ShieldCheck, Zap } from "lucide-react";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userEmail = user?.email ?? null;
   return (
     <main className="flex min-h-screen flex-col items-center bg-[var(--color-bg-primary)]">
       {/* Navigation Bar */}
@@ -14,12 +21,21 @@ export default function Home() {
               Partners
             </span>
           </div>
-          <Link
-            href="/login"
-            className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
-          >
-            Sign In
-          </Link>
+          {userEmail ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-[var(--color-text-secondary)] hidden sm:inline truncate max-w-[200px]">
+                {userEmail}
+              </span>
+              <LogoutButton />
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              Sign In
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -90,7 +106,7 @@ export default function Home() {
 
         {/* Application Form */}
         <div id="apply-form" className="relative w-full">
-          <ApplicationForm />
+          <ApplicationForm prefillEmail={userEmail} />
         </div>
       </div>
 
