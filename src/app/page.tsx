@@ -3,6 +3,7 @@ import { ApplicationForm } from "@/components/form/ApplicationForm";
 import { ApplicationUnderReview } from "@/components/form/ApplicationUnderReview";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { MapPin, ShieldCheck, Zap } from "lucide-react";
 
 export default async function Home() {
@@ -12,10 +13,11 @@ export default async function Home() {
   } = await supabase.auth.getUser();
   const userEmail = user?.email ?? null;
 
-  // 已登录用户：检查是否已提交过申请
+  // 已登录用户：用 admin client 查询 applications（绕过 RLS）
   let hasApplication = false;
   if (userEmail) {
-    const { data } = await supabase
+    const admin = createAdminClient();
+    const { data } = await admin
       .from("applications")
       .select("id")
       .eq("contact_email", userEmail)
