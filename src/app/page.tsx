@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ApplicationForm } from "@/components/form/ApplicationForm";
+import { ApplicationUnderReview } from "@/components/form/ApplicationUnderReview";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
 import { MapPin, ShieldCheck, Zap } from "lucide-react";
@@ -10,6 +11,17 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
   const userEmail = user?.email ?? null;
+
+  // 已登录用户：检查是否已提交过申请
+  let hasApplication = false;
+  if (userEmail) {
+    const { data } = await supabase
+      .from("applications")
+      .select("id")
+      .eq("contact_email", userEmail)
+      .limit(1);
+    hasApplication = (data?.length ?? 0) > 0;
+  }
   return (
     <main className="flex min-h-screen flex-col items-center bg-[var(--color-bg-primary)]">
       {/* Navigation Bar */}
@@ -104,9 +116,13 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Application Form */}
+        {/* Application Form or Under Review */}
         <div id="apply-form" className="relative w-full">
-          <ApplicationForm prefillEmail={userEmail} />
+          {hasApplication ? (
+            <ApplicationUnderReview />
+          ) : (
+            <ApplicationForm prefillEmail={userEmail} />
+          )}
         </div>
       </div>
 
