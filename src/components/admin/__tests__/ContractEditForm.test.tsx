@@ -16,7 +16,7 @@ const ALL_FIELD_LABELS = [
   "Partner Contact Name",
   "Partner Address",
   "Partner City",
-  "Partner Country",
+  "Partner Country / Region",
   "Commission Rate (%)",
   "Contract Start Date",
   "Contract End Date",
@@ -106,7 +106,7 @@ describe("ContractEditForm", () => {
       { label: "Partner Contact Name", value: "John Doe" },
       { label: "Partner Address", value: "123 Main St" },
       { label: "Partner City", value: "London" },
-      { label: "Partner Country", value: "UK" },
+      { label: "Partner Country / Region", value: "UK" },
     ];
 
     for (const { label, value } of textFields) {

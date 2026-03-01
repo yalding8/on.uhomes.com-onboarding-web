@@ -21,10 +21,15 @@ const applicantSchema = z.object({
   contact_email: z.string().email("Valid work email is required"),
   contact_phone: z.string().min(6, "Valid phone number is required"),
   city: z.string().min(2, "City is required"),
-  country: z.string().min(2, "Country is required"),
+  country: z.string().min(2, "Country / Region is required"),
   website_url: z
     .string()
-    .url("Please enter a valid URL")
+    .transform((val) => {
+      if (!val) return val;
+      if (!/^https?:\/\//i.test(val)) return `https://${val}`;
+      return val;
+    })
+    .pipe(z.string().url("Please enter a valid URL"))
     .optional()
     .or(z.literal("")),
 });
@@ -199,7 +204,7 @@ export function ApplicationForm() {
           </div>
         </div>
 
-        {/* City & Country Grid */}
+        {/* City & Country / Region Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
@@ -220,7 +225,7 @@ export function ApplicationForm() {
 
           <div>
             <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-              Country *
+              Country / Region *
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -251,7 +256,6 @@ export function ApplicationForm() {
           </label>
           <input
             {...register("website_url")}
-            type="url"
             disabled={isSubmitting}
             className={`block w-full rounded-lg border ${errors.website_url ? "border-[var(--color-primary)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
             placeholder="https://www.example.com"

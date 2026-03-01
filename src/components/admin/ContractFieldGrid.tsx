@@ -14,7 +14,7 @@ const FIELD_LABELS: Record<keyof ContractFields, string> = {
   partner_contact_name: "Partner Contact Name",
   partner_address: "Partner Address",
   partner_city: "Partner City",
-  partner_country: "Partner Country",
+  partner_country: "Partner Country / Region",
   commission_rate: "Commission Rate (%)",
   contract_start_date: "Contract Start Date",
   contract_end_date: "Contract End Date",

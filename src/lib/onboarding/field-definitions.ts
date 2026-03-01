@@ -16,7 +16,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   { key: "building_name", label: "Property Name", category: "basic_info", type: "text", weight: 10, extractTier: "A", required: true },
   { key: "building_address", label: "Address", category: "basic_info", type: "text", weight: 10, extractTier: "A", required: true },
   { key: "city", label: "City", category: "basic_info", type: "text", weight: 8, extractTier: "A", required: true },
-  { key: "country", label: "Country", category: "basic_info", type: "text", weight: 8, extractTier: "A", required: true },
+  { key: "country", label: "Country / Region", category: "basic_info", type: "text", weight: 8, extractTier: "A", required: true },
   { key: "postal_code", label: "Postal Code", category: "basic_info", type: "text", weight: 5, extractTier: "A", required: true },
   { key: "description", label: "Property Description", category: "basic_info", type: "text", weight: 4, extractTier: "B", required: false },
 

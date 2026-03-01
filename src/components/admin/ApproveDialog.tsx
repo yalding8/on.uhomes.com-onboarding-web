@@ -123,7 +123,10 @@ export function ApproveDialog({
           <DetailRow label="Email" value={application.contact_email} />
           <DetailRow label="Phone" value={application.contact_phone ?? "—"} />
           <DetailRow label="City" value={application.city ?? "—"} />
-          <DetailRow label="Country" value={application.country ?? "—"} />
+          <DetailRow
+            label="Country / Region"
+            value={application.country ?? "—"}
+          />
 
           {/* 合同类型选择 */}
           <div className="pt-2">

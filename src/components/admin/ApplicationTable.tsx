@@ -91,7 +91,9 @@ export function ApplicationTable({
               <th className="text-left px-4 py-3 font-medium">Email</th>
               <th className="text-left px-4 py-3 font-medium">Phone</th>
               <th className="text-left px-4 py-3 font-medium">City</th>
-              <th className="text-left px-4 py-3 font-medium">Country</th>
+              <th className="text-left px-4 py-3 font-medium">
+                Country / Region
+              </th>
               <th className="text-left px-4 py-3 font-medium">Website</th>
               <th className="text-left px-4 py-3 font-medium">Status</th>
               <th className="text-left px-4 py-3 font-medium">Submitted</th>
