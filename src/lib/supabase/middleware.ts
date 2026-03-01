@@ -35,6 +35,11 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
+  // Legal pages are always accessible regardless of auth state
+  if (pathname === "/terms" || pathname === "/privacy") {
+    return supabaseResponse;
+  }
+
   // Protected Routes & role-based + 3-stage user state resolution rules
   if (user) {
     // Query suppliers table for role and status (Requirements 1.5)
@@ -105,7 +110,9 @@ export async function updateSession(request: NextRequest) {
       pathname === "/" ||
       pathname.startsWith("/login") ||
       pathname.startsWith("/auth") ||
-      pathname.startsWith("/api/");
+      pathname.startsWith("/api/") ||
+      pathname === "/terms" ||
+      pathname === "/privacy";
     if (!isPublicRoute) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
