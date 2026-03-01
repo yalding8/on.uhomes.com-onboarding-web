@@ -18,13 +18,13 @@ uhomes.com 是服务 200+ 国家国际学生的住宿平台。供应商端面向
 
 ### 反模式清单（禁止出现）
 
-| 反模式 | 为什么不行 | 正确做法 |
-|:-------|:----------|:---------|
-| 纯文字空状态（"No data yet"） | 用户感到被遗忘 | 插画/图标 + 说明 + 预期时间 + CTA |
-| 只有一行提示的等待页 | 等待期用户焦虑 | 时间线 + 平台介绍 + FAQ 入口 |
-| 密集的表格式布局 | B2B ≠ 数据看板 | 卡片式布局 + 充分留白 |
-| 突然切换的页面风格 | 状态升级时体验断裂 | 统一 Shell + 渐变内容 |
-| 无反馈的交互 | 用户不确定操作是否生效 | 微交互 + Toast 通知 |
+| 反模式                        | 为什么不行             | 正确做法                          |
+| :---------------------------- | :--------------------- | :-------------------------------- |
+| 纯文字空状态（"No data yet"） | 用户感到被遗忘         | 插画/图标 + 说明 + 预期时间 + CTA |
+| 只有一行提示的等待页          | 等待期用户焦虑         | 时间线 + 平台介绍 + FAQ 入口      |
+| 密集的表格式布局              | B2B ≠ 数据看板         | 卡片式布局 + 充分留白             |
+| 突然切换的页面风格            | 状态升级时体验断裂     | 统一 Shell + 渐变内容             |
+| 无反馈的交互                  | 用户不确定操作是否生效 | 微交互 + Toast 通知               |
 
 ---
 
@@ -34,13 +34,13 @@ uhomes.com 是服务 200+ 国家国际学生的住宿平台。供应商端面向
 
 所有颜色必须引用 `globals.css` 中 `@theme` 定义的 CSS 变量。
 
-| 语义 | 变量 | 适用场景 |
-|:-----|:-----|:---------|
-| 品牌主色 | `--color-primary` | CTA 按钮、当前步骤高亮、品牌标识 |
-| 品牌浅底 | `--color-primary-light` | 提示卡片背景、图标底色 |
-| 成功 | `--color-success` | 已完成步骤、发布状态、进度达标 |
-| 警告 | `--color-warning` | 等待中状态图标、缺失提示 |
-| 文本层级 | `primary > secondary > muted` | 标题 > 正文 > 辅助/占位 |
+| 语义     | 变量                          | 适用场景                         |
+| :------- | :---------------------------- | :------------------------------- |
+| 品牌主色 | `--color-primary`             | CTA 按钮、当前步骤高亮、品牌标识 |
+| 品牌浅底 | `--color-primary-light`       | 提示卡片背景、图标底色           |
+| 成功     | `--color-success`             | 已完成步骤、发布状态、进度达标   |
+| 警告     | `--color-warning`             | 等待中状态图标、缺失提示         |
+| 文本层级 | `primary > secondary > muted` | 标题 > 正文 > 辅助/占位          |
 
 ### 跨文化色彩安全
 
@@ -54,22 +54,22 @@ uhomes.com 是服务 200+ 国家国际学生的住宿平台。供应商端面向
 
 ### 字体层级
 
-| 用途 | Tailwind 类 | 场景 |
-|:-----|:-----------|:-----|
-| 页面大标题 | `text-2xl font-bold` | Dashboard Welcome |
-| 区块标题 | `text-lg font-semibold` | "Your Properties"、"Pending Actions" |
-| 正文/描述 | `text-sm` | 卡片内容、状态说明 |
-| 辅助文字 | `text-xs text-[var(--color-text-muted)]` | 时间戳、步骤计数 |
+| 用途       | Tailwind 类                              | 场景                                 |
+| :--------- | :--------------------------------------- | :----------------------------------- |
+| 页面大标题 | `text-2xl font-bold`                     | Dashboard Welcome                    |
+| 区块标题   | `text-lg font-semibold`                  | "Your Properties"、"Pending Actions" |
+| 正文/描述  | `text-sm`                                | 卡片内容、状态说明                   |
+| 辅助文字   | `text-xs text-[var(--color-text-muted)]` | 时间戳、步骤计数                     |
 
 ### 间距规范
 
-| 层级 | 间距 | 用途 |
-|:-----|:-----|:-----|
-| 页面内边距 | `p-4 md:p-8` | 由 SupplierLayout 统一提供 |
-| 区块间距 | `space-y-6` | Dashboard 内各卡片区块 |
-| 卡片内边距 | `p-5` 或 `p-6` | 标准内容卡片 |
-| 网格间距 | `gap-4` | BuildingCard / PlatformOverview 网格 |
-| 最大宽度 | `max-w-4xl`（仪表板） / `max-w-6xl`（编辑页） | 内容区约束 |
+| 层级       | 间距                                          | 用途                                 |
+| :--------- | :-------------------------------------------- | :----------------------------------- |
+| 页面内边距 | `p-4 md:p-8`                                  | 由 SupplierLayout 统一提供           |
+| 区块间距   | `space-y-6`                                   | Dashboard 内各卡片区块               |
+| 卡片内边距 | `p-5` 或 `p-6`                                | 标准内容卡片                         |
+| 网格间距   | `gap-4`                                       | BuildingCard / PlatformOverview 网格 |
+| 最大宽度   | `max-w-4xl`（仪表板） / `max-w-6xl`（编辑页） | 内容区约束                           |
 
 ---
 
@@ -105,7 +105,9 @@ uhomes.com 是服务 200+ 国家国际学生的住宿平台。供应商端面向
     <Icon className="h-8 w-8 text-[var(--color-primary)] opacity-60" />
   </div>
   <h3 className="text-lg font-semibold mb-2">标题</h3>
-  <p className="text-sm text-[var(--color-text-secondary)] max-w-sm mb-6">说明</p>
+  <p className="text-sm text-[var(--color-text-secondary)] max-w-sm mb-6">
+    说明
+  </p>
   <a className="text-sm text-[var(--color-primary)] font-medium">行动链接</a>
 </div>
 ```
@@ -131,13 +133,13 @@ uhomes.com 是服务 200+ 国家国际学生的住宿平台。供应商端面向
 
 ### 必须有的微交互
 
-| 交互点 | 效果 | 实现 |
-|:-------|:-----|:-----|
-| 按钮点击 | 微缩放反馈 | `active:scale-[0.98] transition-transform` |
-| 可交互卡片 hover | 轻微上浮 | `hover:-translate-y-0.5 hover:shadow-md transition-all duration-200` |
-| 输入框聚焦 | 边框 + 光晕 | `focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20` |
-| 进度条变化 | 平滑增长 | `transition-all duration-500 ease-out` |
-| Toast 通知 | 入场动画 | `animate-[slideUp_0.3s_ease-out]` |
+| 交互点           | 效果        | 实现                                                                                    |
+| :--------------- | :---------- | :-------------------------------------------------------------------------------------- |
+| 按钮点击         | 微缩放反馈  | `active:scale-[0.98] transition-transform`                                              |
+| 可交互卡片 hover | 轻微上浮    | `hover:-translate-y-0.5 hover:shadow-md transition-all duration-200`                    |
+| 输入框聚焦       | 边框 + 光晕 | `focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20` |
+| 进度条变化       | 平滑增长    | `transition-all duration-500 ease-out`                                                  |
+| Toast 通知       | 入场动画    | `animate-[slideUp_0.3s_ease-out]`                                                       |
 
 ### 不引入的动效
 
@@ -169,22 +171,22 @@ uhomes.com 是服务 200+ 国家国际学生的住宿平台。供应商端面向
 
 ### 每个阶段的页面内容要求
 
-| 阶段 | 必须包含 | 推荐包含 |
-|:-----|:---------|:---------|
-| Under Review | 状态卡片 + 预期时间 + 联系方式 | 时间线 + PlatformOverview |
-| Sign Contract | ContractPreview（按合同状态渲染）| PlatformOverview |
-| Setup Properties | BuildingCard 网格 / 空状态 | 完成度统计 |
-| Onboarding 编辑 | FieldGroups + GapReport + ScoreBar | 面包屑导航回 Dashboard |
+| 阶段             | 必须包含                           | 推荐包含                  |
+| :--------------- | :--------------------------------- | :------------------------ |
+| Under Review     | 状态卡片 + 预期时间 + 联系方式     | 时间线 + PlatformOverview |
+| Sign Contract    | ContractPreview（按合同状态渲染）  | PlatformOverview          |
+| Setup Properties | BuildingCard 网格 / 空状态         | 完成度统计                |
+| Onboarding 编辑  | FieldGroups + GapReport + ScoreBar | 面包屑导航回 Dashboard    |
 
 ### 状态视觉编码
 
-| 状态 | 颜色 | 图标 |
-|:-----|:-----|:-----|
-| 已完成 | `--color-success` | Check / CheckCircle |
-| 当前/进行中 | `--color-primary` | 数字 / Loader |
-| 等待中 | `--color-warning` | Clock |
-| 未开始 | `--color-border` | 空心圆 / 数字 |
-| 错误 | `--color-warning` | AlertCircle |
+| 状态        | 颜色              | 图标                |
+| :---------- | :---------------- | :------------------ |
+| 已完成      | `--color-success` | Check / CheckCircle |
+| 当前/进行中 | `--color-primary` | 数字 / Loader       |
+| 等待中      | `--color-warning` | Clock               |
+| 未开始      | `--color-border`  | 空心圆 / 数字       |
+| 错误        | `--color-warning` | AlertCircle         |
 
 ---
 
