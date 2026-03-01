@@ -9,6 +9,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { FieldGroup } from "./FieldGroup";
 import { ScoreBar } from "./ScoreBar";
 import { GapReportPanel } from "./GapReportPanel";
+import { useToast, ToastContainer } from "@/components/ui/Toast";
 import { Send } from "lucide-react";
 import {
   ALL_CATEGORIES,
@@ -46,7 +47,7 @@ export function OnboardingForm({
   const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { toasts, toast, dismiss } = useToast();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 组件卸载时清理 debounce timer，防止状态更新 leak
@@ -59,7 +60,6 @@ export function OnboardingForm({
   const saveField = useCallback(
     async (key: string, value: unknown) => {
       setSaving(true);
-      setError(null);
       try {
         const res = await fetch(`/api/buildings/${buildingId}/fields`, {
           method: "PATCH",
@@ -68,11 +68,11 @@ export function OnboardingForm({
         });
 
         if (res.status === 409) {
-          setError("数据已被其他用户修改，请刷新页面");
+          toast("warning", "Data modified by another user, please refresh");
           return;
         }
         if (!res.ok) {
-          setError("保存失败，请重试");
+          toast("error", "Save failed, please retry");
           return;
         }
 
@@ -82,8 +82,9 @@ export function OnboardingForm({
         setGapReport(data.gapReport);
         setVersion(data.version);
         setStatus(data.status);
+        toast("success", "Saved");
       } catch {
-        setError("网络错误，请检查连接");
+        toast("error", "Network error, please check your connection");
       } finally {
         setSaving(false);
       }
@@ -116,7 +117,6 @@ export function OnboardingForm({
   const handleSubmit = async () => {
     if (submitting || saving) return;
     setSubmitting(true);
-    setError(null);
     try {
       const res = await fetch(`/api/buildings/${buildingId}/submit`, {
         method: "POST",
@@ -129,17 +129,18 @@ export function OnboardingForm({
 
       if (!res.ok) {
         if (data.missingFields && data.missingFields.length > 0) {
-          const labels = data.missingFields.map((f) => f.label).join("、");
-          setError(`以下必填字段尚未填写：${labels}`);
+          const labels = data.missingFields.map((f) => f.label).join(", ");
+          toast("error", `Required fields not filled: ${labels}`, 6000);
         } else {
-          setError(data.error ?? "提交失败，请重试");
+          toast("error", data.error ?? "Submission failed, please retry");
         }
         return;
       }
 
       setStatus(data.status as BuildingStatus);
+      toast("success", "Submitted for review");
     } catch {
-      setError("网络错误，请检查连接");
+      toast("error", "Network error, please check your connection");
     } finally {
       setSubmitting(false);
     }
@@ -158,7 +159,7 @@ export function OnboardingForm({
           <div className="flex items-center gap-3">
             {saving && (
               <span className="text-xs text-[var(--color-text-muted)]">
-                保存中...
+                Saving...
               </span>
             )}
             <StatusLabel status={status} />
@@ -169,34 +170,29 @@ export function OnboardingForm({
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
               >
                 <Send className="w-3.5 h-3.5" />
-                {submitting ? "提交中..." : "提交审核"}
+                {submitting ? "Submitting..." : "Submit for Review"}
               </button>
             )}
             {(status === "ready_to_publish" || status === "published") && (
               <span className="text-xs text-[var(--color-text-muted)]">
                 {status === "ready_to_publish"
-                  ? "已提交，等待团队审核"
-                  : "已发布"}
+                  ? "Submitted, pending team review"
+                  : "Published"}
               </span>
             )}
           </div>
         </div>
         <ScoreBar score={score.score} />
         <p className="text-xs text-[var(--color-text-muted)] mt-2">
-          已完成{" "}
           {score.totalWeight - score.filledWeight === 0
-            ? "全部"
-            : `${gapReport.filledFields}/${gapReport.totalFields}`}{" "}
-          字段
+            ? "All fields completed"
+            : `${gapReport.filledFields}/${gapReport.totalFields} fields completed`}
           {score.missingFields.length > 0 &&
-            `，还有 ${score.missingFields.length} 个待填写`}
+            `, ${score.missingFields.length} remaining`}
         </p>
-        {error && (
-          <p className="text-xs mt-2" style={{ color: "var(--color-primary)" }}>
-            {error}
-          </p>
-        )}
       </div>
+
+      <ToastContainer toasts={toasts} onDismiss={dismiss} />
 
       {/* 主体：两栏布局 */}
       <div className="flex flex-col lg:flex-row gap-6">
@@ -231,11 +227,17 @@ export function OnboardingForm({
 
 function StatusLabel({ status }: { status: BuildingStatus }) {
   const map: Record<BuildingStatus, { label: string; color: string }> = {
-    extracting: { label: "提取中", color: "var(--color-text-muted)" },
-    incomplete: { label: "待完善", color: "var(--color-warning)" },
-    previewable: { label: "可预览", color: "var(--color-success)" },
-    ready_to_publish: { label: "待发布", color: "var(--color-primary)" },
-    published: { label: "已发布", color: "var(--color-success)" },
+    extracting: { label: "Extracting", color: "var(--color-text-muted)" },
+    incomplete: { label: "Draft", color: "var(--color-warning)" },
+    previewable: {
+      label: "Ready to Preview",
+      color: "var(--color-success)",
+    },
+    ready_to_publish: {
+      label: "Ready to Publish",
+      color: "var(--color-primary)",
+    },
+    published: { label: "Published", color: "var(--color-success)" },
   };
   const cfg = map[status] ?? map.incomplete;
   return (

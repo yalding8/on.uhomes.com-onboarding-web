@@ -93,6 +93,81 @@ export default function Home() {
           <ApplicationForm />
         </div>
       </div>
+
+      {/* Social Proof */}
+      <section className="w-full border-t border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+        <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div>
+            <p className="text-3xl font-bold text-[var(--color-text-primary)]">
+              200+
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+              Partner Countries
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-[var(--color-text-primary)]">
+              5,000+
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+              Properties Listed
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-[var(--color-text-primary)]">
+              800+
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+              Accommodation Partners
+            </p>
+          </div>
+          <div>
+            <p className="text-3xl font-bold text-[var(--color-text-primary)]">
+              1M+
+            </p>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+              Student Visitors / Year
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="w-full border-t border-[var(--color-border)] bg-[var(--color-bg-primary)]">
+        <div className="max-w-6xl mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="text-center md:text-left">
+            <p className="font-bold text-[var(--color-primary)]">
+              uhomes.com
+              <span className="text-[var(--color-text-primary)] ml-1">
+                Partners
+              </span>
+            </p>
+            <p className="text-xs text-[var(--color-text-muted)] mt-1">
+              &copy; {new Date().getFullYear()} uhomes.com. All rights reserved.
+            </p>
+          </div>
+          <div className="flex items-center gap-6 text-sm text-[var(--color-text-secondary)]">
+            <a
+              href="mailto:partner@uhomes.com"
+              className="hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              Contact Us
+            </a>
+            <a
+              href="/privacy"
+              className="hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <a
+              href="/terms"
+              className="hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              Terms of Service
+            </a>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

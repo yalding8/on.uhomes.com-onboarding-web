@@ -6,10 +6,10 @@
 import type { DataSource } from "@/lib/onboarding/field-value";
 
 const SOURCE_CONFIG: Record<DataSource, { label: string; color: string }> = {
-  contract_pdf: { label: "合同", color: "var(--color-primary)" },
-  website_crawl: { label: "网站", color: "var(--color-warning)" },
+  contract_pdf: { label: "Contract", color: "var(--color-primary)" },
+  website_crawl: { label: "Website", color: "var(--color-warning)" },
   google_sheets: { label: "Sheets", color: "var(--color-success)" },
-  manual_input: { label: "手动", color: "var(--color-text-muted)" },
+  manual_input: { label: "Manual", color: "var(--color-text-muted)" },
 };
 
 interface SourceBadgeProps {

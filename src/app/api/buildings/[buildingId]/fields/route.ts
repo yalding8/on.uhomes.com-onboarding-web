@@ -123,7 +123,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     // 乐观锁快速拦截：客户端持有明显过期的 version，省去后续 DB 写入
     if (clientVersion !== undefined && clientVersion !== currentVersion) {
       return NextResponse.json(
-        { error: "数据已被其他用户修改，请刷新页面" },
+        { error: "Data modified by another user, please refresh" },
         { status: 409 },
       );
     }
@@ -196,7 +196,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       // 0 行受影响：并发请求已在此期间修改了 version
       if (!updated || updated.length === 0) {
         return NextResponse.json(
-          { error: "数据已被其他用户修改，请刷新页面" },
+          { error: "Data modified by another user, please refresh" },
           { status: 409 },
         );
       }

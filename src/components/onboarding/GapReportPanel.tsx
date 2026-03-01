@@ -14,9 +14,9 @@ interface GapReportPanelProps {
 }
 
 const TIER_COLORS: Record<string, string> = {
-  可自动提取: "var(--color-success)",
-  需确认: "var(--color-warning)",
-  需手动填写: "var(--color-primary)",
+  "Auto-extractable": "var(--color-success)",
+  "Needs confirmation": "var(--color-warning)",
+  "Manual input required": "var(--color-primary)",
 };
 
 export function GapReportPanel({ gapReport }: GapReportPanelProps) {
@@ -32,7 +32,7 @@ export function GapReportPanel({ gapReport }: GapReportPanelProps) {
           className="text-sm font-medium"
           style={{ color: "var(--color-success)" }}
         >
-          所有字段已填写完成
+          All fields completed
         </p>
       </div>
     );
@@ -42,10 +42,10 @@ export function GapReportPanel({ gapReport }: GapReportPanelProps) {
     <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)] overflow-hidden">
       <div className="p-4 border-b border-[var(--color-border)]">
         <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
-          缺失字段 ({totalMissing})
+          Missing Fields ({totalMissing})
         </h3>
         <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-          已完成 {gapReport.filledFields}/{gapReport.totalFields}
+          {gapReport.filledFields}/{gapReport.totalFields} completed
         </p>
       </div>
       <div className="divide-y divide-[var(--color-border)] max-h-96 overflow-y-auto">

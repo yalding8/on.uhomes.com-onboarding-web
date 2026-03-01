@@ -21,27 +21,27 @@ const STATUS_CONFIG: Record<
   { label: string; color: string; bg: string }
 > = {
   extracting: {
-    label: "数据提取中",
+    label: "Extracting Data",
     color: "var(--color-text-muted)",
     bg: "var(--color-bg-secondary)",
   },
   incomplete: {
-    label: "待完善",
+    label: "Incomplete",
     color: "var(--color-warning)",
     bg: "var(--color-primary-light)",
   },
   previewable: {
-    label: "可预览",
+    label: "Ready to Preview",
     color: "var(--color-success)",
     bg: "var(--color-success-light)",
   },
   ready_to_publish: {
-    label: "待发布",
+    label: "Ready to Publish",
     color: "var(--color-primary)",
     bg: "var(--color-primary-light)",
   },
   published: {
-    label: "已发布",
+    label: "Published",
     color: "var(--color-success)",
     bg: "var(--color-success-light)",
   },
@@ -83,7 +83,7 @@ export function BuildingCard({
 
       {missingCount > 0 && (
         <p className="text-xs text-[var(--color-text-muted)] mt-2">
-          还有 {missingCount} 个字段待填写
+          {missingCount} fields remaining
         </p>
       )}
     </Link>
