@@ -63,7 +63,7 @@ async function ensureRoleColumn() {
 
   // 通过 REST API 执行 SQL（使用 Supabase 的 rpc 或直接 POST /rest/v1/rpc）
   // 更简单的方式：直接用 fetch 调 Supabase SQL endpoint
-  const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/`, {
+  await fetch(`${SUPABASE_URL}/rest/v1/rpc/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

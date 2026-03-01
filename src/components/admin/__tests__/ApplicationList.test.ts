@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { it as fcIt, fc } from "@fast-check/vitest";
 import { filterApplications, getStatusCounts } from "../ApplicationList";
-import type { StatusFilter } from "../ApplicationList";
 
 /**
  * 申请列表筛选逻辑 — 单元测试 + 属性测试

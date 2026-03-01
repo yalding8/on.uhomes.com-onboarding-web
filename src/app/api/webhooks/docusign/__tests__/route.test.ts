@@ -70,17 +70,7 @@ const arbNonSignedStatus = fc.constantFrom<ContractStatus>(
 
 const arbUuid = fc.uuid();
 
-const arbPayload = fc.string({ minLength: 1, maxLength: 2000 });
 const arbSecret = fc.string({ minLength: 1, maxLength: 256 });
-
-const arbEventType = fc.constantFrom(
-  "envelope-completed",
-  "envelope-sent",
-  "envelope-delivered",
-  "envelope-voided",
-  "recipient-completed",
-  "recipient-sent",
-);
 
 const arbNonCompletedEventType = fc.constantFrom(
   "envelope-sent",
@@ -236,16 +226,6 @@ describe("Webhook 状态转换：SENT → SIGNED", () => {
 
 describe("Envelope ID 查找逻辑", () => {
   it("envelope_id 匹配时找到合同", () => {
-    const contracts: MockContractRow[] = [
-      {
-        id: "c-1",
-        supplier_id: "s-1",
-        status: "SENT",
-        signed_at: null,
-        document_url: null,
-        provider_metadata: null,
-      },
-    ];
     const envelopeId = "env-abc";
     // 模拟 DB 查询：通过 signature_request_id 查找
     const signatureRequestIds: Record<string, string> = { "env-abc": "c-1" };
@@ -392,9 +372,9 @@ describe("Property 7: Webhook 幂等性", () => {
  * **Validates: Requirements 7.5, 7.6**
  */
 describe("Property 8: Webhook 级联状态更新", () => {
-  fcTest.prop([arbUuid, arbUuid, arbUuid], { numRuns: 100 })(
+  fcTest.prop([arbUuid, arbUuid], { numRuns: 100 })(
     "SENT 状态合同处理 envelope-completed 后，合同和供应商状态均为 SIGNED",
-    (contractId, supplierId, envelopeId) => {
+    (contractId, supplierId) => {
       // 初始状态：合同为 SENT
       const contract: MockContractRow = {
         id: contractId,
@@ -445,9 +425,9 @@ describe("Property 8: Webhook 级联状态更新", () => {
     },
   );
 
-  fcTest.prop([arbNonCompletedEventType, arbUuid, arbSecret], { numRuns: 100 })(
+  fcTest.prop([arbNonCompletedEventType, arbUuid], { numRuns: 100 })(
     "非 envelope-completed 事件不触发状态更新",
-    (eventType, envelopeId, secret) => {
+    (eventType, envelopeId) => {
       const event: MockDocuSignEvent = {
         event: eventType,
         data: { envelopeId },

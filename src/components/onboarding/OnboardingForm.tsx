@@ -89,7 +89,7 @@ export function OnboardingForm({
         setSaving(false);
       }
     },
-    [buildingId, version],
+    [buildingId, version, toast],
   );
 
   const handleChange = useCallback(

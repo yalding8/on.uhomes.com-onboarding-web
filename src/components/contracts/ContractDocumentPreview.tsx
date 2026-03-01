@@ -18,7 +18,7 @@ function formatDate(iso: string): string {
   });
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ value }: { label: string; value: string }) {
   return (
     <span className="font-semibold text-[var(--color-text-primary)]">
       {value || (

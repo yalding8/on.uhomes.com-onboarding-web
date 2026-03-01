@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 
 /**
  * verifyBdRole 的核心鉴权逻辑提取为纯函数，便于测试。

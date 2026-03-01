@@ -17,7 +17,7 @@ export function LegalLayout({ children, currentPage }: LegalLayoutProps) {
             className="font-bold text-lg tracking-tight text-[var(--color-primary)]"
           >
             uhomes.com
-            <span className="text-[var(--color-text-primary)] ml-2">
+            <span className="text-[var(--color-text-primary)] ms-2">
               Partners
             </span>
           </Link>

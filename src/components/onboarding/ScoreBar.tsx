@@ -33,7 +33,7 @@ export function ScoreBar({ score, size = "md" }: ScoreBarProps) {
         />
       </div>
       <span
-        className="text-sm font-semibold tabular-nums min-w-[3ch] text-right"
+        className="text-sm font-semibold tabular-nums min-w-[3ch] text-end"
         style={{ color: barColor }}
       >
         {score}

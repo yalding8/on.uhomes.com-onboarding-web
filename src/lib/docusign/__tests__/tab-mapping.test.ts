@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildTextTabs, type DocuSignTextTab } from "../tab-mapping";
+import { buildTextTabs } from "../tab-mapping";
 import {
   CONTRACT_FIELD_KEYS,
   type ContractFields,

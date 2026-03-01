@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextRequest, NextResponse } from "next/server";
+import { describe, it, expect } from "vitest";
 
 /**
  * 中间件路由决策的纯逻辑提取，便于测试。

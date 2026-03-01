@@ -93,7 +93,7 @@ export function SupplierList({
               }`}
             >
               {label}
-              <span className="ml-1.5 text-xs opacity-80">{counts[value]}</span>
+              <span className="ms-1.5 text-xs opacity-80">{counts[value]}</span>
             </button>
           );
         })}

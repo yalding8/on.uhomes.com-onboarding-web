@@ -24,10 +24,10 @@ export function BuildingsSection({ buildings }: { buildings: BuildingInfo[] }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-                <th className="text-left px-4 py-3 font-medium">Name</th>
-                <th className="text-left px-4 py-3 font-medium">Address</th>
-                <th className="text-left px-4 py-3 font-medium">Status</th>
-                <th className="text-left px-4 py-3 font-medium">Score</th>
+                <th className="text-start px-4 py-3 font-medium">Name</th>
+                <th className="text-start px-4 py-3 font-medium">Address</th>
+                <th className="text-start px-4 py-3 font-medium">Status</th>
+                <th className="text-start px-4 py-3 font-medium">Score</th>
               </tr>
             </thead>
             <tbody>
@@ -73,9 +73,9 @@ export function ContractsSection({ contracts }: { contracts: ContractInfo[] }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-                <th className="text-left px-4 py-3 font-medium">Status</th>
-                <th className="text-left px-4 py-3 font-medium">Action</th>
-                <th className="text-left px-4 py-3 font-medium">Created</th>
+                <th className="text-start px-4 py-3 font-medium">Status</th>
+                <th className="text-start px-4 py-3 font-medium">Action</th>
+                <th className="text-start px-4 py-3 font-medium">Created</th>
               </tr>
             </thead>
             <tbody>
