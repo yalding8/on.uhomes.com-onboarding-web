@@ -6,6 +6,8 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { ApplicationUnderReview } from "@/components/form/ApplicationUnderReview";
 import { ContractPreview } from "@/components/signing/ContractPreview";
 import type { ContractStatus, ContractFields } from "@/lib/contracts/types";
 import { BuildingCard } from "@/components/onboarding/BuildingCard";
@@ -30,7 +32,39 @@ export default async function DashboardPage() {
     .eq("user_id", user.id)
     .single();
 
-  if (supplierError || !supplier) redirect("/");
+  // 无 supplier 记录：检查是否已提交申请
+  if (supplierError || !supplier) {
+    const admin = createAdminClient();
+    const { data: apps } = await admin
+      .from("applications")
+      .select("id")
+      .eq("contact_email", user.email ?? "")
+      .limit(1);
+    const hasApplication = (apps?.length ?? 0) > 0;
+    if (!hasApplication) redirect("/");
+
+    // 有申请但无 supplier → 显示 Under Review dashboard
+    return (
+      <div className="min-h-screen bg-[var(--color-bg-primary)] p-4 md:p-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <div className="bg-[var(--color-bg-secondary)] rounded-2xl border border-[var(--color-border)] p-6 md:p-8">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+                  Welcome, {user.email}
+                </h1>
+                <p className="text-[var(--color-text-secondary)] mt-1">
+                  Your onboarding portal
+                </p>
+              </div>
+              <LogoutButton />
+            </div>
+          </div>
+          <ApplicationUnderReview />
+        </div>
+      </div>
+    );
+  }
 
   // 获取合同（PENDING_CONTRACT 或新状态流程中的供应商都需要）
   let contract: {

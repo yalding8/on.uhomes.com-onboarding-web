@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { ApplicationForm } from "@/components/form/ApplicationForm";
-import { ApplicationUnderReview } from "@/components/form/ApplicationUnderReview";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { MapPin, ShieldCheck, Zap } from "lucide-react";
 
 export default async function Home() {
@@ -12,18 +10,6 @@ export default async function Home() {
     data: { user },
   } = await supabase.auth.getUser();
   const userEmail = user?.email ?? null;
-
-  // 已登录用户：用 admin client 查询 applications（绕过 RLS）
-  let hasApplication = false;
-  if (userEmail) {
-    const admin = createAdminClient();
-    const { data } = await admin
-      .from("applications")
-      .select("id")
-      .eq("contact_email", userEmail)
-      .limit(1);
-    hasApplication = (data?.length ?? 0) > 0;
-  }
   return (
     <main className="flex min-h-screen flex-col items-center bg-[var(--color-bg-primary)]">
       {/* Navigation Bar */}
@@ -118,13 +104,9 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Application Form or Under Review */}
+        {/* Application Form */}
         <div id="apply-form" className="relative w-full">
-          {hasApplication ? (
-            <ApplicationUnderReview />
-          ) : (
-            <ApplicationForm prefillEmail={userEmail} />
-          )}
+          <ApplicationForm prefillEmail={userEmail} />
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/env";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -92,15 +93,35 @@ export async function updateSession(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
-    // Condition 3: NEW User -> Redirect to / (Landing Page) if they try to access internal pages
-    // This also catches logged-in NEW users hitting /login — they should go to /
-    if (
-      status === "NEW" &&
-      pathname !== "/" &&
-      !pathname.startsWith("/auth") &&
-      !pathname.startsWith("/api/")
-    ) {
-      return NextResponse.redirect(new URL("/", request.url));
+    // Condition 3: NEW User — check if they have submitted an application
+    if (status === "NEW") {
+      const admin = createAdminClient();
+      const { data: apps } = await admin
+        .from("applications")
+        .select("id")
+        .eq("contact_email", user.email ?? "")
+        .limit(1);
+      const hasApplication = (apps?.length ?? 0) > 0;
+
+      if (hasApplication) {
+        // Has application → route to /dashboard
+        if (
+          pathname !== "/dashboard" &&
+          !pathname.startsWith("/auth") &&
+          !pathname.startsWith("/api/")
+        ) {
+          return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+      } else {
+        // No application → route to / (Landing Page)
+        if (
+          pathname !== "/" &&
+          !pathname.startsWith("/auth") &&
+          !pathname.startsWith("/api/")
+        ) {
+          return NextResponse.redirect(new URL("/", request.url));
+        }
+      }
     }
   } else {
     // Unauthenticated access policies
