@@ -10,6 +10,7 @@
  */
 
 import { useState } from "react";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 interface FormData {
   email: string;
@@ -24,7 +25,7 @@ interface FormErrors {
   company_name?: string;
 }
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const INITIAL_FORM: FormData = {
   email: "",
@@ -113,16 +114,21 @@ export function InviteForm() {
       onSubmit={handleSubmit}
       className="max-w-lg rounded-lg border border-[var(--color-border)] p-4 md:p-6"
     >
-      {/* 结果提示 */}
+      {/* 结果提示 — 双编码：图标 + 颜色 */}
       {result && (
         <div
           role="alert"
-          className={`mb-4 px-4 py-3 rounded text-sm ${
+          className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2 ${
             result.type === "success"
               ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
               : "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
           }`}
         >
+          {result.type === "success" ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0" />
+          )}
           {result.message}
         </div>
       )}
@@ -194,7 +200,7 @@ export function InviteForm() {
           type="tel"
           value={form.phone}
           onChange={(e) => handleChange("phone", e.target.value)}
-          placeholder="Optional"
+          placeholder="+44 20 1234 5678"
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
       </div>
@@ -212,7 +218,7 @@ export function InviteForm() {
           type="text"
           value={form.city}
           onChange={(e) => handleChange("city", e.target.value)}
-          placeholder="Optional"
+          placeholder="e.g. London, UK"
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
       </div>
@@ -239,8 +245,9 @@ export function InviteForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-2.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
+        {submitting && <Loader2 className="h-4 w-4 animate-spin" />}
         {submitting ? "Sending..." : "Send Invitation"}
       </button>
     </form>

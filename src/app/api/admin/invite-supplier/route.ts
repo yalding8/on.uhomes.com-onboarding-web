@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 interface InvitePayload {
   email: string;
@@ -93,8 +93,9 @@ export async function POST(request: Request) {
       await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
     if (authError || !authUser.user) {
+      console.error("[invite-supplier]", authError);
       return NextResponse.json(
-        { error: "Failed to create auth user", details: authError?.message },
+        { error: "Failed to create auth user" },
         { status: 500 },
       );
     }
@@ -118,12 +119,10 @@ export async function POST(request: Request) {
       .single();
 
     if (supplierError || !supplier) {
+      console.error("[invite-supplier]", supplierError);
       await supabaseAdmin.auth.admin.deleteUser(userId);
       return NextResponse.json(
-        {
-          error: "Failed to create supplier record",
-          details: supplierError?.message,
-        },
+        { error: "Failed to create supplier record" },
         { status: 500 },
       );
     }
@@ -143,13 +142,11 @@ export async function POST(request: Request) {
       });
 
     if (contractError) {
+      console.error("[invite-supplier]", contractError);
       await supabaseAdmin.from("suppliers").delete().eq("id", supplier.id);
       await supabaseAdmin.auth.admin.deleteUser(userId);
       return NextResponse.json(
-        {
-          error: "Failed to create contract record",
-          details: contractError.message,
-        },
+        { error: "Failed to create contract record" },
         { status: 500 },
       );
     }
@@ -160,8 +157,10 @@ export async function POST(request: Request) {
       supplier_id: supplier.id,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[invite-supplier]", error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }
