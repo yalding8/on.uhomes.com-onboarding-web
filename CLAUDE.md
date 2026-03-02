@@ -91,11 +91,11 @@ bash scripts/check-file-lines.sh  # 文件行数检查（≤ 300 行）
 
 ### 基础设施区分（三者独立，绝不混淆）
 
-| 服务           | 地址                        | 用途                         | SSH Key              |
-| :------------- | :-------------------------- | :--------------------------- | :------------------- |
-| **GitHub**     | `github.com`                | 代码主仓库（`origin`）       | `~/.ssh/id_ed25519`  |
-| **GitLab**     | `git.uhomes.com:20022`      | 内部镜像仓库（`gitlab`），**直连** | `~/.ssh/id_rsa`      |
-| **JumpServer** | `jump.uhouzz.net:2222`      | 堡垒机 / 部署服务器          | `~/.ssh/id_ed25519_jumpserver` |
+| 服务           | 地址                   | 用途                               | SSH Key                        |
+| :------------- | :--------------------- | :--------------------------------- | :----------------------------- |
+| **GitHub**     | `github.com`           | 代码主仓库（`origin`）             | `~/.ssh/id_ed25519`            |
+| **GitLab**     | `git.uhomes.com:20022` | 内部镜像仓库（`gitlab`），**直连** | `~/.ssh/id_rsa`                |
+| **JumpServer** | `jump.uhouzz.net:2222` | 堡垒机 / 部署服务器                | `~/.ssh/id_ed25519_jumpserver` |
 
 > **GitLab 与 JumpServer 无关联**。GitLab SSH 直连，不需要 ProxyJump。JumpServer 仅在部署、运维登录生产服务器时使用。
 
