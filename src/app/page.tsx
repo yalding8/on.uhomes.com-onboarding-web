@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ApplicationForm } from "@/components/form/ApplicationForm";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
-import { MapPin, ShieldCheck, Zap } from "lucide-react";
+import { Globe, ShieldCheck, Zap } from "lucide-react";
 
 interface HomeProps {
   searchParams: Promise<{ ref?: string }>;
@@ -69,26 +69,26 @@ export default async function Home({ searchParams }: HomeProps) {
               </div>
               <div className="ms-4">
                 <h4 className="text-base font-semibold text-[var(--color-text-primary)]">
-                  Automated Onboarding
+                  Streamlined Onboarding
                 </h4>
                 <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                  Sign the contract and our AI automatically extracts your
-                  building inventory directly from your website.
+                  Connect your inventory your way — our platform handles setup
+                  and standardization so you can go live faster.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start">
               <div className="flex-shrink-0 mt-1 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-primary-light)]">
-                <MapPin className="h-4 w-4 text-[var(--color-primary)] opacity-90" />
+                <Globe className="h-4 w-4 text-[var(--color-primary)] opacity-90" />
               </div>
               <div className="ms-4">
                 <h4 className="text-base font-semibold text-[var(--color-text-primary)]">
-                  Unrivaled Distribution
+                  Global Demand Reach
                 </h4>
                 <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                  Your rooms are instantly distributed across all uhomes
-                  platforms and leading partner networks globally.
+                  Connect with verified international students through uhomes
+                  and our global partner network.
                 </p>
               </div>
             </div>
@@ -99,11 +99,11 @@ export default async function Home({ searchParams }: HomeProps) {
               </div>
               <div className="ms-4">
                 <h4 className="text-base font-semibold text-[var(--color-text-primary)]">
-                  Secure & Managed
+                  Trusted & Transparent
                 </h4>
                 <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-                  Every lead undergoes screening. Access a centralized dashboard
-                  to track real-time bookings.
+                  Manage bookings with confidence through verified leads and a
+                  centralized partner dashboard.
                 </p>
               </div>
             </div>
