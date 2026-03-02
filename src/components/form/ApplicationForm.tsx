@@ -15,11 +15,13 @@ const applicantSchema = z.object({
   contact_phone: z
     .string()
     .regex(
-      /^\+\d{1,4}\s\d{4,14}$/,
+      /^\+\d{1,4}[\s\-]?\d[\d\s\-]{3,15}$/,
       "Please select a country/region code and enter your phone number",
     ),
-  city: z.string().min(2, "City is required"),
-  country: z.string().min(2, "Country / Region is required"),
+  city: z.string().min(1, "City is required"),
+  country: z
+    .string()
+    .min(2, "Please enter the full country name (e.g. United Kingdom)"),
   website_url: z
     .string()
     .transform((val) => {
@@ -27,7 +29,14 @@ const applicantSchema = z.object({
       if (!/^https?:\/\//i.test(val)) return `https://${val}`;
       return val;
     })
-    .pipe(z.string().url("Please enter a valid URL"))
+    .pipe(
+      z
+        .string()
+        .url("Please enter a valid URL")
+        .refine((val) => /^https?:\/\//i.test(val), {
+          message: "Only http:// and https:// URLs are allowed",
+        }),
+    )
     .optional()
     .or(z.literal("")),
 });

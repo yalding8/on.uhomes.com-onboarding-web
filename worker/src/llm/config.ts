@@ -1,9 +1,10 @@
 /**
  * LLM Provider 配置
  *
- * [复制自主应用 src/lib/llm/config.ts]
  * 主力：Qwen（通义千问）、DeepSeek
  * 备选：Kimi（Moonshot）、MiniMax
+ *
+ * 增强: 主 provider 失败时自动 fallback 到备选
  */
 
 import type { LlmProvider } from "./types.js";
@@ -42,6 +43,7 @@ const PROVIDERS: readonly ProviderConfig[] = [
   },
 ] as const;
 
+/** Get primary LLM provider (first configured) */
 export function getProvider(): LlmProvider {
   for (const cfg of PROVIDERS) {
     const apiKey = process.env[cfg.envKey];
@@ -57,4 +59,26 @@ export function getProvider(): LlmProvider {
   throw new Error(
     `No LLM provider configured. Set one of: ${PROVIDERS.map((p) => p.envKey).join(", ")}`,
   );
+}
+
+/** Get all available providers for fallback chain */
+export function getAllProviders(): LlmProvider[] {
+  const available: LlmProvider[] = [];
+  for (const cfg of PROVIDERS) {
+    const apiKey = process.env[cfg.envKey];
+    if (apiKey?.trim()) {
+      available.push({
+        name: cfg.name,
+        baseUrl: cfg.baseUrl,
+        apiKey: apiKey.trim(),
+        model: cfg.model,
+      });
+    }
+  }
+  if (available.length === 0) {
+    throw new Error(
+      `No LLM provider configured. Set one of: ${PROVIDERS.map((p) => p.envKey).join(", ")}`,
+    );
+  }
+  return available;
 }

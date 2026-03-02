@@ -43,6 +43,7 @@ export interface FieldDefinition {
   required: boolean;
   options?: string[];
   description?: string;
+  maxItems?: number;
 }
 
 export const FIELD_CATEGORY_LABELS: Record<FieldCategory, string> = {

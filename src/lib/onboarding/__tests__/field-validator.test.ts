@@ -72,6 +72,19 @@ describe("validateFields", () => {
     expect(result.errors[0].message).toMatch(/Must be one of/);
   });
 
+  // ── rent_period select ──
+  it("accepts valid rent_period option", () => {
+    expect(validateFields({ rent_period: "Weekly" }).ok).toBe(true);
+    expect(validateFields({ rent_period: "Monthly" }).ok).toBe(true);
+    expect(validateFields({ rent_period: "Yearly" }).ok).toBe(true);
+  });
+
+  it("rejects invalid rent_period option", () => {
+    const result = validateFields({ rent_period: "Daily" });
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].message).toMatch(/Must be one of/);
+  });
+
   // ── multi_select ──
   it("accepts valid options array for multi_select", () => {
     expect(
@@ -97,6 +110,38 @@ describe("validateFields", () => {
     });
     expect(result.ok).toBe(false);
     expect(result.errors[0].message).toMatch(/Invalid options/);
+  });
+
+  // ── multi_select maxItems ──
+  it("accepts multi_select within maxItems limit", () => {
+    expect(
+      validateFields({
+        key_amenities: [
+          "Gym",
+          "Pool",
+          "Laundry",
+          "Parking",
+          "WiFi",
+          "Security",
+        ],
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects multi_select exceeding maxItems limit", () => {
+    const result = validateFields({
+      key_amenities: [
+        "Gym",
+        "Pool",
+        "Laundry",
+        "Parking",
+        "WiFi",
+        "Security",
+        "Rooftop",
+      ],
+    });
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].message).toMatch(/Too many items: maximum is 6/);
   });
 
   // ── email ──
@@ -153,5 +198,21 @@ describe("validateFields", () => {
     });
     expect(result.ok).toBe(false);
     expect(result.errors).toHaveLength(3);
+  });
+
+  // ── cross-field: price_min vs price_max ──
+  it("rejects price_min greater than price_max", () => {
+    const result = validateFields({ price_min: 2000, price_max: 800 });
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].key).toBe("price_min");
+    expect(result.errors[0].message).toMatch(/cannot be greater/i);
+  });
+
+  it("accepts price_min equal to price_max", () => {
+    expect(validateFields({ price_min: 500, price_max: 500 }).ok).toBe(true);
+  });
+
+  it("accepts price_min less than price_max", () => {
+    expect(validateFields({ price_min: 500, price_max: 2000 }).ok).toBe(true);
   });
 });

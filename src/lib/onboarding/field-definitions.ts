@@ -55,7 +55,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
 
   // ── Tenant Qualification ──
   { key: "intl_required_docs", label: "International Applicant Required Documents", category: "tenant_qualification", type: "text", weight: 5, extractTier: "C", required: false },
-  { key: "i20_accepted", label: "Accept I-20 as Income Proof", category: "tenant_qualification", type: "select", weight: 3, extractTier: "C", required: false, options: ["Yes", "No"] },
+  { key: "i20_accepted", label: "Accept I-20 as Income Proof", category: "tenant_qualification", type: "select", weight: 3, extractTier: "C", required: false, options: ["Yes", "No", "N/A"], description: "US only: Does the property accept I-20 student visa documents? Select N/A if not in the US." },
   { key: "alternative_income_docs", label: "Alternative Income Documents", category: "tenant_qualification", type: "multi_select", weight: 3, extractTier: "C", required: false, options: ["International proof of funds", "Sponsor letter", "Other"] },
   { key: "guarantor_options", label: "Guarantor Options", category: "tenant_qualification", type: "multi_select", weight: 3, extractTier: "C", required: false, options: ["Personal guarantor", "Third-party guarantor", "No guarantor required"] },
   { key: "local_required_docs", label: "Local Applicant Required Documents", category: "tenant_qualification", type: "text", weight: 3, extractTier: "C", required: false },
@@ -70,13 +70,14 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   { key: "shuttle_service", label: "Shuttle Service Available", category: "building_details", type: "boolean", weight: 2, extractTier: "B", required: false },
   { key: "cover_image", label: "Cover Image URL", category: "building_details", type: "url", weight: 8, extractTier: "B", required: true, description: "At least 1 main image" },
   { key: "images", label: "Image Gallery", category: "building_details", type: "image_urls", weight: 5, extractTier: "B", required: false, description: "3+ images recommended" },
-  { key: "key_amenities", label: "Key Amenities (up to 6 tags)", category: "building_details", type: "multi_select", weight: 6, extractTier: "B", required: true, options: ["Gym", "Pool", "Laundry", "Parking", "Study Room", "Rooftop", "Pet Friendly", "Furnished", "WiFi", "Security", "Bike Storage", "Game Room"] },
+  { key: "key_amenities", label: "Key Amenities (up to 6 tags)", category: "building_details", type: "multi_select", weight: 6, extractTier: "B", required: true, options: ["Gym", "Pool", "Laundry", "Parking", "Study Room", "Rooftop", "Pet Friendly", "Furnished", "WiFi", "Security", "Bike Storage", "Game Room"], maxItems: 6 },
   { key: "unit_types_summary", label: "Unit Types Summary", category: "building_details", type: "text", weight: 6, extractTier: "B", required: true },
 
   // ── Fees ──
   { key: "price_min", label: "Minimum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true },
   { key: "price_max", label: "Maximum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true },
   { key: "currency", label: "Currency", category: "fees", type: "select", weight: 6, extractTier: "A", required: true, options: ["USD", "CAD", "GBP", "EUR", "AUD", "JPY", "CNY"] },
+  { key: "rent_period", label: "Rent Period", category: "fees", type: "select", weight: 7, extractTier: "A", required: true, options: ["Weekly", "Monthly", "Yearly"], description: "The billing period for the listed price range (e.g. UK properties often use weekly pricing)" },
   { key: "application_fee", label: "Application Fee", category: "fees", type: "number", weight: 3, extractTier: "C", required: false },
   { key: "admin_fee", label: "Administrative Fee", category: "fees", type: "number", weight: 3, extractTier: "C", required: false },
   { key: "deposit_intl", label: "Deposit for International Applicant", category: "fees", type: "text", weight: 4, extractTier: "C", required: false },

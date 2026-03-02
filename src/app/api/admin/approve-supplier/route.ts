@@ -45,22 +45,73 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Create Auth user — must happen first as supplier requires user_id
+    // 3. Check if a supplier already exists for this email
+    const { data: existingSupplier } = await supabaseAdmin
+      .from("suppliers")
+      .select("id")
+      .eq("contact_email", application.contact_email)
+      .maybeSingle();
+
+    if (existingSupplier) {
+      return NextResponse.json(
+        { error: "A supplier with this email already exists" },
+        { status: 409 },
+      );
+    }
+
+    // 4. Create Auth user — must happen first as supplier requires user_id
+    // Try invite; if the email already exists in auth (e.g. user triggered OTP
+    // before approval), reuse the existing auth user instead of failing.
+    let userId: string;
     const { data: authUser, error: authError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(
         application.contact_email,
       );
 
     if (authError || !authUser.user) {
-      console.error("[approve-supplier]", authError);
-      return NextResponse.json(
-        { error: "Failed to create auth user" },
-        { status: 500 },
-      );
-    }
-    const userId = authUser.user.id;
+      // Attempt to find existing auth user by creating with existing email
+      const { data: createResult, error: createError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: application.contact_email,
+          email_confirm: true,
+        });
 
-    // 4. Create supplier record — rollback Auth user on failure
+      if (createError || !createResult.user) {
+        // Both invite and create failed — check if "already registered" style error
+        const errorMsg =
+          (authError?.message ?? "") + (createError?.message ?? "");
+        if (errorMsg.toLowerCase().includes("already")) {
+          // Find the existing user via admin list (paginated to limit scope)
+          const { data: listed } = await supabaseAdmin.auth.admin.listUsers({
+            perPage: 1000,
+          });
+          const found = listed?.users?.find(
+            (u: { email?: string }) => u.email === application.contact_email,
+          );
+          if (found) {
+            userId = found.id;
+          } else {
+            console.error("[approve-supplier]", authError, createError);
+            return NextResponse.json(
+              { error: "Failed to create auth user" },
+              { status: 500 },
+            );
+          }
+        } else {
+          console.error("[approve-supplier]", authError, createError);
+          return NextResponse.json(
+            { error: "Failed to create auth user" },
+            { status: 500 },
+          );
+        }
+      } else {
+        userId = createResult.user.id;
+      }
+    } else {
+      userId = authUser.user.id;
+    }
+
+    // 5. Create supplier record — rollback Auth user on failure
     const { data: supplier, error: supplierError } = await supabaseAdmin
       .from("suppliers")
       .insert({
@@ -83,7 +134,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 5. Create contract record — rollback supplier + Auth user on failure
+    // 6. Create contract record — rollback supplier + Auth user on failure
     const { error: contractError } = await supabaseAdmin
       .from("contracts")
       .insert({
@@ -107,7 +158,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. Mark application as converted to prevent duplicate approvals
+    // 7. Mark application as converted to prevent duplicate approvals
     await supabaseAdmin
       .from("applications")
       .update({ status: "CONVERTED" })

@@ -46,16 +46,30 @@ export async function POST(request: Request) {
     const supabase = createAdminClient();
 
     // Duplicate submission guard — prevent multiple PENDING applications for the same email
-    const { data: existing } = await supabase
+    const { data: existingApp } = await supabase
       .from("applications")
       .select("id")
       .eq("contact_email", contact_email)
       .eq("status", "PENDING")
       .limit(1);
 
-    if (existing && existing.length > 0) {
+    if (existingApp && existingApp.length > 0) {
       return NextResponse.json(
         { error: "An application with this email is already under review." },
+        { status: 409 },
+      );
+    }
+
+    // Also check if this email is already a registered supplier
+    const { data: existingSupplier } = await supabase
+      .from("suppliers")
+      .select("id")
+      .eq("contact_email", contact_email)
+      .limit(1);
+
+    if (existingSupplier && existingSupplier.length > 0) {
+      return NextResponse.json(
+        { error: "This email is already registered as a supplier." },
         { status: 409 },
       );
     }

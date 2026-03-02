@@ -68,25 +68,40 @@ async function dispatchToWorker(
     : "http://localhost:3000";
   const callbackUrl = `${baseUrl}/api/extraction/callback`;
 
-  try {
-    await fetch(`${workerBaseUrl}/extract`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getServiceRoleKey()}`,
-      },
-      body: JSON.stringify({
-        jobId,
-        source,
-        buildingId: payload.buildingId,
-        supplierId: payload.supplierId,
-        sourceUrl: payload.sourceUrl,
-        callbackUrl,
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-  } catch {
-    // Worker 不可达时不阻塞，job 保持 pending 状态
+  const MAX_RETRIES = 2;
+  const body = JSON.stringify({
+    jobId,
+    source,
+    buildingId: payload.buildingId,
+    supplierId: payload.supplierId,
+    sourceUrl: payload.sourceUrl,
+    callbackUrl,
+  });
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(`${workerBaseUrl}/extract`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getServiceRoleKey()}`,
+        },
+        body,
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (res.ok) return;
+      console.error(
+        `[extraction/trigger] Worker dispatch HTTP ${res.status} for ${source} (attempt ${attempt + 1})`,
+      );
+    } catch (err) {
+      console.error(
+        `[extraction/trigger] Worker dispatch failed for ${source} (attempt ${attempt + 1}):`,
+        err instanceof Error ? err.message : err,
+      );
+    }
+    if (attempt < MAX_RETRIES) {
+      await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));
+    }
   }
 }
 
@@ -120,12 +135,24 @@ export async function POST(request: Request) {
 
     const admin = getAdminClient();
 
-    // 创建 3 个 extraction_jobs（pending 状态）
+    // 创建 extraction_jobs（只为有有效来源 URL 的任务创建 job）
     const jobs: ExtractionJob[] = [
       { building_id: buildingId, source: "contract_pdf", status: "pending" },
-      { building_id: buildingId, source: "website_crawl", status: "pending" },
-      { building_id: buildingId, source: "google_sheets", status: "pending" },
     ];
+    if (websiteUrl) {
+      jobs.push({
+        building_id: buildingId,
+        source: "website_crawl",
+        status: "pending",
+      });
+    }
+    if (googleSheetsUrl) {
+      jobs.push({
+        building_id: buildingId,
+        source: "google_sheets",
+        status: "pending",
+      });
+    }
 
     const { data: insertedJobs, error: insertError } = await admin
       .from("extraction_jobs")
@@ -176,8 +203,14 @@ export async function POST(request: Request) {
       }),
     );
 
-    // 并行触发所有 worker，但不等待完成
-    Promise.allSettled(dispatchPromises);
+    // 并行触发所有 worker，等待完成并记录失败
+    const results = await Promise.allSettled(dispatchPromises);
+    const failures = results.filter((r) => r.status === "rejected");
+    if (failures.length > 0) {
+      console.error(
+        `[extraction/trigger] ${failures.length}/${results.length} worker dispatches failed`,
+      );
+    }
 
     return NextResponse.json({
       message: "Extraction triggered",

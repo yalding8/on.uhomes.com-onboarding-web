@@ -31,6 +31,7 @@ function checkType(
   type: FieldType,
   value: unknown,
   options?: string[],
+  maxItems?: number,
 ): string | null {
   // null 表示清空字段，始终合法
   if (value === null || value === undefined) return null;
@@ -72,6 +73,8 @@ function checkType(
         if (invalid.length > 0)
           return `Invalid options: ${(invalid as string[]).join(", ")}`;
       }
+      if (maxItems && (value as unknown[]).length > maxItems)
+        return `Too many items: maximum is ${String(maxItems)}`;
       break;
     }
 
@@ -117,10 +120,23 @@ export function validateFields(
       continue;
     }
 
-    const msg = checkType(def.type, value, def.options);
+    const msg = checkType(def.type, value, def.options, def.maxItems);
     if (msg) {
       errors.push({ key, label: def.label, message: msg });
     }
+  }
+
+  // Cross-field validation: price_min must not exceed price_max
+  if (
+    typeof fields.price_min === "number" &&
+    typeof fields.price_max === "number" &&
+    fields.price_min > fields.price_max
+  ) {
+    errors.push({
+      key: "price_min",
+      label: "Minimum Price",
+      message: "Minimum price cannot be greater than maximum price",
+    });
   }
 
   return { ok: errors.length === 0, errors };

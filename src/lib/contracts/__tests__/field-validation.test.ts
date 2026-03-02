@@ -64,6 +64,20 @@ describe("validateContractFields", () => {
     expect(result.errors.partner_company_name).toBeDefined();
   });
 
+  // --- partner_company_name 最大长度校验 ---
+  it("partner_company_name 超过100字符时返回错误", () => {
+    const fields = { ...validFields(), partner_company_name: "A".repeat(101) };
+    const result = validateContractFields(fields);
+    expect(result.valid).toBe(false);
+    expect(result.errors.partner_company_name).toContain("100 characters");
+  });
+
+  it("partner_company_name 恰好100字符时合法", () => {
+    const fields = { ...validFields(), partner_company_name: "A".repeat(100) };
+    const result = validateContractFields(fields);
+    expect(result.errors.partner_company_name).toBeUndefined();
+  });
+
   // --- commission_rate 校验 ---
   it("commission_rate 为空时返回错误", () => {
     const fields = { ...validFields(), commission_rate: "" };

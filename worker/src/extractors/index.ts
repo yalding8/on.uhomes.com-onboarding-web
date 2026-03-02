@@ -21,8 +21,9 @@ export async function extract(
     case "website_crawl":
       return extractFromWebsite(sourceUrl, signal);
     case "google_sheets":
-      // 后续迭代实现
-      return { fields: {} };
+      throw new Error(
+        "Google Sheets extraction not yet implemented. Please use contract PDF or website extraction.",
+      );
     default:
       throw new Error(`Unsupported extraction source: ${source}`);
   }
