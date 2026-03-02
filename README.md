@@ -81,6 +81,7 @@ npm run dev
 | `DOCUSIGN_AUTH_SERVER`          | DocuSign 认证服务器（沙箱：`account-d.docusign.com`） |
 | `DOCUSIGN_TEMPLATE_ID`          | DocuSign 合同 PDF 模板 ID                             |
 | `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                    |
+| `RESEND_API_KEY`                | Resend API Key，用于新申请邮件通知（可选）            |
 | `EXTRACTION_WORKER_URL`         | Extraction Worker 基础 URL（Fly.io 部署地址）         |
 
 > 每次新增环境变量后，必须同步更新本表。
@@ -223,6 +224,8 @@ USING (
 | `/api/apply`                          | POST  | 无（公开）                             | 供应商提交申请，写入 `applications` 表              |
 | `/api/admin/approve-supplier`         | POST  | Supabase Session（BD 角色）            | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录  |
 | `/api/admin/invite-supplier`          | POST  | Supabase Session（BD 角色）            | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
+| `/api/admin/assign-application-bd`    | POST  | Supabase Session（Admin）              | Admin 分配/更换申请的负责 BD                        |
+| `/api/admin/generate-referral`        | POST  | Supabase Session（BD 角色）            | BD 生成/获取推荐链接码                              |
 | `/api/admin/contracts/[contractId]`   | PUT   | Supabase Session（BD 角色）            | 保存合同动态字段（仅 DRAFT 状态）                   |
 | `/api/admin/contracts/[contractId]`   | POST  | Supabase Session（BD 角色）            | 推送审阅（DRAFT → PENDING_REVIEW）                  |
 | `/api/contracts/[contractId]/confirm` | POST  | Supabase Session（供应商）             | 供应商确认签署或请求修改                            |

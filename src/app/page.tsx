@@ -4,7 +4,13 @@ import { LogoutButton } from "@/components/admin/LogoutButton";
 import { createClient } from "@/lib/supabase/server";
 import { MapPin, ShieldCheck, Zap } from "lucide-react";
 
-export default async function Home() {
+interface HomeProps {
+  searchParams: Promise<{ ref?: string }>;
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const params = await searchParams;
+  const referralCode = params.ref ?? null;
   const supabase = await createClient();
   const {
     data: { user },
@@ -106,7 +112,10 @@ export default async function Home() {
 
         {/* Application Form */}
         <div id="apply-form" className="relative w-full">
-          <ApplicationForm prefillEmail={userEmail} />
+          <ApplicationForm
+            prefillEmail={userEmail}
+            referralCode={referralCode}
+          />
         </div>
       </div>
 

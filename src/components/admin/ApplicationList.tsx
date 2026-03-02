@@ -5,14 +5,12 @@
  *
  * 状态筛选 + 审批对话框集成。
  * 渲染逻辑委托给 ApplicationTable。
- *
- * Requirements: 3.2, 3.3, 4.1, 4.3, 4.4
  */
 
 import { useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import type { ApplicationRow } from "@/app/admin/applications/page";
+import type { ApplicationRow, BdOption } from "@/app/admin/applications/page";
 import { ApplicationTable } from "./ApplicationTable";
 import { ApproveDialog } from "./ApproveDialog";
 
@@ -20,6 +18,7 @@ export type StatusFilter = ApplicationRow["status"] | "ALL";
 
 interface ApplicationListProps {
   applications: ApplicationRow[];
+  bdUsers: BdOption[];
 }
 
 const FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
@@ -54,7 +53,10 @@ export function filterApplications(
   return applications.filter((app) => app.status === filter);
 }
 
-export function ApplicationList({ applications }: ApplicationListProps) {
+export function ApplicationList({
+  applications,
+  bdUsers,
+}: ApplicationListProps) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("ALL");
   const [selectedApp, setSelectedApp] = useState<ApplicationRow | null>(null);
@@ -140,7 +142,11 @@ export function ApplicationList({ applications }: ApplicationListProps) {
           </button>
         </div>
       ) : (
-        <ApplicationTable applications={filtered} onApprove={handleApprove} />
+        <ApplicationTable
+          applications={filtered}
+          onApprove={handleApprove}
+          bdUsers={bdUsers}
+        />
       )}
 
       {/* 审批确认对话框 */}

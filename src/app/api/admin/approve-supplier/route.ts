@@ -69,7 +69,7 @@ export async function POST(request: Request) {
         contact_email: application.contact_email,
         status: "PENDING_CONTRACT",
         role: "supplier",
-        bd_user_id: authResult.supplier.id,
+        bd_user_id: application.assigned_bd_id ?? authResult.supplier.id,
       })
       .select()
       .single();

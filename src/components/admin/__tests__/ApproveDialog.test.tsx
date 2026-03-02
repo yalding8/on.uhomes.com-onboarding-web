@@ -24,6 +24,7 @@ function makeApplication(
     website_url: "https://example.com",
     status: "PENDING",
     created_at: new Date().toISOString(),
+    assigned_bd_id: null,
     ...overrides,
   };
 }

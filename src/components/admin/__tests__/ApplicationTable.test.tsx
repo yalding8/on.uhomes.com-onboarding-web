@@ -10,6 +10,17 @@ import { ApplicationTable } from "../ApplicationTable";
  * Validates: Requirements 4.1, 4.5
  */
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    refresh: vi.fn(),
+    push: vi.fn(),
+  }),
+}));
+
+const BD_USERS = [
+  { id: "bd-1", company_name: "BD Office", contact_email: "bd@example.com" },
+];
+
 type AppStatus = "PENDING" | "CONVERTED" | "REJECTED";
 
 interface MockApp {
@@ -22,6 +33,7 @@ interface MockApp {
   website_url: string | null;
   status: AppStatus;
   created_at: string;
+  assigned_bd_id: string | null;
 }
 
 function makeApp(overrides: Partial<MockApp> = {}): MockApp {
@@ -35,6 +47,7 @@ function makeApp(overrides: Partial<MockApp> = {}): MockApp {
     website_url: null,
     status: "PENDING",
     created_at: new Date().toISOString(),
+    assigned_bd_id: null,
     ...overrides,
   };
 }
@@ -44,7 +57,13 @@ describe("ApplicationTable", () => {
     const onApprove = vi.fn();
     const app = makeApp({ status: "PENDING", company_name: "Pending Corp" });
 
-    render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
+    render(
+      <ApplicationTable
+        applications={[app]}
+        onApprove={onApprove}
+        bdUsers={BD_USERS}
+      />,
+    );
 
     const buttons = screen.getAllByRole("button", { name: "Approve" });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
@@ -58,7 +77,13 @@ describe("ApplicationTable", () => {
     const onApprove = vi.fn();
     const app = makeApp({ status: "CONVERTED" });
 
-    render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
+    render(
+      <ApplicationTable
+        applications={[app]}
+        onApprove={onApprove}
+        bdUsers={BD_USERS}
+      />,
+    );
 
     const buttons = screen.getAllByRole("button", { name: "Converted" });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
@@ -69,7 +94,13 @@ describe("ApplicationTable", () => {
     const onApprove = vi.fn();
     const app = makeApp({ status: "REJECTED" });
 
-    render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
+    render(
+      <ApplicationTable
+        applications={[app]}
+        onApprove={onApprove}
+        bdUsers={BD_USERS}
+      />,
+    );
 
     const buttons = screen.getAllByRole("button", { name: "Rejected" });
     expect(buttons.length).toBeGreaterThanOrEqual(1);
@@ -87,7 +118,13 @@ describe("ApplicationTable", () => {
       website_url: "https://acme.com",
     });
 
-    render(<ApplicationTable applications={[app]} onApprove={onApprove} />);
+    render(
+      <ApplicationTable
+        applications={[app]}
+        onApprove={onApprove}
+        bdUsers={BD_USERS}
+      />,
+    );
 
     expect(screen.getAllByText("Acme Inc").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("acme@test.com").length).toBeGreaterThanOrEqual(
@@ -98,7 +135,13 @@ describe("ApplicationTable", () => {
 
   it("空列表不渲染任何行", () => {
     const onApprove = vi.fn();
-    render(<ApplicationTable applications={[]} onApprove={onApprove} />);
+    render(
+      <ApplicationTable
+        applications={[]}
+        onApprove={onApprove}
+        bdUsers={BD_USERS}
+      />,
+    );
 
     const rows = screen.queryAllByRole("row");
     // 只有表头行（桌面端），没有数据行

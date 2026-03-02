@@ -36,9 +36,13 @@ type ApplicantFormValues = z.infer<typeof applicantSchema>;
 
 interface ApplicationFormProps {
   prefillEmail?: string | null;
+  referralCode?: string | null;
 }
 
-export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
+export function ApplicationForm({
+  prefillEmail,
+  referralCode,
+}: ApplicationFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -70,7 +74,10 @@ export function ApplicationForm({ prefillEmail }: ApplicationFormProps) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          ...(referralCode ? { referral_code: referralCode } : {}),
+        }),
       });
 
       if (!response.ok) {

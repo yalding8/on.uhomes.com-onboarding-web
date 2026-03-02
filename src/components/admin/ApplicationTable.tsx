@@ -3,8 +3,7 @@
 /**
  * 申请列表渲染组件 — Client Component
  *
- * 桌面端紧凑表格（5 列 + 可展开详情行）和移动端卡片。
- * Requirements: 3.2, 4.1
+ * 桌面端紧凑表格（6 列 + 可展开详情行）和移动端卡片。
  */
 
 import { useState, Fragment } from "react";
@@ -16,11 +15,14 @@ import {
   XCircle,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { ApplicationRow } from "@/app/admin/applications/page";
+import type { ApplicationRow, BdOption } from "@/app/admin/applications/page";
+import { ApplicationBdSelect } from "./ApplicationBdSelect";
+import { ApplicationExpandedRow } from "./ApplicationExpandedRow";
 
 interface ApplicationTableProps {
   applications: ApplicationRow[];
   onApprove: (application: ApplicationRow) => void;
+  bdUsers: BdOption[];
 }
 
 const STATUS_CONFIG: Record<
@@ -101,39 +103,16 @@ function location(app: ApplicationRow): string {
   return [app.city, app.country].filter(Boolean).join(", ") || "—";
 }
 
-function ExpandedDetails({ app }: { app: ApplicationRow }) {
-  return (
-    <tr className="bg-[var(--color-bg-secondary)]">
-      <td colSpan={7} className="px-4 py-3">
-        <div className="flex flex-wrap gap-x-8 gap-y-1 text-sm text-[var(--color-text-secondary)]">
-          <span>
-            <strong className="text-[var(--color-text-muted)]">Phone:</strong>{" "}
-            {app.contact_phone ?? "—"}
-          </span>
-          <span>
-            <strong className="text-[var(--color-text-muted)]">Website:</strong>{" "}
-            {app.website_url ? (
-              <a
-                href={app.website_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--color-primary)] hover:underline"
-              >
-                {app.website_url}
-              </a>
-            ) : (
-              "—"
-            )}
-          </span>
-        </div>
-      </td>
-    </tr>
-  );
+function getBdLabel(bdId: string | null, bdUsers: BdOption[]): string {
+  if (!bdId) return "—";
+  const bd = bdUsers.find((b) => b.id === bdId);
+  return bd ? bd.company_name : "—";
 }
 
 export function ApplicationTable({
   applications,
   onApprove,
+  bdUsers,
 }: ApplicationTableProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -152,6 +131,7 @@ export function ApplicationTable({
               <th className="text-start px-4 py-3 font-medium">Company</th>
               <th className="text-start px-4 py-3 font-medium">Email</th>
               <th className="text-start px-4 py-3 font-medium">Location</th>
+              <th className="text-start px-4 py-3 font-medium">Assigned BD</th>
               <th className="text-start px-4 py-3 font-medium">Applied</th>
               <th className="text-start px-4 py-3 font-medium">Status</th>
               <th className="text-start px-4 py-3 font-medium">Action</th>
@@ -182,6 +162,9 @@ export function ApplicationTable({
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                       {location(app)}
                     </td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">
+                      {getBdLabel(app.assigned_bd_id, bdUsers)}
+                    </td>
                     <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap text-xs">
                       {formatDateUTC(app.created_at)}
                     </td>
@@ -195,7 +178,13 @@ export function ApplicationTable({
                       <ApproveButton application={app} onApprove={onApprove} />
                     </td>
                   </tr>
-                  {isExpanded && <ExpandedDetails app={app} />}
+                  {isExpanded && (
+                    <ApplicationExpandedRow
+                      app={app}
+                      bdUsers={bdUsers}
+                      colSpan={8}
+                    />
+                  )}
                 </Fragment>
               );
             })}
@@ -233,6 +222,17 @@ export function ApplicationTable({
               <p className="text-[var(--color-text-muted)] text-xs">
                 {formatDateUTC(app.created_at)}
               </p>
+            </div>
+            {/* BD Assignment */}
+            <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+              <p className="text-xs text-[var(--color-text-muted)] mb-1.5">
+                Assigned BD
+              </p>
+              <ApplicationBdSelect
+                applicationId={app.id}
+                currentBdId={app.assigned_bd_id}
+                bdUsers={bdUsers}
+              />
             </div>
             <div className="mt-3 flex justify-end">
               <ApproveButton application={app} onApprove={onApprove} />

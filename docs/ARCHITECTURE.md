@@ -47,6 +47,8 @@ graph TB
 | POST   | `/api/admin/invite-supplier`          | Session (BD)       | BD 邀请供应商，自动分配 bd_user_id        |
 | POST   | `/api/admin/approve-supplier`         | Session (BD)       | BD 审核通过申请，创建供应商账号           |
 | POST   | `/api/admin/assign-bd`                | Session (Admin)    | Admin 分配/更换供应商的负责 BD            |
+| POST   | `/api/admin/assign-application-bd`    | Session (Admin)    | Admin 分配/更换申请的负责 BD              |
+| POST   | `/api/admin/generate-referral`        | Session (BD)       | BD 生成/获取自己的推荐链接码              |
 | PUT    | `/api/admin/contracts/[contractId]`   | Session (BD)       | 保存合同字段（仅 DRAFT 状态）             |
 | POST   | `/api/admin/contracts/[contractId]`   | Session (BD)       | 提交合同审核（DRAFT → PENDING_REVIEW）    |
 | POST   | `/api/contracts/[contractId]/confirm` | Session (BD/Admin) | 确认合同并发送签署（含 resend）           |

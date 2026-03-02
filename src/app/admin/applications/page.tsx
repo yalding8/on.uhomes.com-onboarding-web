@@ -3,8 +3,6 @@
  *
  * 使用 Supabase Admin Client（Service Role Key）查询 applications 表，
  * 绕过 RLS 限制，按 created_at 倒序排列。
- *
- * Requirements: 3.1, 3.2, 3.4
  */
 
 import { redirect } from "next/navigation";
@@ -24,6 +22,13 @@ export interface ApplicationRow {
   website_url: string | null;
   status: "PENDING" | "CONVERTED" | "REJECTED";
   created_at: string;
+  assigned_bd_id: string | null;
+}
+
+export interface BdOption {
+  id: string;
+  company_name: string;
+  contact_email: string;
 }
 
 async function getApplications(): Promise<ApplicationRow[]> {
@@ -32,7 +37,7 @@ async function getApplications(): Promise<ApplicationRow[]> {
   const { data, error } = await supabaseAdmin
     .from("applications")
     .select(
-      "id, company_name, contact_email, contact_phone, city, country, website_url, status, created_at",
+      "id, company_name, contact_email, contact_phone, city, country, website_url, status, created_at, assigned_bd_id",
     )
     .order("created_at", { ascending: false });
 
@@ -41,6 +46,22 @@ async function getApplications(): Promise<ApplicationRow[]> {
   }
 
   return (data as ApplicationRow[]) ?? [];
+}
+
+async function getBdUsers(): Promise<BdOption[]> {
+  const supabaseAdmin = createAdminClient();
+
+  const { data, error } = await supabaseAdmin
+    .from("suppliers")
+    .select("id, company_name, contact_email")
+    .eq("role", "bd")
+    .order("company_name");
+
+  if (error) {
+    throw new Error(`Failed to fetch BD users: ${error.message}`);
+  }
+
+  return (data as BdOption[]) ?? [];
 }
 
 export default async function ApplicationsPage() {
@@ -58,7 +79,10 @@ export default async function ApplicationsPage() {
     .single();
   if (!me || !checkAdmin(me.contact_email)) redirect("/admin/suppliers");
 
-  const applications = await getApplications();
+  const [applications, bdUsers] = await Promise.all([
+    getApplications(),
+    getBdUsers(),
+  ]);
 
   return (
     <div>
@@ -66,8 +90,8 @@ export default async function ApplicationsPage() {
         Applications
       </h1>
       <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-        {applications.length} supplier applications — approving assigns you as
-        the BD.
+        {applications.length} supplier applications — assign a BD before
+        approving.
       </p>
 
       {applications.length === 0 ? (
@@ -84,7 +108,7 @@ export default async function ApplicationsPage() {
           </p>
         </div>
       ) : (
-        <ApplicationList applications={applications} />
+        <ApplicationList applications={applications} bdUsers={bdUsers} />
       )}
     </div>
   );

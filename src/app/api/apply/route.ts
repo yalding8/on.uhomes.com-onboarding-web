@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/email/resend";
+import { buildNewApplicationEmail } from "@/lib/email/templates/new-application";
+import { ADMIN_EMAILS } from "@/lib/admin/permissions";
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +15,7 @@ export async function POST(request: Request) {
       city,
       country,
       website_url,
+      referral_code,
     } = payload;
 
     if (
@@ -56,6 +60,20 @@ export async function POST(request: Request) {
       );
     }
 
+    // Resolve referral code to BD supplier id
+    let assignedBdId: string | null = null;
+    if (referral_code && typeof referral_code === "string") {
+      const { data: referrer } = await supabase
+        .from("suppliers")
+        .select("id")
+        .eq("referral_code", referral_code.trim())
+        .eq("role", "bd")
+        .single();
+      if (referrer) {
+        assignedBdId = referrer.id;
+      }
+    }
+
     const { error } = await supabase.from("applications").insert([
       {
         company_name,
@@ -65,6 +83,7 @@ export async function POST(request: Request) {
         country,
         website_url: website_url || null,
         status: "PENDING",
+        assigned_bd_id: assignedBdId,
       },
     ]);
 
@@ -73,6 +92,23 @@ export async function POST(request: Request) {
         { error: "Internal database error saving application." },
         { status: 500 },
       );
+    }
+
+    // Non-blocking email notification to admin group
+    if (process.env.RESEND_API_KEY) {
+      const emailPayload = buildNewApplicationEmail({
+        company_name,
+        contact_email,
+        city,
+        country,
+      });
+      sendEmail({
+        to: [...ADMIN_EMAILS],
+        subject: emailPayload.subject,
+        html: emailPayload.html,
+      }).catch((err: unknown) => {
+        console.error("[apply] email notification failed", err);
+      });
     }
 
     return NextResponse.json(

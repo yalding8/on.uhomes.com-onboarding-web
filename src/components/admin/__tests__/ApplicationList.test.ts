@@ -22,6 +22,7 @@ interface MockApp {
   website_url: string | null;
   status: AppStatus;
   created_at: string;
+  assigned_bd_id: string | null;
 }
 
 function makeApp(overrides: Partial<MockApp> = {}): MockApp {
@@ -35,6 +36,7 @@ function makeApp(overrides: Partial<MockApp> = {}): MockApp {
     website_url: null,
     status: "PENDING",
     created_at: new Date().toISOString(),
+    assigned_bd_id: null,
     ...overrides,
   };
 }
@@ -130,6 +132,7 @@ const arbApp = fc
     website_url: fc.option(fc.constant("https://example.com"), { nil: null }),
     status: arbStatus,
     created_at: safeIsoDate,
+    assigned_bd_id: fc.option(fc.uuid(), { nil: null }),
   })
   .map((r) => r as MockApp);
 

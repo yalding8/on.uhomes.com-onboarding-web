@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ApplicationList } from "../ApplicationList";
-import type { ApplicationRow } from "@/app/admin/applications/page";
+import type { ApplicationRow, BdOption } from "@/app/admin/applications/page";
 
 /**
  * 申请审批全流程 — 组件交互测试
@@ -18,6 +18,10 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
+const BD_USERS: BdOption[] = [
+  { id: "bd-1", company_name: "BD Office", contact_email: "bd@example.com" },
+];
+
 function makeApplications(): ApplicationRow[] {
   return [
     {
@@ -30,6 +34,7 @@ function makeApplications(): ApplicationRow[] {
       website_url: "https://alpha.com",
       status: "PENDING",
       created_at: "2026-02-01T00:00:00Z",
+      assigned_bd_id: null,
     },
     {
       id: "app-2",
@@ -41,6 +46,7 @@ function makeApplications(): ApplicationRow[] {
       website_url: null,
       status: "PENDING",
       created_at: "2026-02-02T00:00:00Z",
+      assigned_bd_id: "bd-1",
     },
     {
       id: "app-3",
@@ -52,6 +58,7 @@ function makeApplications(): ApplicationRow[] {
       website_url: null,
       status: "CONVERTED",
       created_at: "2026-01-15T00:00:00Z",
+      assigned_bd_id: null,
     },
     {
       id: "app-4",
@@ -63,8 +70,18 @@ function makeApplications(): ApplicationRow[] {
       website_url: null,
       status: "REJECTED",
       created_at: "2026-01-10T00:00:00Z",
+      assigned_bd_id: null,
     },
   ];
+}
+
+function renderList(apps?: ApplicationRow[]) {
+  return render(
+    <ApplicationList
+      applications={apps ?? makeApplications()}
+      bdUsers={BD_USERS}
+    />,
+  );
 }
 
 describe("Application Approval Workflow", () => {
@@ -75,7 +92,7 @@ describe("Application Approval Workflow", () => {
 
   // AA-01: 页面加载
   it("AA-01: renders filter tabs and application list", () => {
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
     expect(screen.getByRole("tab", { name: /all/i })).toBeVisible();
     expect(screen.getByRole("tab", { name: /pending/i })).toBeVisible();
     expect(screen.getByRole("tab", { name: /converted/i })).toBeVisible();
@@ -89,7 +106,7 @@ describe("Application Approval Workflow", () => {
 
   // AA-02, AA-06: ALL 标签 — 计数正确
   it("AA-02/06: All tab shows correct count", () => {
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
     const allTab = screen.getByRole("tab", { name: /all/i });
     expect(allTab).toHaveTextContent("4");
   });
@@ -97,7 +114,7 @@ describe("Application Approval Workflow", () => {
   // AA-03: PENDING 筛选
   it("AA-03: Pending filter shows only PENDING applications", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     await user.click(screen.getByRole("tab", { name: /pending/i }));
 
@@ -110,7 +127,7 @@ describe("Application Approval Workflow", () => {
   // AA-04: CONVERTED 筛选
   it("AA-04: Converted filter shows only CONVERTED applications", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     await user.click(screen.getByRole("tab", { name: /converted/i }));
 
@@ -121,7 +138,7 @@ describe("Application Approval Workflow", () => {
   // AA-05: REJECTED 筛选
   it("AA-05: Rejected filter shows only REJECTED applications", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     await user.click(screen.getByRole("tab", { name: /rejected/i }));
 
@@ -131,7 +148,7 @@ describe("Application Approval Workflow", () => {
 
   // AA-06: 计数
   it("AA-06: filter tab counts match", () => {
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
     const pendingTab = screen.getByRole("tab", { name: /pending/i });
     const convertedTab = screen.getByRole("tab", { name: /converted/i });
     const rejectedTab = screen.getByRole("tab", { name: /rejected/i });
@@ -143,7 +160,7 @@ describe("Application Approval Workflow", () => {
   // AA-07: 审批对话框打开
   it("AA-07: clicking Approve opens dialog", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     const approveButtons = screen.getAllByRole("button", { name: "Approve" });
     await user.click(approveButtons[0]);
@@ -154,7 +171,7 @@ describe("Application Approval Workflow", () => {
   // AA-08: 对话框内容
   it("AA-08: dialog shows application details", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     const approveButtons = screen.getAllByRole("button", { name: "Approve" });
     await user.click(approveButtons[0]);
@@ -170,7 +187,7 @@ describe("Application Approval Workflow", () => {
   // AA-09: 选择合同类型
   it("AA-09: can change contract type in dialog", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     const approveButtons = screen.getAllByRole("button", { name: "Approve" });
     await user.click(approveButtons[0]);
@@ -185,7 +202,7 @@ describe("Application Approval Workflow", () => {
   // AA-10: 取消审批
   it("AA-10: Cancel button closes dialog", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     const approveButtons = screen.getAllByRole("button", { name: "Approve" });
     await user.click(approveButtons[0]);
@@ -204,7 +221,7 @@ describe("Application Approval Workflow", () => {
     });
     global.fetch = mockFetch;
 
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     const approveButtons = screen.getAllByRole("button", { name: "Approve" });
     await user.click(approveButtons[0]);
@@ -224,7 +241,7 @@ describe("Application Approval Workflow", () => {
 
   // AA-14: 已转化行 — Approve 按钮 disabled
   it("AA-14: CONVERTED row has disabled status button", () => {
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
     // Desktop table + mobile cards both render the button
     const convertedBtns = screen.getAllByRole("button", { name: "Converted" });
     expect(convertedBtns.length).toBeGreaterThanOrEqual(1);
@@ -237,11 +254,8 @@ describe("Application Approval Workflow", () => {
   it("AA-15: empty filter shows empty state", async () => {
     const user = userEvent.setup();
     // Only PENDING applications — CONVERTED/REJECTED filters will be empty
-    render(
-      <ApplicationList
-        applications={[makeApplications()[0], makeApplications()[1]]}
-      />,
-    );
+    const apps = makeApplications();
+    renderList([apps[0], apps[1]]);
 
     await user.click(screen.getByRole("tab", { name: /converted/i }));
     expect(
@@ -252,7 +266,7 @@ describe("Application Approval Workflow", () => {
   // Active tab highlight
   it("active tab has aria-selected=true", async () => {
     const user = userEvent.setup();
-    render(<ApplicationList applications={makeApplications()} />);
+    renderList();
 
     const pendingTab = screen.getByRole("tab", { name: /pending/i });
     await user.click(pendingTab);
@@ -261,5 +275,12 @@ describe("Application Approval Workflow", () => {
 
     const allTab = screen.getByRole("tab", { name: /all/i });
     expect(allTab).toHaveAttribute("aria-selected", "false");
+  });
+
+  // Assigned BD column shows BD name
+  it("shows assigned BD name in table", () => {
+    renderList();
+    // Beta LLC has bd-1 assigned → should show "BD Office"
+    expect(screen.getAllByText("BD Office").length).toBeGreaterThanOrEqual(1);
   });
 });
