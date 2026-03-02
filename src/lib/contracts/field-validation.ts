@@ -3,6 +3,7 @@
  *
  * Validation rules:
  * - All fields are required (non-empty)
+ * - partner_company_name: max 100 characters (DocuSign template limit)
  * - commission_rate: valid number, range 0–100
  * - contract_start_date: valid date format
  * - contract_end_date: valid date format, must be after start_date
@@ -48,7 +49,14 @@ export function validateContractFields(
     }
   }
 
-  // 2. commission_rate — non-empty + valid number + range 0–100
+  // 2. partner_company_name max length for DocuSign template compatibility
+  const companyName = fields.partner_company_name;
+  if (companyName && companyName.length > 100) {
+    errors.partner_company_name =
+      "partner_company_name must be 100 characters or fewer";
+  }
+
+  // 3. commission_rate — non-empty + valid number + range 0–100
   const rate = fields.commission_rate;
   if (rate === undefined || rate === null || rate.trim() === "") {
     errors.commission_rate = "commission_rate is required";
@@ -61,7 +69,7 @@ export function validateContractFields(
     }
   }
 
-  // 3. contract_start_date — non-empty + valid date
+  // 4. contract_start_date — non-empty + valid date
   const startDate = fields.contract_start_date;
   if (
     startDate === undefined ||
@@ -73,7 +81,7 @@ export function validateContractFields(
     errors.contract_start_date = "contract_start_date is not a valid date";
   }
 
-  // 4. contract_end_date — non-empty + valid date + after start_date
+  // 5. contract_end_date — non-empty + valid date + after start_date
   const endDate = fields.contract_end_date;
   if (endDate === undefined || endDate === null || endDate.trim() === "") {
     errors.contract_end_date = "contract_end_date is required";

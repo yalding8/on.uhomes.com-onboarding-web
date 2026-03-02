@@ -72,6 +72,19 @@ describe("validateFields", () => {
     expect(result.errors[0].message).toMatch(/Must be one of/);
   });
 
+  // ── rent_period select ──
+  it("accepts valid rent_period option", () => {
+    expect(validateFields({ rent_period: "Weekly" }).ok).toBe(true);
+    expect(validateFields({ rent_period: "Monthly" }).ok).toBe(true);
+    expect(validateFields({ rent_period: "Yearly" }).ok).toBe(true);
+  });
+
+  it("rejects invalid rent_period option", () => {
+    const result = validateFields({ rent_period: "Daily" });
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].message).toMatch(/Must be one of/);
+  });
+
   // ── multi_select ──
   it("accepts valid options array for multi_select", () => {
     expect(

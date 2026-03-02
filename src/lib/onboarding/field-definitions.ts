@@ -77,6 +77,7 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   { key: "price_min", label: "Minimum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true },
   { key: "price_max", label: "Maximum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true },
   { key: "currency", label: "Currency", category: "fees", type: "select", weight: 6, extractTier: "A", required: true, options: ["USD", "CAD", "GBP", "EUR", "AUD", "JPY", "CNY"] },
+  { key: "rent_period", label: "Rent Period", category: "fees", type: "select", weight: 7, extractTier: "A", required: true, options: ["Weekly", "Monthly", "Yearly"], description: "The billing period for the listed price range (e.g. UK properties often use weekly pricing)" },
   { key: "application_fee", label: "Application Fee", category: "fees", type: "number", weight: 3, extractTier: "C", required: false },
   { key: "admin_fee", label: "Administrative Fee", category: "fees", type: "number", weight: 3, extractTier: "C", required: false },
   { key: "deposit_intl", label: "Deposit for International Applicant", category: "fees", type: "text", weight: 4, extractTier: "C", required: false },
