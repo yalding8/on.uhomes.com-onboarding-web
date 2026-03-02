@@ -67,24 +67,48 @@ function coerceValue(key: string, value: unknown): unknown {
   }
 }
 
-/** 根据字段的 extractTier 和值完整性分配置信度 */
+/** 根据字段的 extractTier、类型匹配度和值完整性分配置信度 */
 function assignConfidence(key: string, value: unknown): Confidence {
   const field = getFieldByKey(key);
   if (!field) return "low";
 
-  // Tier A 字段通常置信度更高
+  // Check type match — mismatched types lower confidence
+  const typeMismatch = checkTypeMismatch(field.type, value);
+
   if (field.extractTier === "A") {
     if (value === null || value === undefined) return "low";
+    if (typeMismatch) return "low";
     if (typeof value === "string" && value.length < 3) return "medium";
     return "high";
   }
 
   if (field.extractTier === "B") {
-    return "medium";
+    return typeMismatch ? "low" : "medium";
   }
 
-  // Tier C 字段自动提取置信度较低
   return "low";
+}
+
+/** Quick type match check — returns true if value doesn't match expected type */
+function checkTypeMismatch(fieldType: string, value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+  switch (fieldType) {
+    case "number":
+      return typeof value !== "number";
+    case "boolean":
+      return typeof value !== "boolean";
+    case "multi_select":
+    case "image_urls":
+      return !Array.isArray(value);
+    case "email":
+      return (
+        typeof value !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+      );
+    case "url":
+      return typeof value !== "string" || !/^https?:\/\/.+/.test(value);
+    default:
+      return false;
+  }
 }
 
 /**
@@ -100,7 +124,10 @@ export function mapLlmOutput(raw: string): ExtractedFields {
   try {
     parsed = JSON.parse(cleaned) as Record<string, unknown>;
   } catch {
-    console.error("[field-mapper] Failed to parse LLM JSON output");
+    console.error(
+      "[field-mapper] Failed to parse LLM JSON output. Raw (first 500 chars):",
+      cleaned.slice(0, 500),
+    );
     return {};
   }
 

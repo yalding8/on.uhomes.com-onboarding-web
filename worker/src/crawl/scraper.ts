@@ -33,13 +33,26 @@ export async function scrapePage(
     }
 
     // 导航（等待 DOM 加载完成，不用 networkidle 因为很多 SPA 永远不会 idle）
-    await page.goto(url, {
+    const response = await page.goto(url, {
       waitUntil: "domcontentloaded",
       timeout: 30_000,
     });
 
-    // 等待动态内容渲染
-    await page.waitForTimeout(5000);
+    // Validate response
+    if (response) {
+      const httpStatus = response.status();
+      if (httpStatus >= 400) {
+        throw new Error(`Page returned HTTP ${httpStatus}: ${url}`);
+      }
+    }
+
+    // 等待动态内容渲染（adaptive: check if content is present sooner)
+    try {
+      await page.waitForSelector("body *", { timeout: 5000 });
+    } catch {
+      // Fallback: fixed wait if no selectors match
+      await page.waitForTimeout(3000);
+    }
 
     // 提取页面内容
     const content = await page.evaluate(() => {

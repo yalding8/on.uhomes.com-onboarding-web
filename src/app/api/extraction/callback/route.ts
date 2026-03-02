@@ -21,6 +21,7 @@ import {
   verifyServiceKey,
   areAllJobsDone,
   checkAndFinalizeExtraction,
+  mergeOnboardingDataWithRetry,
 } from "@/lib/extraction/job-helpers";
 
 interface CallbackPayload {
@@ -54,41 +55,50 @@ export async function POST(request: Request) {
 
     // ── 1. 更新 extraction_job 状态 ──
     const jobStatus = status === "failed" ? "failed" : "completed";
-    const jobFilter = jobId
-      ? admin
-          .from("extraction_jobs")
-          .update({
-            status: jobStatus,
-            extracted_data: extractedFields ?? {},
-            error_message: errorMessage ?? null,
-            completed_at: now,
-          })
-          .eq("id", jobId)
-      : admin
-          .from("extraction_jobs")
-          .update({
-            status: jobStatus,
-            extracted_data: extractedFields ?? {},
-            error_message: errorMessage ?? null,
-            completed_at: now,
-          })
-          .eq("building_id", buildingId)
-          .eq("source", source)
-          .eq("status", "running");
+    const jobUpdate = {
+      status: jobStatus,
+      extracted_data: extractedFields ?? {},
+      error_message: errorMessage ?? null,
+      completed_at: now,
+    } as Record<string, unknown>;
 
-    const { error: jobUpdateError } = await jobFilter;
-    if (jobUpdateError && !jobId) {
-      await admin
+    if (jobId) {
+      // Verify job belongs to this building
+      const { data: jobCheck } = (await admin
         .from("extraction_jobs")
-        .update({
-          status: jobStatus,
-          extracted_data: extractedFields ?? {},
-          error_message: errorMessage ?? null,
-          completed_at: now,
-        })
+        .select("building_id")
+        .eq("id", jobId)
+        .single()) as { data: { building_id: string } | null };
+
+      if (jobCheck && jobCheck.building_id === buildingId) {
+        await admin
+          .from("extraction_jobs")
+          .update(jobUpdate as never)
+          .eq("id", jobId);
+      } else {
+        return NextResponse.json(
+          { error: "Job does not belong to this building" },
+          { status: 400 },
+        );
+      }
+    } else {
+      // Fallback: match by building + source, try running first, then pending
+      const { data: updated } = (await admin
+        .from("extraction_jobs")
+        .update(jobUpdate as never)
         .eq("building_id", buildingId)
         .eq("source", source)
-        .eq("status", "pending");
+        .eq("status", "running")
+        .select("id")) as { data: Array<{ id: string }> | null };
+
+      if (!updated || updated.length === 0) {
+        await admin
+          .from("extraction_jobs")
+          .update(jobUpdate as never)
+          .eq("building_id", buildingId)
+          .eq("source", source)
+          .eq("status", "pending");
+      }
     }
 
     // ── 2. 如果提取失败，只更新 job 状态，不合并数据 ──
@@ -102,35 +112,33 @@ export async function POST(request: Request) {
     }
 
     // ── 3. 融合提取数据到 building_onboarding_data ──
-    const { data: onboardingData } = await admin
+    const { data: onboardingData } = (await admin
       .from("building_onboarding_data")
       .select("field_values, version")
       .eq("building_id", buildingId)
-      .single();
+      .single()) as {
+      data: {
+        field_values: Record<string, FieldValue>;
+        version: number;
+      } | null;
+    };
 
     const existingValues: Record<string, FieldValue> =
       onboardingData?.field_values ?? {};
-    const currentVersion: number = onboardingData?.version ?? 1;
 
     const incomingValues = mergeExtractionResults([
       { source, fields: extractedFields },
     ]);
     const mergedValues = mergeWithProtection(existingValues, incomingValues);
 
-    // ── 4. 写入合并后的数据 ──
-    const newVersion = currentVersion + 1;
-    if (onboardingData) {
-      await admin
-        .from("building_onboarding_data")
-        .update({ field_values: mergedValues, version: newVersion })
-        .eq("building_id", buildingId);
-    } else {
-      await admin.from("building_onboarding_data").insert({
-        building_id: buildingId,
-        field_values: mergedValues,
-        version: 1,
-      });
-    }
+    // ── 4. 写入合并后的数据（乐观锁 + 重试） ──
+    await mergeOnboardingDataWithRetry(
+      admin,
+      buildingId,
+      incomingValues,
+      onboardingData,
+      mergedValues,
+    );
 
     // ── 5. 写入审计日志 ──
     const auditLogs = Object.entries(incomingValues)
@@ -145,18 +153,18 @@ export async function POST(request: Request) {
       }));
 
     if (auditLogs.length > 0) {
-      await admin.from("field_audit_logs").insert(auditLogs);
+      await admin.from("field_audit_logs").insert(auditLogs as never);
     }
 
     // ── 6. 重新计算评分 + 状态转换 ──
     const oldScore = calculateScore(FIELD_SCHEMA, existingValues);
     const newScore = calculateScore(FIELD_SCHEMA, mergedValues);
 
-    const { data: building } = await admin
+    const { data: building } = (await admin
       .from("buildings")
       .select("onboarding_status")
       .eq("id", buildingId)
-      .single();
+      .single()) as { data: { onboarding_status: string } | null };
 
     const currentStatus = (building?.onboarding_status ??
       "extracting") as BuildingStatus;
@@ -169,10 +177,20 @@ export async function POST(request: Request) {
 
     const newStatus = resolveStatus(baseStatus, oldScore.score, newScore.score);
 
-    await admin
+    const { error: statusUpdateError } = await admin
       .from("buildings")
-      .update({ score: newScore.score, onboarding_status: newStatus })
+      .update({
+        score: newScore.score,
+        onboarding_status: newStatus,
+      } as never)
       .eq("id", buildingId);
+
+    if (statusUpdateError) {
+      console.error(
+        "[extraction/callback] Failed to update building status",
+        statusUpdateError,
+      );
+    }
 
     return NextResponse.json({
       message: "Extraction callback processed",

@@ -2,7 +2,7 @@
  * Playwright 浏览器单例管理
  *
  * 全局共享一个 Chromium 浏览器实例，使用信号量限制最多 3 个并发页面。
- * 支持优雅关闭。
+ * 增强: 断开检测 + 自动重启 + 优雅关闭
  */
 
 import type { Browser } from "playwright";
@@ -29,8 +29,17 @@ async function launchBrowser(): Promise<Browser> {
 }
 
 export async function getBrowser(): Promise<Browser> {
-  if (browserInstance?.isConnected()) {
-    return browserInstance;
+  // Check existing instance
+  if (browserInstance) {
+    try {
+      if (browserInstance.isConnected()) {
+        return browserInstance;
+      }
+    } catch {
+      // isConnected() can throw if process crashed
+    }
+    // Stale instance — clean up
+    browserInstance = null;
   }
 
   // 防止并发启动
@@ -38,16 +47,24 @@ export async function getBrowser(): Promise<Browser> {
     return browserLaunchPromise;
   }
 
-  browserLaunchPromise = launchBrowser().then((browser) => {
-    browserInstance = browser;
-    browserLaunchPromise = null;
+  browserLaunchPromise = launchBrowser()
+    .then((browser) => {
+      browserInstance = browser;
+      browserLaunchPromise = null;
 
-    browser.on("disconnected", () => {
-      browserInstance = null;
+      browser.on("disconnected", () => {
+        console.error(
+          "[browser] Browser disconnected, will restart on next use",
+        );
+        browserInstance = null;
+      });
+
+      return browser;
+    })
+    .catch((err) => {
+      browserLaunchPromise = null;
+      throw err;
     });
-
-    return browser;
-  });
 
   return browserLaunchPromise;
 }
@@ -70,7 +87,7 @@ export async function acquirePageSlot(): Promise<void> {
 
 /** 释放页面信号量 */
 export function releasePageSlot(): void {
-  activePagesCount--;
+  activePagesCount = Math.max(0, activePagesCount - 1);
   const next = waitQueue.shift();
   if (next) next();
 }
@@ -78,7 +95,7 @@ export function releasePageSlot(): void {
 /** 关闭浏览器（优雅关闭时调用） */
 export async function shutdownBrowser(): Promise<void> {
   if (browserInstance) {
-    await browserInstance.close();
+    await browserInstance.close().catch(() => {});
     browserInstance = null;
   }
 }

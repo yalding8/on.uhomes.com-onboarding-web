@@ -2,11 +2,12 @@
  * 网页爬取提取器
  *
  * 流程: Playwright 爬取 → 提取文本/图片/JSON-LD → 截断 → LLM → 字段映射
+ * 增强: LLM provider fallback chain
  */
 
 import { scrapePage } from "../crawl/scraper.js";
 import { chatCompletion } from "../llm/client.js";
-import { getProvider } from "../llm/config.js";
+import { getAllProviders } from "../llm/config.js";
 import { mapLlmOutput } from "../llm/field-mapper.js";
 import {
   WEBSITE_EXTRACTION_SYSTEM_PROMPT,
@@ -36,26 +37,37 @@ export async function extractFromWebsite(
       ? bodyText.slice(0, MAX_TEXT_LENGTH) + "\n\n[... text truncated ...]"
       : bodyText;
 
-  // 3. LLM 提取
-  const provider = getProvider();
+  // 3. LLM 提取（带 provider fallback）
+  const providers = getAllProviders();
   const userPrompt = buildWebsiteUserPrompt(
     title,
     truncatedText,
     imageUrls,
     jsonLd,
   );
+  let lastError: Error | null = null;
 
-  const raw = await chatCompletion(
-    provider,
-    [
-      { role: "system", content: WEBSITE_EXTRACTION_SYSTEM_PROMPT },
-      { role: "user", content: userPrompt },
-    ],
-    { jsonMode: true, maxTokens: 4096, temperature: 0.1 },
-  );
+  for (const provider of providers) {
+    try {
+      const raw = await chatCompletion(
+        provider,
+        [
+          { role: "system", content: WEBSITE_EXTRACTION_SYSTEM_PROMPT },
+          { role: "user", content: userPrompt },
+        ],
+        { jsonMode: true, maxTokens: 4096, temperature: 0.1, signal },
+      );
+      const fields = mapLlmOutput(raw);
+      return { fields };
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (lastError.name === "AbortError") throw lastError;
+      console.error(
+        `[website-crawl] Provider ${provider.name} failed, trying next:`,
+        lastError.message,
+      );
+    }
+  }
 
-  // 4. 字段映射
-  const fields = mapLlmOutput(raw);
-
-  return { fields };
+  throw lastError ?? new Error("All LLM providers failed");
 }
