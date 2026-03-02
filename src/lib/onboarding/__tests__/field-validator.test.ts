@@ -154,4 +154,20 @@ describe("validateFields", () => {
     expect(result.ok).toBe(false);
     expect(result.errors).toHaveLength(3);
   });
+
+  // ── cross-field: price_min vs price_max ──
+  it("rejects price_min greater than price_max", () => {
+    const result = validateFields({ price_min: 2000, price_max: 800 });
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].key).toBe("price_min");
+    expect(result.errors[0].message).toMatch(/cannot be greater/i);
+  });
+
+  it("accepts price_min equal to price_max", () => {
+    expect(validateFields({ price_min: 500, price_max: 500 }).ok).toBe(true);
+  });
+
+  it("accepts price_min less than price_max", () => {
+    expect(validateFields({ price_min: 500, price_max: 2000 }).ok).toBe(true);
+  });
 });

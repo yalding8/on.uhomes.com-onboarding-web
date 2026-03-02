@@ -26,6 +26,7 @@ interface ContractData {
   supplier_id: string;
   status: ContractStatus;
   contract_fields: Partial<ContractFields> | null;
+  updated_at: string;
 }
 
 type FetchContractResult =
@@ -55,7 +56,7 @@ async function fetchContract(
 ): Promise<FetchContractResult> {
   const { data, error } = await supabase
     .from("contracts")
-    .select("id, supplier_id, status, contract_fields")
+    .select("id, supplier_id, status, contract_fields, updated_at")
     .eq("id", contractId)
     .single();
 
@@ -108,7 +109,10 @@ export async function PUT(request: Request, context: RouteContext) {
     }
 
     // 4. Parse and save field data
-    const body = (await request.json()) as { fields: Partial<ContractFields> };
+    const body = (await request.json()) as {
+      fields: Partial<ContractFields>;
+      updated_at?: string;
+    };
     const fields = body.fields;
 
     if (!fields || typeof fields !== "object") {
@@ -118,11 +122,26 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
-    // 5. Update contract_fields
-    const { error: updateError } = await supabaseAdmin
+    // 5. Optimistic concurrency check via updated_at
+    // If client provides updated_at, ensure it matches the current value
+    if (body.updated_at && body.updated_at !== contract.updated_at) {
+      return NextResponse.json(
+        {
+          error:
+            "Contract was modified by another user. Please refresh and try again.",
+          current_updated_at: contract.updated_at,
+        },
+        { status: 409 },
+      );
+    }
+
+    // 6. Update contract_fields
+    const { data: updated, error: updateError } = await supabaseAdmin
       .from("contracts")
       .update({ contract_fields: fields })
-      .eq("id", contractId);
+      .eq("id", contractId)
+      .select("updated_at")
+      .single();
 
     if (updateError) {
       return NextResponse.json(
@@ -137,6 +156,7 @@ export async function PUT(request: Request, context: RouteContext) {
     return NextResponse.json({
       success: true,
       message: "Contract fields saved",
+      updated_at: updated?.updated_at,
     });
   } catch (error) {
     const message =

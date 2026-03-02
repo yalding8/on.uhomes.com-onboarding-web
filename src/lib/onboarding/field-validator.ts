@@ -123,5 +123,18 @@ export function validateFields(
     }
   }
 
+  // Cross-field validation: price_min must not exceed price_max
+  if (
+    typeof fields.price_min === "number" &&
+    typeof fields.price_max === "number" &&
+    fields.price_min > fields.price_max
+  ) {
+    errors.push({
+      key: "price_min",
+      label: "Minimum Price",
+      message: "Minimum price cannot be greater than maximum price",
+    });
+  }
+
   return { ok: errors.length === 0, errors };
 }

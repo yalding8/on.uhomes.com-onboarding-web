@@ -89,17 +89,49 @@ export async function POST(request: Request) {
     }
 
     // 3. Create Auth user — must happen first as supplier requires user_id
+    // Try invite; reuse existing auth user if the email is already registered
+    let userId: string;
     const { data: authUser, error: authError } =
       await supabaseAdmin.auth.admin.inviteUserByEmail(email);
 
     if (authError || !authUser.user) {
-      console.error("[invite-supplier]", authError);
-      return NextResponse.json(
-        { error: "Failed to create auth user" },
-        { status: 500 },
-      );
+      const { data: createResult, error: createError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email,
+          email_confirm: true,
+        });
+      if (createError || !createResult.user) {
+        const errMsg =
+          (authError?.message ?? "") + (createError?.message ?? "");
+        if (errMsg.toLowerCase().includes("already")) {
+          const { data: listed } = await supabaseAdmin.auth.admin.listUsers({
+            perPage: 1000,
+          });
+          const found = listed?.users?.find(
+            (u: { email?: string }) => u.email === email,
+          );
+          if (found) {
+            userId = found.id;
+          } else {
+            console.error("[invite-supplier]", authError, createError);
+            return NextResponse.json(
+              { error: "Failed to create auth user" },
+              { status: 500 },
+            );
+          }
+        } else {
+          console.error("[invite-supplier]", authError, createError);
+          return NextResponse.json(
+            { error: "Failed to create auth user" },
+            { status: 500 },
+          );
+        }
+      } else {
+        userId = createResult.user.id;
+      }
+    } else {
+      userId = authUser.user.id;
     }
-    const userId = authUser.user.id;
 
     // 4. Create supplier record — rollback Auth user on failure
     const { data: supplier, error: supplierError } = await supabaseAdmin

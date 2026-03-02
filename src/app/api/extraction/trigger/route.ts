@@ -120,12 +120,24 @@ export async function POST(request: Request) {
 
     const admin = getAdminClient();
 
-    // 创建 3 个 extraction_jobs（pending 状态）
+    // 创建 extraction_jobs（只为有有效来源 URL 的任务创建 job）
     const jobs: ExtractionJob[] = [
       { building_id: buildingId, source: "contract_pdf", status: "pending" },
-      { building_id: buildingId, source: "website_crawl", status: "pending" },
-      { building_id: buildingId, source: "google_sheets", status: "pending" },
     ];
+    if (websiteUrl) {
+      jobs.push({
+        building_id: buildingId,
+        source: "website_crawl",
+        status: "pending",
+      });
+    }
+    if (googleSheetsUrl) {
+      jobs.push({
+        building_id: buildingId,
+        source: "google_sheets",
+        status: "pending",
+      });
+    }
 
     const { data: insertedJobs, error: insertError } = await admin
       .from("extraction_jobs")

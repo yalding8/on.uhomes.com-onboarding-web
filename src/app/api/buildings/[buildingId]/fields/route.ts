@@ -33,6 +33,20 @@ export async function GET(_request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Defense-in-depth: verify building exists and RLS grants access
+    const { data: buildingCheck, error: buildingCheckErr } = await supabase
+      .from("buildings")
+      .select("id")
+      .eq("id", buildingId)
+      .single();
+
+    if (buildingCheckErr || !buildingCheck) {
+      return NextResponse.json(
+        { error: "Building not found or access denied" },
+        { status: 404 },
+      );
+    }
+
     // RLS 自动过滤：supplier 只能看自己的，BD/data_team 看全部
     const { data: onboardingData, error } = await supabase
       .from("building_onboarding_data")
@@ -81,6 +95,20 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Defense-in-depth: verify building exists and RLS grants access
+    const { data: buildingOwner, error: ownerErr } = await supabase
+      .from("buildings")
+      .select("id")
+      .eq("id", buildingId)
+      .single();
+
+    if (ownerErr || !buildingOwner) {
+      return NextResponse.json(
+        { error: "Building not found or access denied" },
+        { status: 404 },
+      );
     }
 
     const body = await request.json();

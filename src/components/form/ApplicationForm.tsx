@@ -15,7 +15,7 @@ const applicantSchema = z.object({
   contact_phone: z
     .string()
     .regex(
-      /^\+\d{1,4}\s\d{4,14}$/,
+      /^\+\d{1,4}[\s\-]?\d[\d\s\-]{3,15}$/,
       "Please select a country/region code and enter your phone number",
     ),
   city: z.string().min(2, "City is required"),
