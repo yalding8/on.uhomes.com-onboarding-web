@@ -11,6 +11,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { Eye, Pencil } from "lucide-react";
 import type { ContractFields, ContractStatus } from "@/lib/contracts/types";
+import { CONTRACT_FIELD_KEYS } from "@/lib/contracts/types";
 import { ContractDocumentPreview } from "@/components/contracts/ContractDocumentPreview";
 import { ContractFieldGrid } from "./ContractFieldGrid";
 import { ContractPdfUpload } from "./ContractPdfUpload";
@@ -40,7 +41,18 @@ export function ContractEditForm({
   uploadedDocumentUrl,
 }: ContractEditFormProps) {
   const prefilled = useMemo<Partial<ContractFields>>(() => {
-    const result = { ...initialFields };
+    // Initialize all known field keys to "" so that missing keys in a
+    // sparse JSONB payload (e.g. supplier invited with null city) are
+    // never undefined — prevents uncontrolled-input warnings and ensures
+    // every field is included when saving back to the API.
+    const result: Partial<ContractFields> = {};
+    for (const key of CONTRACT_FIELD_KEYS) {
+      result[key] = "";
+    }
+    // Overlay saved values, coercing null from JSONB to empty string
+    for (const [k, v] of Object.entries(initialFields)) {
+      result[k as keyof ContractFields] = v ?? "";
+    }
     if (!result.partner_company_name?.trim()) {
       result.partner_company_name = supplierInfo.company_name;
     }

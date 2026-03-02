@@ -99,6 +99,38 @@ describe("validateFields", () => {
     expect(result.errors[0].message).toMatch(/Invalid options/);
   });
 
+  // ── multi_select maxItems ──
+  it("accepts multi_select within maxItems limit", () => {
+    expect(
+      validateFields({
+        key_amenities: [
+          "Gym",
+          "Pool",
+          "Laundry",
+          "Parking",
+          "WiFi",
+          "Security",
+        ],
+      }).ok,
+    ).toBe(true);
+  });
+
+  it("rejects multi_select exceeding maxItems limit", () => {
+    const result = validateFields({
+      key_amenities: [
+        "Gym",
+        "Pool",
+        "Laundry",
+        "Parking",
+        "WiFi",
+        "Security",
+        "Rooftop",
+      ],
+    });
+    expect(result.ok).toBe(false);
+    expect(result.errors[0].message).toMatch(/Too many items: maximum is 6/);
+  });
+
   // ── email ──
   it("accepts valid email", () => {
     expect(

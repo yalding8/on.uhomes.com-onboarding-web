@@ -33,6 +33,7 @@ interface ContractRow {
   id: string;
   supplier_id: string;
   status: string;
+  document_url: string | null;
   provider_metadata: Record<string, unknown> | null;
 }
 
@@ -116,7 +117,7 @@ export async function POST(request: Request) {
   // 6. 通过 envelope_id 查找合同
   const { data: contract, error: findError } = await adminClient
     .from("contracts")
-    .select("id, supplier_id, status, provider_metadata")
+    .select("id, supplier_id, status, document_url, provider_metadata")
     .eq("signature_request_id", envelopeId)
     .single();
 
@@ -138,9 +139,35 @@ export async function POST(request: Request) {
       .single();
 
     if (supplier?.status === "SIGNED") {
-      // 两表均已更新，完全幂等
+      // 两表状态均已更新 — 检查 PDF 是否也已成功保存
+      if (row.document_url) {
+        // 完全幂等：状态 + PDF 均已就绪
+        return NextResponse.json(
+          { message: "Already processed" },
+          { status: 200 },
+        );
+      }
+
+      // 状态已更新但 PDF 缺失（上次在步骤 3-5 失败），补偿下载
+      try {
+        await downloadAndStorePdf(envelopeId, row.id, row.supplier_id);
+      } catch (err: unknown) {
+        const detail = err instanceof Error ? err.message : "Unknown PDF error";
+        const metadata = row.provider_metadata ?? {};
+        await adminClient
+          .from("contracts")
+          .update({
+            provider_metadata: {
+              ...metadata,
+              pdf_download_error: detail,
+              pdf_download_error_at: new Date().toISOString(),
+            },
+          })
+          .eq("id", row.id);
+      }
+
       return NextResponse.json(
-        { message: "Already processed" },
+        { success: true, processed_contract_id: row.id },
         { status: 200 },
       );
     }

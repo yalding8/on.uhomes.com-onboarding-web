@@ -96,6 +96,19 @@ describe("ContractEditForm", () => {
     expect(screen.getByLabelText("Partner City")).toHaveValue("Beijing");
   });
 
+  // B06: null supplier city — fields default to empty string, not null
+  it("B06: null supplier city defaults partner_city to empty string", () => {
+    renderForm({
+      initialFields: {},
+      supplierInfo: { company_name: "Acme Corp", city: null },
+    });
+    expect(screen.getByLabelText("Partner Company Name")).toHaveValue(
+      "Acme Corp",
+    );
+    // partner_city should be "" not null/undefined
+    expect(screen.getByLabelText("Partner City")).toHaveValue("");
+  });
+
   // CE-04: 编辑全部字段
   it("CE-04: all 9 fields are editable in DRAFT status", async () => {
     const user = userEvent.setup();

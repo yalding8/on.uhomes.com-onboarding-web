@@ -10,7 +10,7 @@ import { FieldGroup } from "./FieldGroup";
 import { ScoreBar } from "./ScoreBar";
 import { GapReportPanel } from "./GapReportPanel";
 import { useToast, ToastContainer } from "@/components/ui/Toast";
-import { Send } from "lucide-react";
+import { Send, RefreshCw, AlertTriangle } from "lucide-react";
 import {
   ALL_CATEGORIES,
   getFieldsByCategory,
@@ -47,6 +47,7 @@ export function OnboardingForm({
   const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [conflictDetected, setConflictDetected] = useState(false);
   const { toasts, toast, dismiss } = useToast();
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -68,7 +69,12 @@ export function OnboardingForm({
         });
 
         if (res.status === 409) {
-          toast("warning", "Data modified by another user, please refresh");
+          setConflictDetected(true);
+          toast(
+            "warning",
+            "Data was modified by another user. Please refresh to see the latest changes.",
+            0,
+          );
           return;
         }
         if (!res.ok) {
@@ -166,7 +172,7 @@ export function OnboardingForm({
             {status === "previewable" && (
               <button
                 onClick={handleSubmit}
-                disabled={submitting || saving}
+                disabled={submitting || saving || conflictDetected}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <Send className="w-3.5 h-3.5" />
@@ -194,6 +200,11 @@ export function OnboardingForm({
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
 
+      {/* 409 Conflict Banner */}
+      {conflictDetected && (
+        <ConflictBanner onRefresh={() => window.location.reload()} />
+      )}
+
       {/* 主体：两栏布局 */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* 左侧：字段编辑 */}
@@ -208,6 +219,7 @@ export function OnboardingForm({
                 fields={catFields}
                 fieldValues={fields}
                 onChange={handleChange}
+                disabled={conflictDetected}
                 defaultOpen={cat === "basic_info"}
               />
             );
@@ -221,6 +233,40 @@ export function OnboardingForm({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ConflictBanner({ onRefresh }: { onRefresh: () => void }) {
+  return (
+    <div
+      role="alert"
+      className="flex flex-col sm:flex-row items-start sm:items-center gap-3 rounded-xl border p-4"
+      style={{
+        borderColor: "var(--color-warning)",
+        backgroundColor: "var(--color-warning-light)",
+      }}
+    >
+      <AlertTriangle
+        className="w-5 h-5 shrink-0"
+        style={{ color: "var(--color-warning)" }}
+      />
+      <div className="flex-1">
+        <p className="text-sm font-medium text-[var(--color-text-primary)]">
+          Data was modified by another user
+        </p>
+        <p className="text-xs text-[var(--color-text-secondary)] mt-0.5">
+          Please refresh to see the latest changes. Your unsaved edits may be
+          lost.
+        </p>
+      </div>
+      <button
+        onClick={onRefresh}
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all shrink-0"
+      >
+        <RefreshCw className="w-3.5 h-3.5" />
+        Refresh
+      </button>
     </div>
   );
 }
