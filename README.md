@@ -21,9 +21,10 @@
 | P1-i18n | 全站 UI 英文化：组件文案、API 消息、验证错误、测试断言                  | ✅ 完成   |
 | P1-Q    | 供应商全流程 P0 质量加固：事务一致性、Webhook 原子性、字段校验、乐观锁  | ✅ 完成   |
 | P1-AI   | AI 多源提取管道 + 数据融合（纯函数 + API 已完成，待 Worker 联调）       | ✅ 完成   |
+| P1-UX   | UI/UX 全面审计：Persona 走查 + 设计规范对齐 + ESLint 零警告             | ✅ 完成   |
 | P1-Pub  | 内部预览 + 发布到主站                                                   | 🚧 第二轮 |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + Task 9 Worker 微服务均已完成。剩余：P1-Pub 内部预览与发布。
+**当前里程碑**：P0 基础设施 + P1 全部核心功能 + UI/UX 审计加固均已完成。下一阶段：P1-Pub 内部预览与发布 → P2 运营工具。
 
 ## 基础设施与选型
 
@@ -253,7 +254,7 @@ curl -X POST http://localhost:3000/api/apply \
 | :------------------------- | :---------------------------------------- |
 | `applications`             | 公开申请暂存表，无需 Auth 用户关联        |
 | `suppliers`                | 已审批的供应商身份表，关联 `auth.users`   |
-| `contracts`                | 合同流转表，支持 OpenSign 签署追踪        |
+| `contracts`                | 合同流转表，支持 DocuSign eSignature 追踪 |
 | `buildings`                | 楼宇房源数据表                            |
 | `building_onboarding_data` | Building Onboarding 字段值 + 乐观锁版本号 |
 | `field_audit_logs`         | 字段修改审计日志                          |
@@ -283,8 +284,106 @@ curl -X POST http://localhost:3000/api/apply \
 
 - `docs/ARCHITECTURE.md` — 架构决策与系统交互链路
 - `docs/API_REFERENCE.md` — 接口通信规范
+- `docs/DESIGN_GUIDELINES.md` — UI 设计规范（温暖专业风格、国际化准备）
+- `docs/UI_DESIGN_PLAN.md` — UI 设计方案与迭代计划
 - `docs/FULL_FLOW_TEST_GUIDE.md` — **全流程 E2E 测试指南（中英双语，含 AI 提取）**
 - `docs/E2E_TEST_GUIDE.md` — P0 供应商签约全流程手动测试指南
 - `docs/DOCUSIGN_E2E_TEST_GUIDE.md` — DocuSign 在线签约 E2E 测试指南
 - `docs/UAT_TEST_GUIDE.md` / `docs/UAT_TEST_GUIDE_CN.md` — UAT 验收测试指南（英/中）
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
+
+---
+
+## 阶段性总结与审计（2026-03-02）
+
+### P1 阶段完成度
+
+P1 阶段全部核心功能已完成并部署至生产环境，覆盖供应商全生命周期：
+
+```
+供应商申请 → BD 审批 → 合同编辑 → 供应商审阅 → DocuSign 签署 → 房源编辑 → 评分与发布
+```
+
+### 代码库健康度
+
+| 维度              | 指标                                        |
+| :---------------- | :------------------------------------------ |
+| 页面 + API 路由   | 31 个（15 页面 + 16 API）                   |
+| UI 组件           | 43 个（6 个功能模块）                       |
+| 核心库模块        | 8 个子目录、30+ 个模块文件                  |
+| 单元测试          | 21 个文件、358 个测试用例                   |
+| 数据库表          | 7 个核心表、9 个迁移文件                    |
+| ESLint 警告       | 0（src/ + scripts/ + tests/）               |
+| TypeScript 错误   | 0                                           |
+| 文件行数超限      | 0（全部 ≤ 300 行）                          |
+| 硬编码色值        | 0（全部使用 CSS 变量）                      |
+| i18n 逻辑属性覆盖 | 100%（无残留 ml-/mr-/text-left/text-right） |
+
+### P1-UX 审计完成内容
+
+基于 `docs/DESIGN_GUIDELINES.md` 执行了三轮 UI/UX 审计：
+
+**第一轮：设计规范对齐（11 个文件、21 处修复）**
+
+- 微交互：所有按钮添加 `active:scale-[0.98]`，BuildingCard 添加 hover 上浮
+- 语义色彩：错误/警告状态统一使用 `--color-warning`（避免与品牌红色冲突）
+- 空状态三要素：Dashboard 空状态重构为 图标 + 说明 + CTA
+- 无障碍：StepIndicator 添加 ARIA progressbar 属性
+
+**第二轮：20 供应商 Persona 走查（9 个文件、18 处修复）**
+
+- 模拟 20 种不同供应商（日本 / 英国 / 阿联酋 / 泰国等）使用全流程
+- 修复：Login OTP 重发按钮 + 60s 冷却、ApplicationForm 错误色、ContractDocumentPreview 空状态
+- 加固：`/api/apply` 服务端校验全覆盖 + 重复提交拦截（409）
+
+**第三轮：5 BD Persona 走查（10 个文件、15 处修复）**
+
+- 模拟 5 个不同国籍的 BD 使用管理后台全流程
+- 修复：Admin 全部错误色语义、表格 i18n 逻辑属性、MobileSidebar 中文硬编码 → 英文
+
+**第四轮：ESLint 零警告 + 安全审计**
+
+- 清除 src/ + scripts/ + tests/integration/ 全部 unused variable 警告
+- 删除含硬编码测试密钥的遗留 Mock 组件（ContractViewer.tsx）
+
+### 架构亮点
+
+1. **多角色 RBAC**：supplier / bd / admin / data_team，RLS 行级隔离
+2. **合同状态机**：DRAFT → PENDING_REVIEW → CONFIRMED → SENT → SIGNED，转移验证严格
+3. **房源状态引擎**：extracting → incomplete → previewable → ready_to_publish → published
+4. **乐观锁并发控制**：`building_onboarding_data.version` 防止并发编辑冲突
+5. **审计日志**：`field_audit_logs` 完整追踪字段修改历史
+6. **数据融合智能**：AI 提取 + 人工输入自动冲突解决，来源透明
+7. **多源 LLM 故障转移**：Qwen → DeepSeek → Kimi → MiniMax 按优先级降级
+8. **Webhook 安全**：HMAC 签名验证 + 幂等处理
+
+---
+
+## 下一阶段工作计划
+
+### P2 第一优先级：内部预览与发布（P1-Pub）
+
+| 任务         | 描述                                                          | 预估复杂度 |
+| :----------- | :------------------------------------------------------------ | :--------- |
+| 房源预览页   | 供应商视角的房源公开展示预览，模拟主站效果                    | 中         |
+| 发布审核流程 | BD/Data Team 审核 ready_to_publish 房源，确认后标记 published | 中         |
+| 主站数据同步 | 通过 API 将 published 房源数据推送至 `pro.uhomes.com`         | 高         |
+| 发布状态看板 | Admin 侧查看全部房源发布进度的统计面板                        | 低         |
+
+### P2 第二优先级：运营效率工具
+
+| 任务               | 描述                                                    | 预估复杂度 |
+| :----------------- | :------------------------------------------------------ | :--------- |
+| Google Sheets 集成 | Extraction Worker 支持从 Google Sheets 批量导入房源数据 | 中         |
+| 图片上传与管理     | 房源封面图 + 室内照片上传、裁剪、排序                   | 中         |
+| 批量操作           | BD 后台批量审批、批量分配 BD、批量发送邀请              | 中         |
+| 邮件通知模板       | 自定义签约提醒、到期预警、数据补充催促邮件              | 低         |
+
+### P2 第三优先级：体验与合规
+
+| 任务         | 描述                                                          | 预估复杂度 |
+| :----------- | :------------------------------------------------------------ | :--------- |
+| i18n 多语言  | 运行时语言切换（英 / 中 / 日 / 阿拉伯语），CSS 逻辑属性已就绪 | 高         |
+| 数据分析面板 | 供应商转化漏斗、签约耗时、数据完整度分布                      | 中         |
+| Worker 联调  | 主应用与 Fly.io Extraction Worker 端到端联调测试              | 中         |
+| E2E 自动化   | Playwright E2E 测试覆盖核心签约流程，集成到 CI                | 高         |
