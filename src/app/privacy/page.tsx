@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
   return (
     <LegalLayout currentPage="privacy">
       <h1 className="text-3xl font-bold text-[var(--color-text-primary)] mb-2">
-        UHOMES Privacy Policy (Enhanced International Version)
+        UHOMES Privacy Policy
       </h1>
       <p className="text-sm text-[var(--color-text-muted)] mb-10">
         Effective Date: March 1, 2026 &middot; Last Updated: March 1, 2026
