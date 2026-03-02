@@ -244,7 +244,7 @@ describe("Application Approval Workflow", () => {
     );
 
     await user.click(screen.getByRole("tab", { name: /converted/i }));
-    expect(screen.getByText(/no applications found/i)).toBeVisible();
+    expect(screen.getByText(/no applications match this filter/i)).toBeVisible();
   });
 
   // Active tab highlight

@@ -8,7 +8,14 @@
  */
 
 import { useState, Fragment } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { ApplicationRow } from "@/app/admin/applications/page";
 
 interface ApplicationTableProps {
@@ -18,39 +25,56 @@ interface ApplicationTableProps {
 
 const STATUS_CONFIG: Record<
   ApplicationRow["status"],
-  { label: string; className: string }
+  { label: string; icon: LucideIcon; className: string }
 > = {
   PENDING: {
     label: "Pending",
+    icon: Clock,
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   CONVERTED: {
     label: "Converted",
+    icon: CheckCircle2,
     className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
   REJECTED: {
     label: "Rejected",
+    icon: XCircle,
     className: "bg-[var(--color-bg-secondary)] text-[var(--color-text-muted)]",
   },
 };
 
 function StatusBadge({ status }: { status: ApplicationRow["status"] }) {
   const config = STATUS_CONFIG[status];
+  const Icon = config.icon;
   return (
     <span
-      className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${config.className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${config.className}`}
     >
+      <Icon className="h-3.5 w-3.5" />
       {config.label}
     </span>
   );
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+/** Format date in UTC with timezone label for global BD teams */
+function formatDateUTC(iso: string): string {
+  return (
+    new Date(iso).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }) +
+    " " +
+    new Date(iso).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+      timeZone: "UTC",
+    }) +
+    " UTC"
+  );
 }
 
 function ApproveButton({
@@ -80,7 +104,7 @@ function location(app: ApplicationRow): string {
 function ExpandedDetails({ app }: { app: ApplicationRow }) {
   return (
     <tr className="bg-[var(--color-bg-secondary)]">
-      <td colSpan={5} className="px-4 py-3">
+      <td colSpan={7} className="px-4 py-3">
         <div className="flex flex-wrap gap-x-8 gap-y-1 text-sm text-[var(--color-text-secondary)]">
           <span>
             <strong className="text-[var(--color-text-muted)]">Phone:</strong>{" "}
@@ -100,12 +124,6 @@ function ExpandedDetails({ app }: { app: ApplicationRow }) {
             ) : (
               "—"
             )}
-          </span>
-          <span>
-            <strong className="text-[var(--color-text-muted)]">
-              Submitted:
-            </strong>{" "}
-            {formatDate(app.created_at)}
           </span>
         </div>
       </td>
@@ -128,12 +146,13 @@ export function ApplicationTable({
       {/* 桌面端表格 — >=768px */}
       <div className="hidden md:block overflow-x-auto rounded-lg border border-[var(--color-border)]">
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
               <th className="text-start px-4 py-3 font-medium w-8" />
               <th className="text-start px-4 py-3 font-medium">Company</th>
               <th className="text-start px-4 py-3 font-medium">Email</th>
               <th className="text-start px-4 py-3 font-medium">Location</th>
+              <th className="text-start px-4 py-3 font-medium">Applied</th>
               <th className="text-start px-4 py-3 font-medium">Status</th>
               <th className="text-start px-4 py-3 font-medium">Action</th>
             </tr>
@@ -163,6 +182,9 @@ export function ApplicationTable({
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                       {location(app)}
                     </td>
+                    <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap text-xs">
+                      {formatDateUTC(app.created_at)}
+                    </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={app.status} />
                     </td>
@@ -186,7 +208,7 @@ export function ApplicationTable({
         {applications.map((app) => (
           <div
             key={app.id}
-            className="rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)]"
+            className="rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-[var(--color-text-primary)]">
@@ -209,7 +231,7 @@ export function ApplicationTable({
                 </a>
               )}
               <p className="text-[var(--color-text-muted)] text-xs">
-                {formatDate(app.created_at)}
+                {formatDateUTC(app.created_at)}
               </p>
             </div>
             <div className="mt-3 flex justify-end">

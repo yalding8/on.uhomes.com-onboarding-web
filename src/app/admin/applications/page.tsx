@@ -8,6 +8,7 @@
  */
 
 import { redirect } from "next/navigation";
+import { ClipboardList } from "lucide-react";
 import { ApplicationList } from "@/components/admin/ApplicationList";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -61,13 +62,26 @@ export default async function ApplicationsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
+      <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
         Applications
       </h1>
+      <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+        {applications.length} supplier applications — approving assigns you as
+        the BD.
+      </p>
 
       {applications.length === 0 ? (
-        <div className="text-center py-16 text-[var(--color-text-muted)]">
-          No applications yet
+        <div className="flex flex-col items-center py-12 px-6 text-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-primary-light)] mb-6">
+            <ClipboardList className="h-8 w-8 text-[var(--color-primary)] opacity-60" />
+          </div>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+            No Applications Yet
+          </h3>
+          <p className="text-sm text-[var(--color-text-secondary)] max-w-sm">
+            Applications will appear here when suppliers submit the onboarding
+            form on the landing page.
+          </p>
         </div>
       ) : (
         <ApplicationList applications={applications} />
