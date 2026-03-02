@@ -10,6 +10,8 @@
  */
 
 import type { SupplierRow } from "@/app/admin/suppliers/page";
+import { CircleDot, Clock, CheckCircle2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface SupplierTableProps {
   suppliers: SupplierRow[];
@@ -19,29 +21,34 @@ interface SupplierTableProps {
 
 const STATUS_CONFIG: Record<
   SupplierRow["status"],
-  { label: string; className: string }
+  { label: string; icon: LucideIcon; className: string }
 > = {
   NEW: {
     label: "New",
+    icon: CircleDot,
     className:
       "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
   },
   PENDING_CONTRACT: {
     label: "Pending Contract",
+    icon: Clock,
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   SIGNED: {
     label: "Signed",
+    icon: CheckCircle2,
     className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
   },
 };
 
 function StatusBadge({ status }: { status: SupplierRow["status"] }) {
   const config = STATUS_CONFIG[status];
+  const Icon = config.icon;
   return (
     <span
-      className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${config.className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${config.className}`}
     >
+      <Icon className="h-3.5 w-3.5" />
       {config.label}
     </span>
   );
@@ -67,7 +74,7 @@ export function SupplierTable({
       {/* 桌面端表格 — >=768px */}
       <div className="hidden md:block overflow-x-auto rounded-lg border border-[var(--color-border)]">
         <table className="w-full text-sm">
-          <thead>
+          <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
               <th className="text-start px-4 py-3 font-medium">Company</th>
               <th className="text-start px-4 py-3 font-medium">Email</th>
@@ -121,7 +128,7 @@ export function SupplierTable({
             key={s.id}
             type="button"
             onClick={() => onRowClick(s)}
-            className="w-full text-start rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
+            className="w-full text-start rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] active:scale-[0.98] transition-all"
           >
             <div className="flex items-center justify-between mb-2">
               <span className="font-medium text-[var(--color-text-primary)]">

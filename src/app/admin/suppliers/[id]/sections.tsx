@@ -5,9 +5,29 @@
  */
 
 import Link from "next/link";
+import {
+  Building2,
+  FileText,
+  CircleDot,
+  Clock,
+  CheckCircle2,
+  Mail,
+  AlertCircle,
+  XCircle,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { BuildingInfo, ContractInfo } from "./supplier-detail-config";
 import { CONTRACT_STATUS_LABELS, formatDate } from "./supplier-detail-config";
 import { ResendButton } from "@/components/admin/ResendButton";
+
+const CONTRACT_ICONS: Record<string, LucideIcon> = {
+  DRAFT: CircleDot,
+  PENDING_REVIEW: Clock,
+  CONFIRMED: CheckCircle2,
+  SENT: Mail,
+  SIGNED: CheckCircle2,
+  CANCELED: XCircle,
+};
 
 export function BuildingsSection({ buildings }: { buildings: BuildingInfo[] }) {
   return (
@@ -16,8 +36,17 @@ export function BuildingsSection({ buildings }: { buildings: BuildingInfo[] }) {
         Buildings ({buildings.length})
       </h2>
       {buildings.length === 0 ? (
-        <div className="text-center py-8 text-[var(--color-text-muted)] rounded-lg border border-[var(--color-border)]">
-          No buildings associated with this supplier
+        <div className="flex flex-col items-center py-12 px-6 text-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-light)] mb-4">
+            <Building2 className="h-6 w-6 text-[var(--color-primary)] opacity-60" />
+          </div>
+          <h3 className="text-base font-semibold text-[var(--color-text-primary)] mb-1">
+            No Buildings Yet
+          </h3>
+          <p className="text-sm text-[var(--color-text-secondary)] max-w-sm">
+            Properties will appear here once the supplier starts the onboarding
+            setup flow.
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
@@ -34,7 +63,7 @@ export function BuildingsSection({ buildings }: { buildings: BuildingInfo[] }) {
               {buildings.map((b) => (
                 <tr
                   key={b.id}
-                  className="border-t border-[var(--color-border)]"
+                  className="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors"
                 >
                   <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
                     {b.building_name}
@@ -65,8 +94,17 @@ export function ContractsSection({ contracts }: { contracts: ContractInfo[] }) {
         Contracts ({contracts.length})
       </h2>
       {contracts.length === 0 ? (
-        <div className="text-center py-8 text-[var(--color-text-muted)] rounded-lg border border-[var(--color-border)]">
-          No contracts yet
+        <div className="flex flex-col items-center py-12 px-6 text-center rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary-light)] mb-4">
+            <FileText className="h-6 w-6 text-[var(--color-primary)] opacity-60" />
+          </div>
+          <h3 className="text-base font-semibold text-[var(--color-text-primary)] mb-1">
+            No Contracts Yet
+          </h3>
+          <p className="text-sm text-[var(--color-text-secondary)] max-w-sm">
+            Contracts will be created when the supplier is ready for the signing
+            stage.
+          </p>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-[var(--color-border)]">
@@ -88,14 +126,20 @@ export function ContractsSection({ contracts }: { contracts: ContractInfo[] }) {
                 return (
                   <tr
                     key={c.id}
-                    className="border-t border-[var(--color-border)]"
+                    className="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors"
                   >
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${si.className}`}
-                      >
-                        {si.label}
-                      </span>
+                      {(() => {
+                        const CIcon = CONTRACT_ICONS[c.status] ?? AlertCircle;
+                        return (
+                          <span
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${si.className}`}
+                          >
+                            <CIcon className="h-3.5 w-3.5" />
+                            {si.label}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)]">
                       {c.status === "DRAFT" && (

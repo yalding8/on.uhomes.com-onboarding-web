@@ -25,6 +25,7 @@ export function ResendButton({ contractId }: { contractId: string }) {
         return;
       }
       setMessage("Signing email resent");
+      setTimeout(() => setMessage(null), 3000);
       router.refresh();
     } catch {
       setMessage("Network error");

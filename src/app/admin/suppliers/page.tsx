@@ -7,6 +7,7 @@
  */
 
 import { redirect } from "next/navigation";
+import { Users } from "lucide-react";
 import { SupplierList } from "@/components/admin/SupplierList";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -62,10 +63,16 @@ async function getSuppliers(
 
   // Building count
   const supplierIds = suppliers.map((s) => s.id);
-  const { data: buildings } = await supabaseAdmin
+  const { data: buildings, error: buildingsError } = await supabaseAdmin
     .from("buildings")
     .select("supplier_id")
     .in("supplier_id", supplierIds);
+  if (buildingsError) {
+    console.error(
+      "[SupplierList] Failed to fetch building counts",
+      buildingsError,
+    );
+  }
   const countMap = new Map<string, number>();
   buildings?.forEach((b) => {
     countMap.set(b.supplier_id, (countMap.get(b.supplier_id) || 0) + 1);
@@ -78,10 +85,13 @@ async function getSuppliers(
       ...new Set(suppliers.map((s) => s.bd_user_id).filter(Boolean)),
     ] as string[];
     if (bdIds.length > 0) {
-      const { data: bds } = await supabaseAdmin
+      const { data: bds, error: bdsError } = await supabaseAdmin
         .from("suppliers")
         .select("id, company_name")
         .in("id", bdIds);
+      if (bdsError) {
+        console.error("[SupplierList] Failed to fetch BD names", bdsError);
+      }
       bds?.forEach((b) => bdNameMap.set(b.id, b.company_name));
     }
   }
@@ -106,14 +116,35 @@ export default async function SuppliersPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-[var(--color-text-primary)] mb-6">
+      <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
         {title}
       </h1>
+      <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+        {ctx.isAdmin
+          ? `${suppliers.length} suppliers on the platform`
+          : `${suppliers.length} suppliers assigned to you`}
+      </p>
       {suppliers.length === 0 ? (
-        <div className="text-center py-16 text-[var(--color-text-muted)]">
-          {ctx.isAdmin
-            ? "No suppliers yet"
-            : "No suppliers assigned to you yet"}
+        <div className="flex flex-col items-center py-12 px-6 text-center rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-secondary)]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-primary-light)] mb-6">
+            <Users className="h-8 w-8 text-[var(--color-primary)] opacity-60" />
+          </div>
+          <h3 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
+            {ctx.isAdmin ? "No Suppliers Yet" : "No Suppliers Assigned"}
+          </h3>
+          <p className="text-sm text-[var(--color-text-secondary)] max-w-sm mb-4">
+            {ctx.isAdmin
+              ? "Suppliers will appear here once they apply or are invited."
+              : "Contact your admin to get suppliers assigned to you."}
+          </p>
+          {ctx.isAdmin && (
+            <a
+              href="/admin/invite"
+              className="text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium transition-colors"
+            >
+              Invite your first supplier
+            </a>
+          )}
         </div>
       ) : (
         <SupplierList suppliers={suppliers} isAdmin={ctx.isAdmin} />

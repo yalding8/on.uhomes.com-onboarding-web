@@ -12,6 +12,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 import Link from "next/link";
+import { ChevronRight, CircleDot, Clock, CheckCircle2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type {
   BuildingInfo,
   ContractInfo,
@@ -20,6 +22,12 @@ import type {
 import { SUPPLIER_STATUS_CONFIG, formatDate } from "./supplier-detail-config";
 import { BdAssignSelect } from "@/components/admin/BdAssignSelect";
 import { BuildingsSection, ContractsSection } from "./sections";
+
+const STATUS_ICONS: Record<string, LucideIcon> = {
+  NEW: CircleDot,
+  PENDING_CONTRACT: Clock,
+  SIGNED: CheckCircle2,
+};
 
 interface BdUser {
   id: string;
@@ -117,24 +125,36 @@ export default async function SupplierDetailPage({
 
   return (
     <div>
-      <Link
-        href="/admin/suppliers"
-        className="inline-flex items-center gap-1 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] mb-4"
-      >
-        ← Back to Suppliers
-      </Link>
+      <nav className="flex items-center gap-1.5 text-sm mb-4 text-[var(--color-text-secondary)]">
+        <Link
+          href="/admin/suppliers"
+          className="hover:text-[var(--color-text-primary)] transition-colors"
+        >
+          Suppliers
+        </Link>
+        <ChevronRight className="w-3.5 h-3.5" />
+        <span className="text-[var(--color-text-primary)] font-medium truncate">
+          {supplier.company_name}
+        </span>
+      </nav>
 
       {/* 基本信息 */}
       <div className="rounded-lg border border-[var(--color-border)] p-4 md:p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-semibold text-[var(--color-text-primary)]">
+          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
             {supplier.company_name}
           </h1>
-          <span
-            className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${statusConfig.className}`}
-          >
-            {statusConfig.label}
-          </span>
+          {(() => {
+            const StatusIcon = STATUS_ICONS[supplier.status];
+            return (
+              <span
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium ${statusConfig.className}`}
+              >
+                {StatusIcon && <StatusIcon className="h-3.5 w-3.5" />}
+                {statusConfig.label}
+              </span>
+            );
+          })()}
         </div>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
           <div>

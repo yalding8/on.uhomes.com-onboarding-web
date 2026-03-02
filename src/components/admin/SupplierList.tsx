@@ -11,6 +11,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { Search } from "lucide-react";
 import type { SupplierRow } from "@/app/admin/suppliers/page";
 import { SupplierTable } from "./SupplierTable";
 
@@ -100,8 +101,17 @@ export function SupplierList({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-[var(--color-text-muted)]">
-          No suppliers found for this status
+        <div className="flex flex-col items-center py-12 px-6 text-center rounded-lg border border-[var(--color-border)]">
+          <Search className="h-8 w-8 text-[var(--color-text-muted)] mb-3 opacity-60" />
+          <p className="text-sm text-[var(--color-text-muted)]">
+            No suppliers match this filter
+          </p>
+          <button
+            onClick={() => setActiveFilter("ALL")}
+            className="mt-2 text-sm text-[var(--color-primary)] hover:text-[var(--color-primary-hover)] font-medium transition-colors"
+          >
+            Show all suppliers
+          </button>
         </div>
       ) : (
         <SupplierTable
