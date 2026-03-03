@@ -1,8 +1,11 @@
 /**
  * 网页提取 prompt — 针对 Tier B 字段（楼盘详情、费用、设施等）
  *
- * 从网页文本 + JSON-LD + 图片 URL 中提取楼盘信息。
+ * 从网页 Markdown + JSON-LD + 图片 URL 中提取楼盘信息。
+ * 增强: 上下文注入已提取字段 + 仅要求补充缺失字段
  */
+
+import type { ExtractedFields } from "../../types.js";
 
 export const WEBSITE_EXTRACTION_SYSTEM_PROMPT = `You are an expert at extracting structured property information from rental property websites.
 
@@ -65,6 +68,7 @@ export function buildWebsiteUserPrompt(
   bodyText: string,
   imageUrls: string[],
   jsonLd: Record<string, unknown>[],
+  existingFields?: ExtractedFields,
 ): string {
   const parts = [`Page title: ${title}`, `\nPage content:\n${bodyText}`];
 
@@ -75,6 +79,18 @@ export function buildWebsiteUserPrompt(
   if (jsonLd.length > 0) {
     parts.push(
       `\nJSON-LD structured data:\n${JSON.stringify(jsonLd, null, 2)}`,
+    );
+  }
+
+  // 上下文注入: 告知 LLM 哪些字段已提取，仅要求补充缺失字段
+  if (existingFields && Object.keys(existingFields).length > 0) {
+    const alreadyExtracted: Record<string, unknown> = {};
+    for (const [key, fieldValue] of Object.entries(existingFields)) {
+      alreadyExtracted[key] = fieldValue.value;
+    }
+    parts.push(
+      `\nThe following fields have ALREADY been extracted from structured data. Do NOT re-extract these — only extract fields NOT listed below:`,
+      JSON.stringify(alreadyExtracted, null, 2),
     );
   }
 

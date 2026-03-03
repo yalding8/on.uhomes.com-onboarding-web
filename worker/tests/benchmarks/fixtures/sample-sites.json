@@ -1,0 +1,61 @@
+{
+  "description": "基准测试 fixture — 用于验证提取管线质量。每个条目包含 URL、站点类型、预期字段值。",
+  "sites": [
+    {
+      "id": "static-simple-01",
+      "category": "static",
+      "url": "https://example.com/apartments",
+      "description": "静态 HTML 公寓页面（测试占位，需替换为真实 URL）",
+      "expectedFields": [
+        { "key": "building_name", "value": "Example Apartments", "presentOnPage": true },
+        { "key": "city", "value": "New York", "presentOnPage": true },
+        { "key": "price_min", "value": 1200, "presentOnPage": true },
+        { "key": "price_max", "value": 3500, "presentOnPage": true },
+        { "key": "currency", "value": "USD", "presentOnPage": true },
+        { "key": "key_amenities", "value": ["Gym", "Pool", "Parking"], "presentOnPage": true },
+        { "key": "commission_structure", "value": null, "presentOnPage": false }
+      ]
+    },
+    {
+      "id": "spa-react-01",
+      "category": "spa",
+      "url": "https://example.com/react-apartment",
+      "description": "React SPA 公寓页面（测试占位，需替换为真实 URL）",
+      "expectedFields": [
+        { "key": "building_name", "value": "React Tower", "presentOnPage": true },
+        { "key": "building_address", "value": "123 Main St", "presentOnPage": true },
+        { "key": "city", "value": "Chicago", "presentOnPage": true },
+        { "key": "total_units", "value": 250, "presentOnPage": true },
+        { "key": "cover_image", "value": "https://example.com/hero.jpg", "presentOnPage": true }
+      ]
+    },
+    {
+      "id": "wordpress-01",
+      "category": "wordpress",
+      "url": "https://example.com/wp-apartment",
+      "description": "WordPress 公寓页面（测试占位，需替换为真实 URL）",
+      "expectedFields": [
+        { "key": "building_name", "value": "WP Living", "presentOnPage": true },
+        { "key": "description", "value": "A modern living space", "presentOnPage": true },
+        { "key": "price_min", "value": 800, "presentOnPage": true },
+        { "key": "price_max", "value": 2200, "presentOnPage": true }
+      ]
+    },
+    {
+      "id": "platform-jsonld-01",
+      "category": "platform_template",
+      "url": "https://example.com/entrata-apartment",
+      "description": "物管平台模板带 JSON-LD（测试占位，需替换为真实 URL）",
+      "expectedFields": [
+        { "key": "building_name", "value": "Platform Residences", "presentOnPage": true },
+        { "key": "building_address", "value": "456 Oak Ave", "presentOnPage": true },
+        { "key": "city", "value": "Austin", "presentOnPage": true },
+        { "key": "country", "value": "US", "presentOnPage": true },
+        { "key": "postal_code", "value": "78701", "presentOnPage": true },
+        { "key": "price_min", "value": 1500, "presentOnPage": true },
+        { "key": "primary_contact_phone", "value": "+1-512-555-0123", "presentOnPage": true },
+        { "key": "key_amenities", "value": ["Gym", "Pool", "Parking", "WiFi"], "presentOnPage": true }
+      ]
+    }
+  ]
+}
