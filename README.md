@@ -118,21 +118,22 @@ npm run dev
 
 ### 管线基准测试（2026-03-03）
 
-使用 `verify-pipeline.ts` 对 3 个真实公寓网站进行端到端测试（含 LLM 调用）：
+使用 `verify-pipeline.ts --with-llm` 对 3 个真实公寓网站进行端到端测试（含 LLM 调用），结果自动保存至 `worker/tests/benchmarks/results/`：
 
 | 站点                                                   | 站点类型    | JSON-LD | OG  | LLM | 总字段 | 耗时 | LLM Provider |
 | :----------------------------------------------------- | :---------- | :------ | :-- | :-- | :----- | :--- | :----------- |
-| [Estelle New Haven](https://www.estellenewhaven.com/)  | SPA (React) | 0       | 4   | 4   | **8**  | 23s  | DeepSeek     |
+| [Estelle New Haven](https://www.estellenewhaven.com/)  | SPA (React) | 0       | 4   | 4   | **8**  | 25s  | DeepSeek     |
 | [Arthaus Telegraph](https://www.arthaustelegraph.mov/) | -           | -       | -   | -   | -      | -    | ⚠️ 站点超时  |
-| [Housing4U](https://housing4u.ca)                      | SPA (React) | 0       | 0   | 13  | **13** | 34s  | DeepSeek     |
+| [Housing4U](https://housing4u.ca)                      | SPA (React) | 0       | 0   | 13  | **13** | 35s  | DeepSeek     |
 
-**汇总指标**：
+**汇总指标**：成功率 2/3 | 平均字段 10.5 个 | 平均耗时 29.9s | LLM 调用率 100%
 
-- 成功率：2/3（1 个站点域名超时，非管线问题）
-- 平均提取字段：10.5 个
-- 平均耗时：28.3s（含 Playwright 启动 + LLM 调用）
-- LLM 调用率：100%（测试站点均无 JSON-LD，全部需要 LLM 补充）
-- 提取字段覆盖：building_name, building_address, city, country, description, cover_image, images, key_amenities, price_min, price_max, currency, unit_types_summary, application_link
+**结论与发现**：
+
+1. **LLM 是主力引擎**：3 个站点 JSON-LD 覆盖率均为 0%，结构化数据映射路径未被触发。真实中小型公寓站点普遍不含 Schema.org 数据，LLM 承担了 100% 字段提取。相比之下 OpenGraph 更实用（Estelle 通过 OG 直接拿到 4 个字段，零 LLM 成本）。
+2. **性能瓶颈在 LLM**：耗时分布为 site-probe 8% / Playwright 爬取 28% / **LLM 调用 64%**。优化方向：减少输入 token（更智能的 HTML 摘要）或使用更快模型。
+3. **提取质量待优化**：高置信度字段仅占 ~24%，存在 `building_name` 含页面后缀、`application_link` 为相对路径、`key_amenities` 召回不全等问题。
+4. **下一步改进**：扩充样本至 10-20 个站点 → 字段后处理清洗 → LLM prompt 优化 → 多模型速度/质量对比。
 
 ```bash
 # 运行管线验证（仅结构化数据，不调用 LLM）

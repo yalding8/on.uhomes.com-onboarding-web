@@ -16,6 +16,9 @@
  */
 
 import "dotenv/config";
+import { writeFileSync, mkdirSync } from "fs";
+import { join, dirname } from "path";
+import { fileURLToPath } from "url";
 import { probeSite } from "../../src/crawl/site-probe.js";
 import { scrapePage } from "../../src/crawl/scraper.js";
 import { mapStructuredData } from "../../src/extractors/structured-data-mapper.js";
@@ -394,6 +397,53 @@ async function main() {
   }
 
   printSummary(results);
+
+  // Save results to JSON file
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const resultsDir = join(__dirname, "results");
+  mkdirSync(resultsDir, { recursive: true });
+
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const mode = withLlm ? "full" : "structured";
+  const outputPath = join(resultsDir, `${timestamp}_${mode}.json`);
+
+  const output = {
+    timestamp: new Date().toISOString(),
+    mode: withLlm ? "full_pipeline" : "structured_only",
+    sites: results.map((r) => ({
+      ...r,
+      // Serialize field values for readability
+      fields: Object.fromEntries(
+        Object.entries(r.fields).map(([k, v]) => [
+          k,
+          { value: v.value, confidence: v.confidence },
+        ]),
+      ),
+    })),
+    summary: {
+      total: results.length,
+      ok: results.filter((r) => r.success).length,
+      failed: results.filter((r) => !r.success).length,
+      avgFields:
+        results.filter((r) => r.success).length > 0
+          ? results
+              .filter((r) => r.success)
+              .reduce((s, r) => s + r.extraction.totalFieldCount, 0) /
+            results.filter((r) => r.success).length
+          : 0,
+      avgTimeMs:
+        results.filter((r) => r.success).length > 0
+          ? results
+              .filter((r) => r.success)
+              .reduce((s, r) => s + r.timings.totalMs, 0) /
+            results.filter((r) => r.success).length
+          : 0,
+    },
+  };
+
+  writeFileSync(outputPath, JSON.stringify(output, null, 2), "utf-8");
+  console.log(`\n📄 Results saved to: ${outputPath}`);
 
   // Cleanup
   await shutdownBrowser();
