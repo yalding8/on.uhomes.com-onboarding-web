@@ -1,0 +1,26 @@
+{
+  "description": "基准测试 fixture — 真实供应商公寓网站 URL",
+  "sites": [
+    {
+      "id": "estelle-new-haven",
+      "category": "unknown",
+      "url": "https://www.estellenewhaven.com/",
+      "description": "Estelle New Haven — 美国公寓",
+      "expectedSiteType": "unknown"
+    },
+    {
+      "id": "arthaus-telegraph",
+      "category": "unknown",
+      "url": "https://www.arthaustelegraph.mov/",
+      "description": "Arthaus Telegraph — 美国公寓",
+      "expectedSiteType": "unknown"
+    },
+    {
+      "id": "housing4u-ca",
+      "category": "unknown",
+      "url": "https://housing4u.ca",
+      "description": "Housing4U — 加拿大公寓",
+      "expectedSiteType": "unknown"
+    }
+  ]
+}
