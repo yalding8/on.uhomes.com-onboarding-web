@@ -1,45 +1,40 @@
 {
-  "description": "基准测试 fixture — 真实公寓网站 URL，覆盖 5 种站点类型。运行 verify-pipeline.ts 自动测试。",
+  "description": "基准测试 fixture — 真实公寓网站 URL。如果某个 URL 失效，替换为同类型的有效 URL 即可。",
   "sites": [
     {
-      "id": "platform-entrata-01",
-      "category": "platform_template",
-      "url": "https://www.theaverynorth.com/",
-      "description": "Entrata 平台模板 — 美国公寓，通常有 JSON-LD 结构化数据",
-      "expectedSiteType": "platform_template",
-      "notes": "Entrata-powered, likely has JSON-LD with pricing"
-    },
-    {
-      "id": "platform-rentcafe-01",
-      "category": "platform_template",
-      "url": "https://www.liveattheq.com/",
-      "description": "RentCafe 平台模板 — 美国公寓",
-      "expectedSiteType": "platform_template",
-      "notes": "RentCafe-powered apartment community"
-    },
-    {
-      "id": "spa-react-01",
-      "category": "spa",
-      "url": "https://www.avaloncommunities.com/new-york/new-york-apartments/ava-high-line/",
-      "description": "Avalon — React SPA 大型公寓集团",
-      "expectedSiteType": "spa",
-      "notes": "Large property management company, React-based"
-    },
-    {
-      "id": "static-simple-01",
+      "id": "unite-students-london",
       "category": "static",
-      "url": "https://www.studentroost.co.uk/locations/london/canvas-walthamstow",
-      "description": "Student Roost — 英国学生公寓，服务端渲染",
-      "expectedSiteType": "static",
-      "notes": "UK student accommodation, server-rendered"
+      "url": "https://www.unitestudents.com/student-accommodation/london/hayloft-point",
+      "description": "Unite Students — 英国最大学生公寓运营商，服务端渲染",
+      "expectedSiteType": "static"
     },
     {
-      "id": "wordpress-01",
-      "category": "wordpress",
-      "url": "https://www.collegiate-ac.com/student-accommodation/london/",
-      "description": "Collegiate — WordPress 学生公寓",
-      "expectedSiteType": "wordpress",
-      "notes": "WordPress-based student accommodation"
+      "id": "iq-london",
+      "category": "static",
+      "url": "https://www.iqstudentaccommodation.com/london",
+      "description": "iQ Student Accommodation — 英国学生公寓",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "hello-student",
+      "category": "static",
+      "url": "https://www.hellostudent.co.uk/locations/london/",
+      "description": "Hello Student — 英国学生公寓",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "equity-apartments",
+      "category": "spa",
+      "url": "https://www.equityapartments.com/new-york-city/apartments",
+      "description": "Equity Residential — 美国大型公寓 REIT，现代前端",
+      "expectedSiteType": "spa"
+    },
+    {
+      "id": "camden-living",
+      "category": "spa",
+      "url": "https://www.camdenliving.com/",
+      "description": "Camden Property Trust — 美国大型公寓集团",
+      "expectedSiteType": "spa"
     }
   ]
 }
