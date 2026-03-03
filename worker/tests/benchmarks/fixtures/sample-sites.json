@@ -1,40 +1,26 @@
 {
-  "description": "基准测试 fixture — 真实公寓网站 URL。如果某个 URL 失效，替换为同类型的有效 URL 即可。",
+  "description": "基准测试 fixture — 真实供应商公寓网站 URL",
   "sites": [
     {
-      "id": "unite-students-london",
-      "category": "static",
-      "url": "https://www.unitestudents.com/student-accommodation/london/hayloft-point",
-      "description": "Unite Students — 英国最大学生公寓运营商，服务端渲染",
-      "expectedSiteType": "static"
+      "id": "estelle-new-haven",
+      "category": "unknown",
+      "url": "https://www.estellenewhaven.com/",
+      "description": "Estelle New Haven — 美国公寓",
+      "expectedSiteType": "unknown"
     },
     {
-      "id": "iq-london",
-      "category": "static",
-      "url": "https://www.iqstudentaccommodation.com/london",
-      "description": "iQ Student Accommodation — 英国学生公寓",
-      "expectedSiteType": "static"
+      "id": "arthaus-telegraph",
+      "category": "unknown",
+      "url": "https://www.arthaustelegraph.mov/",
+      "description": "Arthaus Telegraph — 美国公寓",
+      "expectedSiteType": "unknown"
     },
     {
-      "id": "hello-student",
-      "category": "static",
-      "url": "https://www.hellostudent.co.uk/locations/london/",
-      "description": "Hello Student — 英国学生公寓",
-      "expectedSiteType": "static"
-    },
-    {
-      "id": "equity-apartments",
-      "category": "spa",
-      "url": "https://www.equityapartments.com/new-york-city/apartments",
-      "description": "Equity Residential — 美国大型公寓 REIT，现代前端",
-      "expectedSiteType": "spa"
-    },
-    {
-      "id": "camden-living",
-      "category": "spa",
-      "url": "https://www.camdenliving.com/",
-      "description": "Camden Property Trust — 美国大型公寓集团",
-      "expectedSiteType": "spa"
+      "id": "housing4u-ca",
+      "category": "unknown",
+      "url": "https://housing4u.ca",
+      "description": "Housing4U — 加拿大公寓",
+      "expectedSiteType": "unknown"
     }
   ]
 }
