@@ -2,20 +2,31 @@
  * 管线验证脚本 — 用真实公寓网站 URL 端到端测试提取管线
  *
  * 使用方式:
- *   # 测试所有 fixture 站点
+ *   # 仅结构化数据（不调用 LLM）
  *   npx tsx tests/benchmarks/verify-pipeline.ts
  *
- *   # 测试单个 URL
- *   npx tsx tests/benchmarks/verify-pipeline.ts https://example.com/apartments
+ *   # 完整管线（含 LLM 提取）
+ *   npx tsx tests/benchmarks/verify-pipeline.ts --with-llm
  *
- * 环境变量 (至少配一个 LLM provider):
+ *   # 测试单个 URL（含 LLM）
+ *   npx tsx tests/benchmarks/verify-pipeline.ts --with-llm https://example.com
+ *
+ * 环境变量 (--with-llm 时至少配一个):
  *   QWEN_API_KEY / DEEPSEEK_API_KEY / KIMI_API_KEY / MINIMAX_API_KEY
  */
 
+import "dotenv/config";
 import { probeSite } from "../../src/crawl/site-probe.js";
 import { scrapePage } from "../../src/crawl/scraper.js";
 import { mapStructuredData } from "../../src/extractors/structured-data-mapper.js";
 import { mapOpenGraphData } from "../../src/extractors/og-mapper.js";
+import { chatCompletion } from "../../src/llm/client.js";
+import { getAllProviders } from "../../src/llm/config.js";
+import { mapLlmOutput } from "../../src/llm/field-mapper.js";
+import {
+  WEBSITE_EXTRACTION_SYSTEM_PROMPT,
+  buildWebsiteUserPrompt,
+} from "../../src/llm/prompts/website-fields.js";
 import { validateFields } from "../../src/validators/field-validator.js";
 import { shutdownBrowser } from "../../src/crawl/browser.js";
 import type { ExtractedFields } from "../../src/types.js";
@@ -37,6 +48,7 @@ interface PipelineResult {
     probeMs: number;
     scrapeMs: number;
     structuredMapMs: number;
+    llmMs: number;
     totalMs: number;
   };
   siteProfile: {
@@ -49,19 +61,24 @@ interface PipelineResult {
   extraction: {
     jsonLdFieldCount: number;
     ogFieldCount: number;
+    llmFieldCount: number;
+    llmProvider: string;
     totalFieldCount: number;
     coverageRatio: number;
     llmNeeded: boolean;
+    llmUsed: boolean;
     validationIssues: number;
   };
   fields: ExtractedFields;
 }
 
 const SKIP_LLM_COVERAGE = 0.8;
+const MAX_TEXT_LENGTH = 60_000;
 
 async function testSingleUrl(
   url: string,
   siteId: string,
+  withLlm: boolean,
 ): Promise<PipelineResult> {
   const totalStart = Date.now();
 
@@ -69,7 +86,13 @@ async function testSingleUrl(
     siteId,
     url,
     success: false,
-    timings: { probeMs: 0, scrapeMs: 0, structuredMapMs: 0, totalMs: 0 },
+    timings: {
+      probeMs: 0,
+      scrapeMs: 0,
+      structuredMapMs: 0,
+      llmMs: 0,
+      totalMs: 0,
+    },
     siteProfile: {
       type: "unknown",
       framework: "unknown",
@@ -80,9 +103,12 @@ async function testSingleUrl(
     extraction: {
       jsonLdFieldCount: 0,
       ogFieldCount: 0,
+      llmFieldCount: 0,
+      llmProvider: "-",
       totalFieldCount: 0,
       coverageRatio: 0,
       llmNeeded: true,
+      llmUsed: false,
       validationIssues: 0,
     },
     fields: {},
@@ -131,7 +157,72 @@ async function testSingleUrl(
     result.extraction.ogFieldCount = ogAdded;
     result.timings.structuredMapMs = Date.now() - mapStart;
 
-    // 5. Validate
+    // 5. LLM extraction (if enabled and needed)
+    if (withLlm && result.extraction.llmNeeded) {
+      const llmStart = Date.now();
+      try {
+        const providers = getAllProviders();
+        const textContent = scraped.markdown || scraped.bodyText;
+        const truncatedText =
+          textContent.length > MAX_TEXT_LENGTH
+            ? textContent.slice(0, MAX_TEXT_LENGTH) +
+              "\n\n[... text truncated ...]"
+            : textContent;
+
+        const userPrompt = buildWebsiteUserPrompt(
+          scraped.title,
+          truncatedText,
+          scraped.imageUrls,
+          scraped.jsonLd,
+          mergedFields,
+        );
+
+        let llmFields: ExtractedFields = {};
+        for (const provider of providers) {
+          try {
+            const raw = await chatCompletion(
+              provider,
+              [
+                {
+                  role: "system",
+                  content: WEBSITE_EXTRACTION_SYSTEM_PROMPT,
+                },
+                { role: "user", content: userPrompt },
+              ],
+              {
+                jsonMode: true,
+                maxTokens: 4096,
+                temperature: 0.1,
+              },
+            );
+            llmFields = mapLlmOutput(raw);
+            result.extraction.llmProvider = provider.name;
+            break;
+          } catch (err) {
+            console.error(
+              `  [LLM] Provider ${provider.name} failed:`,
+              (err as Error).message,
+            );
+          }
+        }
+
+        // Merge LLM fields (don't overwrite existing)
+        let llmAdded = 0;
+        for (const [key, value] of Object.entries(llmFields)) {
+          if (!mergedFields[key]) {
+            mergedFields[key] = value;
+            llmAdded++;
+          }
+        }
+        result.extraction.llmFieldCount = llmAdded;
+        result.extraction.llmUsed = true;
+      } catch (err) {
+        console.error(`  [LLM] All providers failed:`, (err as Error).message);
+      }
+      result.timings.llmMs = Date.now() - llmStart;
+    }
+
+    // 6. Validate
     const validated = validateFields(mergedFields);
     result.extraction.validationIssues = validated.issues.length;
     result.fields = validated.fields;
@@ -164,14 +255,14 @@ function printResult(r: PipelineResult): void {
     `  Detect: JSON-LD=${r.siteProfile.hasJsonLd} OG=${r.siteProfile.hasOpenGraph}`,
   );
   console.log(
-    `  Fields: JSON-LD=${r.extraction.jsonLdFieldCount} OG=${r.extraction.ogFieldCount} Total=${r.extraction.totalFieldCount}`,
+    `  Fields: JSON-LD=${r.extraction.jsonLdFieldCount} OG=${r.extraction.ogFieldCount} LLM=${r.extraction.llmFieldCount} Total=${r.extraction.totalFieldCount}`,
   );
   console.log(
-    `  Coverage: ${(r.extraction.coverageRatio * 100).toFixed(0)}% | LLM needed: ${r.extraction.llmNeeded}`,
+    `  Coverage: ${(r.extraction.coverageRatio * 100).toFixed(0)}% | LLM needed: ${r.extraction.llmNeeded} | LLM used: ${r.extraction.llmUsed}${r.extraction.llmUsed ? ` (${r.extraction.llmProvider})` : ""}`,
   );
   console.log(`  Issues: ${r.extraction.validationIssues}`);
   console.log(
-    `  Timing: probe=${r.timings.probeMs}ms scrape=${r.timings.scrapeMs}ms map=${r.timings.structuredMapMs}ms total=${r.timings.totalMs}ms`,
+    `  Timing: probe=${r.timings.probeMs}ms scrape=${r.timings.scrapeMs}ms map=${r.timings.structuredMapMs}ms llm=${r.timings.llmMs}ms total=${r.timings.totalMs}ms`,
   );
 
   // Print extracted fields
@@ -219,12 +310,14 @@ function printSummary(results: PipelineResult[]): void {
     const avgTime =
       ok.reduce((sum, r) => sum + r.timings.totalMs, 0) / ok.length;
     const skippedLlm = ok.filter((r) => !r.extraction.llmNeeded).length;
+    const usedLlm = ok.filter((r) => r.extraction.llmUsed).length;
 
     console.log(`  Avg fields: ${avgFields.toFixed(1)}`);
     console.log(`  Avg time: ${(avgTime / 1000).toFixed(1)}s`);
     console.log(
       `  LLM skippable: ${skippedLlm}/${ok.length} (${((skippedLlm / ok.length) * 100).toFixed(0)}%)`,
     );
+    console.log(`  LLM actually used: ${usedLlm}/${ok.length}`);
 
     // Per site type breakdown
     const byType = new Map<string, PipelineResult[]>();
@@ -253,7 +346,9 @@ function printSummary(results: PipelineResult[]): void {
 }
 
 async function main() {
-  const customUrl = process.argv[2];
+  const args = process.argv.slice(2);
+  const withLlm = args.includes("--with-llm");
+  const customUrl = args.find((a) => !a.startsWith("--"));
 
   let sites: SiteFixture[];
 
@@ -275,19 +370,25 @@ async function main() {
   }
 
   console.log(
-    `\nVerifying extraction pipeline with ${sites.length} site(s)...\n`,
+    `\nVerifying extraction pipeline with ${sites.length} site(s)...`,
   );
-  console.log(`NOTE: This test runs WITHOUT LLM — only site probe,`);
-  console.log(`scraping, JSON-LD mapping, OpenGraph, and validation.`);
-  console.log(
-    `To test full LLM extraction, use the Worker /extract endpoint.\n`,
-  );
+  if (withLlm) {
+    console.log(
+      `Mode: FULL PIPELINE (site probe → scrape → JSON-LD → OG → LLM → validate)`,
+    );
+  } else {
+    console.log(
+      `Mode: STRUCTURED ONLY (site probe → scrape → JSON-LD → OG → validate)`,
+    );
+    console.log(`  Tip: use --with-llm to enable LLM extraction`);
+  }
+  console.log();
 
   const results: PipelineResult[] = [];
 
   for (const site of sites) {
     console.log(`Testing: ${site.id} (${site.url})...`);
-    const r = await testSingleUrl(site.url, site.id);
+    const r = await testSingleUrl(site.url, site.id, withLlm);
     results.push(r);
     printResult(r);
   }
