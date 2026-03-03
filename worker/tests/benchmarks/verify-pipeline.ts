@@ -209,7 +209,9 @@ function printSummary(results: PipelineResult[]): void {
   const ok = results.filter((r) => r.success);
   const failed = results.filter((r) => !r.success);
 
-  console.log(`  Total: ${results.length} | OK: ${ok.length} | Failed: ${failed.length}`);
+  console.log(
+    `  Total: ${results.length} | OK: ${ok.length} | Failed: ${failed.length}`,
+  );
 
   if (ok.length > 0) {
     const avgFields =
@@ -236,7 +238,9 @@ function printSummary(results: PipelineResult[]): void {
       const avg =
         items.reduce((s, r) => s + r.extraction.totalFieldCount, 0) /
         items.length;
-      console.log(`    ${type}: ${items.length} sites, avg ${avg.toFixed(1)} fields`);
+      console.log(
+        `    ${type}: ${items.length} sites, avg ${avg.toFixed(1)} fields`,
+      );
     }
   }
 
@@ -270,10 +274,14 @@ async function main() {
     sites = fixtureData.default.sites as SiteFixture[];
   }
 
-  console.log(`\nVerifying extraction pipeline with ${sites.length} site(s)...\n`);
+  console.log(
+    `\nVerifying extraction pipeline with ${sites.length} site(s)...\n`,
+  );
   console.log(`NOTE: This test runs WITHOUT LLM — only site probe,`);
   console.log(`scraping, JSON-LD mapping, OpenGraph, and validation.`);
-  console.log(`To test full LLM extraction, use the Worker /extract endpoint.\n`);
+  console.log(
+    `To test full LLM extraction, use the Worker /extract endpoint.\n`,
+  );
 
   const results: PipelineResult[] = [];
 
