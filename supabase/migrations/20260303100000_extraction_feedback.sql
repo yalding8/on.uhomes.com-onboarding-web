@@ -22,8 +22,8 @@ CREATE TABLE IF NOT EXISTS extraction_feedback (
   corrected_value jsonb,
   feedback_type text NOT NULL CHECK (feedback_type IN ('correct', 'wrong', 'missing', 'hallucinated')),
 
-  -- 元信息
-  corrected_by uuid REFERENCES profiles(id) ON DELETE SET NULL,
+  -- 元信息（corrected_by 关联 suppliers 表，BD 用户也在此表中）
+  corrected_by uuid REFERENCES suppliers(id) ON DELETE SET NULL,
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
@@ -88,9 +88,9 @@ CREATE POLICY extraction_feedback_bd_read ON extraction_feedback
   TO authenticated
   USING (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role IN ('bd', 'data_team')
+      SELECT 1 FROM suppliers
+      WHERE suppliers.user_id = auth.uid()
+      AND suppliers.role IN ('bd', 'data_team')
     )
   );
 
@@ -99,9 +99,9 @@ CREATE POLICY extraction_feedback_bd_write ON extraction_feedback
   TO authenticated
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM profiles
-      WHERE profiles.id = auth.uid()
-      AND profiles.role IN ('bd', 'data_team')
+      SELECT 1 FROM suppliers
+      WHERE suppliers.user_id = auth.uid()
+      AND suppliers.role IN ('bd', 'data_team')
     )
   );
 
