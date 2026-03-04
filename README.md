@@ -84,6 +84,12 @@ npm run dev
 | `DOCUSIGN_WEBHOOK_SECRET`       | DocuSign Webhook HMAC 签名验证密钥                    |
 | `RESEND_API_KEY`                | Resend API Key，用于新申请邮件通知（可选）            |
 | `EXTRACTION_WORKER_URL`         | Extraction Worker 基础 URL（Fly.io 部署地址）         |
+| `UPSTASH_REDIS_REST_URL`        | Upstash Redis REST URL，用于 Rate Limiting（可选）    |
+| `UPSTASH_REDIS_REST_TOKEN`      | Upstash Redis REST Token                              |
+| `NEXT_PUBLIC_SENTRY_DSN`        | Sentry 前端 DSN（可选）                               |
+| `SENTRY_DSN`                    | Sentry 服务端 DSN（可选）                             |
+| `NEXT_PUBLIC_POSTHOG_KEY`       | PostHog API Key，用于前端 Analytics（可选）            |
+| `NEXT_PUBLIC_POSTHOG_HOST`      | PostHog API Host（默认 `https://app.posthog.com`）    |
 
 > 每次新增环境变量后，必须同步更新本表。
 

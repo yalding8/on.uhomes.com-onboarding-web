@@ -1,8 +1,31 @@
 import { type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import {
+  checkRateLimit,
+  tooManyRequestsResponse,
+  attachRateLimitHeaders,
+} from "@/lib/security/rate-limit";
+
+/** Whether Upstash rate limiting is configured */
+const RATE_LIMIT_ENABLED =
+  !!process.env.UPSTASH_REDIS_REST_URL &&
+  !!process.env.UPSTASH_REDIS_REST_TOKEN;
 
 export async function proxy(request: NextRequest) {
-  // Delegate the handling to our robust Supabase OTP middleware
+  const { pathname } = request.nextUrl;
+
+  // Rate limit API routes and login (skip static pages)
+  if (RATE_LIMIT_ENABLED && (pathname.startsWith("/api/") || pathname.startsWith("/login"))) {
+    const result = await checkRateLimit(request);
+    if (!result.allowed) {
+      return tooManyRequestsResponse(result);
+    }
+    // Continue to auth middleware; attach headers to final response
+    const response = await updateSession(request);
+    return attachRateLimitHeaders(response, result);
+  }
+
+  // Non-API routes: skip rate limiting, proceed to auth
   return await updateSession(request);
 }
 

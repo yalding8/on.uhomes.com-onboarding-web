@@ -54,3 +54,5 @@ graph TB
 | POST   | `/api/contracts/[contractId]/confirm` | Session (BD/Admin) | 确认合同并发送签署（含 resend）           |
 | POST   | `/api/webhooks/docusign`              | HMAC Signature     | DocuSign 签署完成回调（主签约通道）       |
 | POST   | `/api/webhooks/opensign`              | HMAC Signature     | ~~OpenSign 回调（已废弃，仅兼容旧合同）~~ |
+| POST   | `/api/account/delete`                 | Session (Supplier) | 请求删除账户（30天冷静期）                |
+| GET    | `/api/account/export`                 | Session (Supplier) | GDPR 数据导出（JSON 下载）                |
