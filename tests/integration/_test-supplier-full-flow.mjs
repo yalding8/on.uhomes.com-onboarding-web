@@ -8,8 +8,6 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 import { createClient } from "@supabase/supabase-js";
-import { createHmac } from "crypto";
-
 // ── Env loading ──────────────────────────────────────────────────────
 function loadEnv(fp) {
   try {
@@ -37,7 +35,6 @@ const BASE = "http://localhost:3100";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const webhookSecret = process.env.DOCUSIGN_WEBHOOK_SECRET;
 const admin = createClient(url, serviceKey);
 
 const RUN_ID = `TEST_SUPPLIER_FLOW_${Date.now()}`;
@@ -90,12 +87,6 @@ async function createSessionCookie(targetEmail) {
     token_type: session.token_type,
   });
   return `${cookieName}.0=${encodeURIComponent(cookieValue)}`;
-}
-
-function _signWebhook(payload) {
-  const hmac = createHmac("sha256", webhookSecret);
-  hmac.update(payload);
-  return hmac.digest("base64");
 }
 
 // ── Cleanup ──────────────────────────────────────────────────────────

@@ -4,7 +4,6 @@ import {
   evaluateBadgeEligibility,
   isBadgeExpired,
   type SupplierStats,
-  type BadgeType,
 } from "../trust-badges";
 
 describe("BADGE_TYPES", () => {

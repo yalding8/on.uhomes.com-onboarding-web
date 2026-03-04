@@ -34,8 +34,6 @@ export function computeMetrics(
 ): BenchmarkMetrics {
   const extractedKeys = new Set(Object.keys(extracted));
   const expectedPresent = expected.filter((f) => f.presentOnPage);
-  const expectedKeys = new Set(expectedPresent.map((f) => f.key));
-
   // 覆盖率
   const covered = expectedPresent.filter((f) => extractedKeys.has(f.key));
   const fieldCoverage =
