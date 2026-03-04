@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isBdDomain } from "@/lib/admin/permissions";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -44,11 +45,28 @@ export async function updateSession(request: NextRequest) {
   // Protected Routes & role-based + 3-stage user state resolution rules
   if (user) {
     // Query suppliers table for role and status (Requirements 1.5)
-    const { data: supplier } = await supabase
+    let { data: supplier } = await supabase
       .from("suppliers")
       .select("status, role")
       .eq("user_id", user.id)
       .single();
+
+    // Auto-provision: @uhomes.com emails become BD on first login
+    if (!supplier && user.email && isBdDomain(user.email)) {
+      const admin = createAdminClient();
+      const { data: created } = await admin
+        .from("suppliers")
+        .insert({
+          user_id: user.id,
+          role: "bd",
+          status: "SIGNED",
+          company_name: "uhomes BD",
+          contact_email: user.email,
+        })
+        .select("status, role")
+        .single();
+      if (created) supplier = created;
+    }
 
     const role = supplier?.role || "supplier";
     const status = supplier?.status || "NEW";

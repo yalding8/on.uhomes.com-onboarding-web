@@ -29,3 +29,10 @@ export const ADMIN_EMAILS: ReadonlyArray<string> = loadAdminEmails();
 export function isAdmin(email: string): boolean {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 }
+
+const BD_DOMAIN = "@uhomes.com";
+
+/** Check if an email belongs to the internal BD domain (@uhomes.com). */
+export function isBdDomain(email: string): boolean {
+  return email.toLowerCase().endsWith(BD_DOMAIN);
+}

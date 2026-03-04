@@ -90,3 +90,34 @@ describe("permissions — ADMIN_EMAILS env var override", () => {
     expect(ADMIN_EMAILS).toHaveLength(3);
   });
 });
+
+describe("isBdDomain", () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  it("returns true for @uhomes.com emails", async () => {
+    const { isBdDomain } = await import("../permissions");
+    expect(isBdDomain("alice@uhomes.com")).toBe(true);
+    expect(isBdDomain("bob.smith@uhomes.com")).toBe(true);
+  });
+
+  it("is case-insensitive", async () => {
+    const { isBdDomain } = await import("../permissions");
+    expect(isBdDomain("ALICE@UHOMES.COM")).toBe(true);
+    expect(isBdDomain("Alice@Uhomes.Com")).toBe(true);
+  });
+
+  it("returns false for external emails", async () => {
+    const { isBdDomain } = await import("../permissions");
+    expect(isBdDomain("user@gmail.com")).toBe(false);
+    expect(isBdDomain("user@outlook.com")).toBe(false);
+  });
+
+  it("returns false for similar but different domains", async () => {
+    const { isBdDomain } = await import("../permissions");
+    expect(isBdDomain("user@notuhomes.com")).toBe(false);
+    expect(isBdDomain("user@uhomes.com.cn")).toBe(false);
+    expect(isBdDomain("user@sub.uhomes.com")).toBe(false);
+  });
+});
