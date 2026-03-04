@@ -23,13 +23,18 @@ export function CookieConsentBanner() {
   });
 
   useEffect(() => {
-    if (shouldShowBanner()) {
-      setView("banner");
-      setConsent(getDefaultConsent());
-    } else {
-      const saved = readConsent();
-      if (saved) setConsent(saved);
-    }
+    // Read cookie consent from localStorage on mount.
+    // Wrapped in rAF to avoid synchronous setState in effect (react-hooks/set-state-in-effect).
+    const id = requestAnimationFrame(() => {
+      if (shouldShowBanner()) {
+        setView("banner");
+        setConsent(getDefaultConsent());
+      } else {
+        const saved = readConsent();
+        if (saved) setConsent(saved);
+      }
+    });
+    return () => cancelAnimationFrame(id);
   }, []);
 
   if (view === "hidden") return null;
