@@ -85,9 +85,7 @@ describe("scoreCategoryCoverage", () => {
   });
 
   it("returns 60 for all 3 required categories", () => {
-    expect(
-      scoreCategoryCoverage(["exterior", "bedroom", "bathroom"]),
-    ).toBe(60);
+    expect(scoreCategoryCoverage(["exterior", "bedroom", "bathroom"])).toBe(60);
   });
 
   it("returns 67 for 3 required + 1 optional", () => {
@@ -106,9 +104,9 @@ describe("scoreCategoryCoverage", () => {
   });
 
   it("deduplicates repeated categories", () => {
-    expect(
-      scoreCategoryCoverage(["exterior", "exterior", "exterior"]),
-    ).toBe(20);
+    expect(scoreCategoryCoverage(["exterior", "exterior", "exterior"])).toBe(
+      20,
+    );
   });
 });
 
@@ -137,9 +135,21 @@ describe("scoreIntegrity", () => {
 describe("calculatePhotoScore", () => {
   it("S1-U08: calculates weighted composite correctly", () => {
     const images: ImageMeta[] = [
-      { category: "exterior", width: 1920, integrity: { hasWatermark: false, isStock: false, isBlurry: false } },
-      { category: "bedroom", width: 1920, integrity: { hasWatermark: false, isStock: false, isBlurry: false } },
-      { category: "bathroom", width: 1920, integrity: { hasWatermark: false, isStock: false, isBlurry: false } },
+      {
+        category: "exterior",
+        width: 1920,
+        integrity: { hasWatermark: false, isStock: false, isBlurry: false },
+      },
+      {
+        category: "bedroom",
+        width: 1920,
+        integrity: { hasWatermark: false, isStock: false, isBlurry: false },
+      },
+      {
+        category: "bathroom",
+        width: 1920,
+        integrity: { hasWatermark: false, isStock: false, isBlurry: false },
+      },
     ];
     const result = calculatePhotoScore(images);
     // quantity: 3 photos = 60, resolution: avg 1920 = 100, coverage: 3 required = 60, integrity: all clean = 100
@@ -162,8 +172,16 @@ describe("calculatePhotoScore", () => {
 
   it("handles mixed resolution images (uses average)", () => {
     const images: ImageMeta[] = [
-      { category: "exterior", width: 640, integrity: { hasWatermark: false, isStock: false, isBlurry: false } },
-      { category: "bedroom", width: 1920, integrity: { hasWatermark: false, isStock: false, isBlurry: false } },
+      {
+        category: "exterior",
+        width: 640,
+        integrity: { hasWatermark: false, isStock: false, isBlurry: false },
+      },
+      {
+        category: "bedroom",
+        width: 1920,
+        integrity: { hasWatermark: false, isStock: false, isBlurry: false },
+      },
     ];
     const result = calculatePhotoScore(images);
     // quantity: 2 = 30, resolution: avg(0, 100) = 50, coverage: ext+bed = 40, integrity: 100
@@ -179,15 +197,16 @@ describe("getPhotoTier", () => {
   });
 
   it("returns Previewable for score >= 80 with 3 images including exterior+bedroom at 800px", () => {
-    expect(
-      getPhotoTier(80, 3, ["exterior", "bedroom", "bathroom"], 800),
-    ).toBe("Previewable");
+    expect(getPhotoTier(80, 3, ["exterior", "bedroom", "bathroom"], 800)).toBe(
+      "Previewable",
+    );
   });
 
   it("returns Recommended for score >= 90 with 6 images covering 5 categories at 1200px", () => {
     expect(
       getPhotoTier(
-        90, 6,
+        90,
+        6,
         ["exterior", "bedroom", "bathroom", "kitchen", "lobby", "amenities"],
         1200,
       ),
@@ -195,8 +214,6 @@ describe("getPhotoTier", () => {
   });
 
   it("returns Premium for perfect score with 10+ images, all categories, high-res", () => {
-    expect(
-      getPhotoTier(100, 10, [...IMAGE_CATEGORIES], 1920),
-    ).toBe("Premium");
+    expect(getPhotoTier(100, 10, [...IMAGE_CATEGORIES], 1920)).toBe("Premium");
   });
 });

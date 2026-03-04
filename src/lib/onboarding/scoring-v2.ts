@@ -98,9 +98,7 @@ export function calculateMultiDimensionalScore(
   const richness = input.richness;
 
   const total = Math.round(
-    completeness * W_COMPLETENESS +
-      quality * W_QUALITY +
-      richness * W_RICHNESS,
+    completeness * W_COMPLETENESS + quality * W_QUALITY + richness * W_RICHNESS,
   );
 
   return { completeness, quality, richness, total };

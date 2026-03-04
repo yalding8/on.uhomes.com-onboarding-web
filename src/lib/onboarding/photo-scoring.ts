@@ -113,7 +113,13 @@ const W_INTEGRITY = 0.15;
 
 export function calculatePhotoScore(images: ImageMeta[]): PhotoScoreResult {
   if (images.length === 0) {
-    return { quantity: 0, resolution: 0, coverage: 0, integrity: 0, composite: 0 };
+    return {
+      quantity: 0,
+      resolution: 0,
+      coverage: 0,
+      integrity: 0,
+      composite: 0,
+    };
   }
 
   const quantity = scoreQuantity(images.length);

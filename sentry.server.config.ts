@@ -6,6 +6,5 @@ Sentry.init({
 
   tracesSampleRate: 0.5,
 
-  environment:
-    process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
+  environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "development",
 });

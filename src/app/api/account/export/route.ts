@@ -25,10 +25,7 @@ export async function GET() {
     .single();
 
   if (!supplier) {
-    return NextResponse.json(
-      { error: "Supplier not found" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Supplier not found" }, { status: 404 });
   }
 
   const exportData = await exportSupplierData(

@@ -59,9 +59,7 @@ export function assignBD(
 
   // 2. City match
   const cityNorm = input.city.toLowerCase();
-  const cityMatch = active.find(
-    (t) => t.city?.toLowerCase() === cityNorm,
-  );
+  const cityMatch = active.find((t) => t.city?.toLowerCase() === cityNorm);
   if (cityMatch) return { bd_user_id: cityMatch.bd_user_id, reason: "city" };
 
   // 3. Country fallback (lowest load among country BDs without city restriction)

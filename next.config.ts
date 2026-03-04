@@ -11,7 +11,7 @@ export default withSentryConfig(nextConfig, {
   // Upload source maps to Sentry for better stack traces
   widenClientFileUpload: true,
   // Hide source maps from client bundles
-  hideSourceMaps: true,
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
   // Disable Sentry webpack plugin when DSN is not set (dev/test)
   disableLogger: true,
 });

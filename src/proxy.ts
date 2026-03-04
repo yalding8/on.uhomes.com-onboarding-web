@@ -15,7 +15,10 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rate limit API routes and login (skip static pages)
-  if (RATE_LIMIT_ENABLED && (pathname.startsWith("/api/") || pathname.startsWith("/login"))) {
+  if (
+    RATE_LIMIT_ENABLED &&
+    (pathname.startsWith("/api/") || pathname.startsWith("/login"))
+  ) {
     const result = await checkRateLimit(request);
     if (!result.allowed) {
       return tooManyRequestsResponse(result);

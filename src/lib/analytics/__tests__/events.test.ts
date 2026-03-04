@@ -35,7 +35,9 @@ describe("EVENTS constants", () => {
 
   it("has all BD assignment funnel events", () => {
     expect(EVENTS.APPLICATION_BD_ASSIGNED).toBe("application_bd_assigned");
-    expect(EVENTS.APPLICATION_BD_FIRST_CONTACT).toBe("application_bd_first_contact");
+    expect(EVENTS.APPLICATION_BD_FIRST_CONTACT).toBe(
+      "application_bd_first_contact",
+    );
     expect(EVENTS.APPLICATION_APPROVED).toBe("application_approved");
     expect(EVENTS.APPLICATION_REJECTED).toBe("application_rejected");
   });

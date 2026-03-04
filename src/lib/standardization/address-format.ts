@@ -17,68 +17,70 @@ export type AddressComponents = {
  * Address field ordering by country (ISO 3166-1 alpha-2).
  * Defines the display sequence of address components.
  */
-const ADDRESS_FORMATS: Record<string, ReadonlyArray<keyof AddressComponents>> =
-  {
-    US: [
-      "street_number",
-      "street_name",
-      "unit_number",
-      "city",
-      "state_province",
-      "postal_code",
-    ],
-    CA: [
-      "street_number",
-      "street_name",
-      "unit_number",
-      "city",
-      "state_province",
-      "postal_code",
-    ],
-    UK: [
-      "unit_number",
-      "street_number",
-      "street_name",
-      "city",
-      "state_province",
-      "postal_code",
-    ],
-    GB: [
-      "unit_number",
-      "street_number",
-      "street_name",
-      "city",
-      "state_province",
-      "postal_code",
-    ],
-    AU: [
-      "unit_number",
-      "street_number",
-      "street_name",
-      "city",
-      "state_province",
-      "postal_code",
-    ],
-    NZ: [
-      "unit_number",
-      "street_number",
-      "street_name",
-      "city",
-      "state_province",
-      "postal_code",
-    ],
-    JP: [
-      "postal_code",
-      "state_province",
-      "city",
-      "street_name",
-      "street_number",
-      "unit_number",
-    ],
-    DE: ["street_name", "street_number", "postal_code", "city"],
-    FR: ["street_number", "street_name", "postal_code", "city"],
-    NL: ["street_name", "street_number", "postal_code", "city"],
-  };
+const ADDRESS_FORMATS: Record<
+  string,
+  ReadonlyArray<keyof AddressComponents>
+> = {
+  US: [
+    "street_number",
+    "street_name",
+    "unit_number",
+    "city",
+    "state_province",
+    "postal_code",
+  ],
+  CA: [
+    "street_number",
+    "street_name",
+    "unit_number",
+    "city",
+    "state_province",
+    "postal_code",
+  ],
+  UK: [
+    "unit_number",
+    "street_number",
+    "street_name",
+    "city",
+    "state_province",
+    "postal_code",
+  ],
+  GB: [
+    "unit_number",
+    "street_number",
+    "street_name",
+    "city",
+    "state_province",
+    "postal_code",
+  ],
+  AU: [
+    "unit_number",
+    "street_number",
+    "street_name",
+    "city",
+    "state_province",
+    "postal_code",
+  ],
+  NZ: [
+    "unit_number",
+    "street_number",
+    "street_name",
+    "city",
+    "state_province",
+    "postal_code",
+  ],
+  JP: [
+    "postal_code",
+    "state_province",
+    "city",
+    "street_name",
+    "street_number",
+    "unit_number",
+  ],
+  DE: ["street_name", "street_number", "postal_code", "city"],
+  FR: ["street_number", "street_name", "postal_code", "city"],
+  NL: ["street_name", "street_number", "postal_code", "city"],
+};
 
 /** Default format: US-style */
 const DEFAULT_FORMAT: ReadonlyArray<keyof AddressComponents> = [
@@ -135,9 +137,7 @@ export function formatAddress(
   const streetLine = streetParts.join(" ");
   const locationLine = locationParts.join(" ");
 
-  return [streetLine, locationLine]
-    .filter(Boolean)
-    .join(LINE_SEPARATOR);
+  return [streetLine, locationLine].filter(Boolean).join(LINE_SEPARATOR);
 }
 
 /**

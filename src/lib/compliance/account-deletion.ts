@@ -104,10 +104,7 @@ export async function executeDeletion(
   const isAustralia = countryCode === "AU";
 
   // 1. Delete buildings and building_data
-  await adminClient
-    .from("buildings")
-    .delete()
-    .eq("supplier_id", supplierId);
+  await adminClient.from("buildings").delete().eq("supplier_id", supplierId);
 
   // 2. Anonymize contracts (keep financial data for legal compliance)
   if (isAustralia) {

@@ -152,9 +152,7 @@ export async function checkRateLimit(
 /**
  * Build a 429 Too Many Requests response with standard headers.
  */
-export function tooManyRequestsResponse(
-  result: RateLimitResult,
-): NextResponse {
+export function tooManyRequestsResponse(result: RateLimitResult): NextResponse {
   const retryAfterSec = Math.ceil(result.retryAfterMs / 1000);
   return NextResponse.json(
     {

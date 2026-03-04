@@ -29,10 +29,7 @@ export async function POST() {
     .single();
 
   if (!supplier) {
-    return NextResponse.json(
-      { error: "Supplier not found" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Supplier not found" }, { status: 404 });
   }
 
   if (supplier.status === "DELETION_PENDING") {
