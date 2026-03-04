@@ -133,7 +133,23 @@ export async function POST(request: Request) {
       userId = authUser.user.id;
     }
 
-    // 4. Create supplier record — rollback Auth user on failure
+    // 4. Guard: user_id may already exist in suppliers (e.g. BD/Admin account)
+    const { data: existingByUserId } = await supabaseAdmin
+      .from("suppliers")
+      .select("id, role, contact_email")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existingByUserId) {
+      return NextResponse.json(
+        {
+          error: `This email is already associated with a ${existingByUserId.role} account (${existingByUserId.contact_email})`,
+        },
+        { status: 409 },
+      );
+    }
+
+    // 5. Create supplier record — rollback Auth user on failure
     const { data: supplier, error: supplierError } = await supabaseAdmin
       .from("suppliers")
       .insert({
@@ -159,7 +175,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 5. Create contract record — rollback supplier + Auth user on failure
+    // 6. Create contract record — rollback supplier + Auth user on failure
     const { error: contractError } = await supabaseAdmin
       .from("contracts")
       .insert({
