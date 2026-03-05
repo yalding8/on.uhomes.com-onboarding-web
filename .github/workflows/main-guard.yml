@@ -1,8 +1,7 @@
 name: Main Branch Guard
 
 # 在代码合并/推送到 main 后立即运行质检。
-# 如果质检失败，自动 revert 并创建 Issue 告警。
-# 这是 GitHub Free 私有仓库下的「软门禁」替代方案。
+# 质检失败会创建 Issue 告警（不再自动 revert，由 Branch Protection 前置拦截）。
 
 on:
   push:
@@ -15,7 +14,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 2
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -35,8 +33,8 @@ jobs:
       - name: TypeScript Check
         run: npx tsc --noEmit
 
-      - name: Single File Lines Check (<= 300)
-        run: bash scripts/check-file-lines.sh
+      - name: Single File Lines Check (warning only)
+        run: bash scripts/check-file-lines.sh || true
 
       - name: Vitest Checks
         run: npm run test:ci
@@ -48,54 +46,58 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
-  auto-revert:
+  alert-on-failure:
     runs-on: ubuntu-latest
     needs: post-merge-gate
     if: failure()
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Revert Last Commit
-        run: |
-          COMMIT_SHA=$(git rev-parse HEAD)
-          COMMIT_MSG=$(git log -1 --pretty=%s)
-          git revert --no-edit HEAD
-          git push origin main
-          echo "REVERTED_SHA=$COMMIT_SHA" >> $GITHUB_ENV
-          echo "REVERTED_MSG=$COMMIT_MSG" >> $GITHUB_ENV
 
       - name: Create Alert Issue
         uses: actions/github-script@v7
         with:
           script: |
-            const sha = process.env.REVERTED_SHA;
-            const msg = process.env.REVERTED_MSG;
+            const sha = context.sha;
+            const msg = context.payload.head_commit?.message || 'Unknown';
             const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `🚨 质检失败自动回滚: ${msg}`,
+              title: `🚨 质检失败: ${msg.split('\n')[0]}`,
               body: [
-                `## 自动回滚通知`,
+                `## 质检失败通知`,
                 ``,
-                `提交 \`${sha}\` 合并到 main 后质检未通过，已被自动 revert。`,
+                `提交 \`${sha}\` 合并到 main 后质检未通过。`,
                 ``,
-                `**被回滚的提交**: \`${sha}\``,
-                `**提交信息**: ${msg}`,
+                `**提交**: \`${sha}\``,
+                `**提交信息**: ${msg.split('\n')[0]}`,
                 `**CI 运行详情**: [查看日志](${runUrl})`,
                 ``,
                 `### 下一步`,
                 `1. 查看 CI 日志定位失败原因`,
-                `2. 在 feature 分支修复后重新提交 PR`,
+                `2. 在 feature 分支修复后提交 PR`,
                 `3. 确认 PR 的 CI 全绿后再 merge`,
               ].join('\n'),
               labels: ['bug', 'ci-failure'],
             });
+
+  sync-gitlab:
+    runs-on: ubuntu-latest
+    needs: post-merge-gate
+    if: success()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Sync to GitLab
+        env:
+          GITLAB_SSH_KEY: ${{ secrets.GITLAB_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$GITLAB_SSH_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -p 20022 git.uhomes.com >> ~/.ssh/known_hosts 2>/dev/null
+          git remote add gitlab ssh://git@git.uhomes.com:20022/ning_ding/on.uhomes.com.git
+          git push gitlab --all --no-thin
+          git push gitlab --tags

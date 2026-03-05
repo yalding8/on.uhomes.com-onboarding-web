@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jobs 站点 OAuth 登录测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn-primary {
+            background: #007bff;
+            border-color: #007bff;
+        }
+        .btn-danger {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-info {
+            background: #17a2b8;
+            border-color: #17a2b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 style="color: #333; margin-bottom: 30px;">Jobs 站点 OAuth 登录测试</h1>
+
+        <div class="card" style="max-width: 500px;">
+            <h2 style="color: #666; margin-bottom: 20px; font-size: 16px;">接口配置</h2>
+
+            <div style="margin-bottom: 20px; padding: 20px; background: #f9f5f5; border-radius: 8px;">
+                <p><strong>Base Domain:</strong> <code>https://www.uhomes.com</code></p>
+                <p><strong>测试环境 Base Domain:</strong> <code>https://www.pc1.uhomes.com</code></p>
+                <p><strong>App ID:</strong> <code>1009</code></p>
+                <p><strong>回调地址:</strong> <code>https://jobs.uhomes.com/auth/callback</code> (示例，实际使用完整域名)</p>
+            </div>
+
+            <h2 style="color: #666; margin-bottom: 15px;">请求参数配置</h2>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">redirect_uri (回调地址):</label>
+                    <input type="text" id="redirectUri" value="https://jobs.uhomes.com/" placeholder="https://jobs.uhomes.com/" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+
+                <div>
+                    <label style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">from (登录页面跳转):</label>
+                    <select id="from" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <option value="jobs">Jobs 站点</option>
+                        <option value="wechat">微信</option>
+                        <option value="google">Google</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button type="button" onclick="goToLogin()" class="btn btn-primary" style="width: 100%;">跳转到 Uhomes 登录</button>
+            </div>
+
+            <h2 style="color: #666; margin-bottom: 20px;">测试流程</h2>
+
+            <div style="background: #f9f5f5; border-radius: 8px; padding: 20px;">
+                <div id="step1" style="margin-bottom: 15px;">
+                    <span class="step-number">1</span>
+                    <span class="step-title">点击登录跳转</span>
+                    <p>用户点击「跳转到 Uhomes 登录」按钮，请求：<br>
+                        <code>GET /buser/api/oauth/goto/jobs?redirect=https://jobs.uhomes.com/</code>
+                    </p>
+                </div>
+
+                <div id="step2" style="margin-bottom: 15px;">
+                    <span class="step-number">2</span>
+                    <span class="step-title">Uhomes 登录</span>
+                    <p>在 Uhomes 登录页面输入账号密码，完成登录</p>
+                    <p>登录成功后，系统会生成 tokens 并跳转回调地址</p>
+                </div>
+
+                <div id="step3" style="margin-bottom: 15px;">
+                    <span class="step-number">3</span>
+                    <span class="step-title">接收回调</span>
+                    <p>登录成功后，系统会重定向到 Jobs 站点的回调地址，URL 中会携带：<code>uhouzz_token=xxx</code> 和 <code>access_token=yyy</code></p>
+                </div>
+
+                <div id="step4" style="margin-bottom: 15px;">
+                    <span class="step-number">4</span>
+                    <span class="step-title">获取用户信息</span>
+                    <p>使用 <code>access_token</code> 调用以下接口获取用户信息：</p>
+                        <ul>
+                            <li><code>GET /api/oauth/getUserInfo</code></li>
+                            <li><code>POST /api/oauth/refreshToken</code> (刷新 token)</li>
+                        </ul>
+                </div>
+
+                <div id="step5" style="margin-bottom: 15px;">
+                    <span class="step-number">5</span>
+                    <span class="step-title">完成</span>
+                    <p>Jobs 站点接收用户信息后，创建/关联本地账号，完成登录流程</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+                <div style="font-size: 14px; color: #856404;">
+                    <pre id="api-response" style="background: #f8f9fa; color: #333; padding: 10px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word;">
+<code>// 成功响应示例
+{
+  "error_code": 0,
+  "message": "success",
+  "data": {
+    "cust_id": 12345,
+    "phone": "+8613800138000",
+    "country_code": "86",
+    "email": "user@example.com",
+    "nickname": "张三",
+    "realname": "张三",
+    "avatar": "https://cdn.uhomes.com/avatar/xxx.jpg",
+    "identity": 1,
+    "is_phone_confirmed": 1,
+    "is_email_confirmed": 1,
+    "gender": 0,
+    "birthday": "1990-01-01"
+  }
+}</code></pre>
+                    </div>
+            </div>
+
+            <h2 style="color: #666; margin-bottom: 20px;">快速测试</h2>
+
+            <div style="background: #f9f5f5; border-radius: 8px; padding: 20px;">
+                <p style="font-size: 14px; color: #333;"><strong>快速测试流程：</strong></p>
+                <ol>
+                    <li>点击「跳转到 Uhomes 登录」按钮</li>
+                    <li>在新标签页打开登录页面，输入账号密码登录</li>
+                    <li>查看回调 URL 中是否有 <code>uhouzz_token</code> 和 <code>access_token</code></li>
+                    <li>复制 <code>access_token</code>，在浏览器控制台运行以下测试命令：</li>
+                </ol>
+
+                <div style="margin-top: 20px; background: #f8f9fa; border-radius: 8px; padding: 15px;">
+                    <p style="font-size: 14px; color: #333;"><strong>1. 获取用户信息测试：</strong></p>
+                    <pre style="background: #343a40; color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>curl -X GET "https://www.uhomes.com/buser/api/oauth/getUserInfo" \
+  -H "X-Client-Appid: 1009" \
+  -H "access_token=YOUR_ACCESS_TOKEN"</code></pre>
+
+                    <p style="font-size: 14px; color: #333; margin-top: 15px;"><strong>2. 刷新 Token 测试：</strong></p>
+                    <pre style="background: #343a40; color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto;"><code>curl -X POST "https://www.uhomes.com/buser/api/oauth/refreshToken" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -H "X-Client-Appid: 1009" \
+  -H "access_token=YOUR_ACCESS_TOKEN"</code></pre>
+                    </div>
+
+                <div style="margin-top: 20px; background: #f8d7da; border-radius: 8px; padding: 15px; border: 1px solid #f5c6cb;">
+                    <p style="font-size: 14px; color: #721c24;"><strong>错误码参考：</strong></p>
+                    <ul style="margin-left: 20px; color: #721c24;">
+                        <li><code>1001</code>: access_token 不能为空</li>
+                        <li><code>1002</code>: token 无效或已过期</li>
+                        <li><code>1003</code>: 用户不存在</li>
+                        <li><code>5000</code>: 服务器错误</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 跳转到登录页
+    function goToLogin() {
+        const redirectUri = document.getElementById('redirectUri').value;
+        const encodedRedirectUri = encodeURIComponent(redirectUri);
+        const from = document.getElementById('from').value;
+        const url = 'https://www.pc1.uhomes.com/buser/api/oauth/goto/jobs?redirect=' + encodedRedirectUri;
+
+        console.log('跳转到登录页:', url);
+        window.location.href = url;
+    }
+
+    // 显示 API 响应
+    function showResponse(result, success = false) {
+        const responseDiv = document.getElementById('api-response');
+        responseDiv.innerHTML = '';
+
+        if (success) {
+            responseDiv.innerHTML = '<h3 style="color: #28a745;">✅ API 调用成功</h3>';
+            responseDiv.innerHTML += '<pre style="margin-top: 10px; background: #f8f9fa; color: #333; padding: 10px; border-radius: 4px;">' + JSON.stringify(result, null, 2) + '</pre>';
+        } else {
+            responseDiv.innerHTML = '<h3 style="color: #dc3545;">❌ 错误</h3>';
+            responseDiv.innerHTML += '<p style="color: #dc3545;">错误码: ' + result.error_code + '</p>';
+            responseDiv.innerHTML += '<p style="color: #dc3545;">错误信息: ' + result.message + '</p>';
+        }
+    }
+
+    // 获取用户信息
+    function getUserInfo() {
+        const accessToken = document.getElementById('accessToken').value;
+
+        if (!accessToken) {
+            alert('请先完成登录流程，获取 access_token');
+            return;
+        }
+
+        const headers = {
+            'X-Client-Appid': '1009',
+            'X-Client-Authorization': accessToken
+        };
+
+        showLoading('正在获取用户信息...');
+
+        fetch('https://www.pc1.uhomes.com/buser/api/oauth/getUserInfo', {
+            headers: headers
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.error_code === 0) {
+                showResponse(result.data, true);
+                saveTokens(result.data.access_token, null);
+            } else {
+                showResponse(result, false);
+            }
+        })
+        .catch(error => {
+            showResponse({error_code: 5000, message: error.message}, false);
+        });
+    }
+
+    // 刷新 Token
+    function refreshToken() {
+        const accessToken = localStorage.getItem('access_token');
+
+        if (!accessToken) {
+            alert('请先完成登录流程，获取 access_token');
+            return;
+        }
+
+        showLoading('正在刷新 Token...');
+
+        fetch('https://www.pc1.uhomes.com/api/oauth/refreshToken', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Client-Appid': '1009',
+                'X-Client-Authorization': accessToken
+            },
+            body: ''
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.error_code === 0) {
+                showResponse(result.data, true);
+                saveTokens(result.data.access_token, accessToken);
+            } else {
+                showResponse(result, false);
+            }
+        })
+        .catch(error => {
+            showResponse({error_code: 5000, message: error.message}, false);
+        });
+    }
+
+    // 保存 tokens
+    function saveTokens(uhouzzToken, accessToken) {
+        if (uhouzzToken) localStorage.setItem('uhouzz_token', uhouzzToken);
+        if (accessToken) localStorage.setItem('access_token', accessToken);
+    }
+
+    // 显示加载状态
+    function showLoading(message) {
+        const responseDiv = document.getElementById('api-response');
+        const loadingHtml = '<p style="color: #666;">' + message + '</p>';
+        responseDiv.innerHTML = loadingHtml;
+    }
+
+    // 清空响应
+    function clearResponse() {
+        document.getElementById('api-response').innerHTML = '';
+    }
+
+    // 页面加载时检查 URL 参数
+    window.addEventListener('DOMContentLoaded', function() {
+        const params = new URLSearchParams(window.location.search);
+        const uhouzzToken = params.get('uhouzz_token');
+        const accessToken = params.get('access_token');
+
+        if (uhouzzToken && accessToken) {
+            console.log('检测到回调参数:');
+            console.log('uhouzz_token:', uhouzzToken);
+            console.log('access_token:', accessToken);
+
+            // 保存 tokens
+            saveTokens(uhouzzToken, accessToken);
+
+            // 显示成功信息
+            const responseDiv = document.getElementById('api-response');
+            responseDiv.innerHTML = '<h3 style="color: #28a745;">✅ 登录回调成功</h3>';
+            responseDiv.innerHTML += '<p><strong>uhouzz_token:</strong> ' + uhouzzToken + '</p>';
+            responseDiv.innerHTML += '<p><strong>access_token:</strong> ' + accessToken + '</p>';
+            responseDiv.innerHTML += '<p style="margin-top: 15px;">正在获取用户信息...</p>';
+
+            // 自动获取用户信息
+            fetch('https://www.pc1.uhomes.com/buser/api/oauth/getUserInfo', {
+                headers: {
+                    'X-Client-Appid': '1009',
+                    'X-Client-Authorization': accessToken
+                }
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.error_code === 0) {
+                    responseDiv.innerHTML += '<h3 style="color: #28a745; margin-top: 20px;">✅ 用户信息获取成功</h3>';
+                    responseDiv.innerHTML += '<pre style="background: #f8f9fa; color: #333; padding: 10px; border-radius: 4px; margin-top: 10px;">' + JSON.stringify(result.data, null, 2) + '</pre>';
+                } else {
+                    responseDiv.innerHTML += '<h3 style="color: #dc3545; margin-top: 20px;">❌ 获取用户信息失败</h3>';
+                    responseDiv.innerHTML += '<p style="color: #dc3545;">错误码: ' + result.error_code + '</p>';
+                    responseDiv.innerHTML += '<p style="color: #dc3545;">错误信息: ' + result.message + '</p>';
+                }
+            })
+            .catch(error => {
+                responseDiv.innerHTML += '<h3 style="color: #dc3545; margin-top: 20px;">❌ 请求失败</h3>';
+                responseDiv.innerHTML += '<p style="color: #dc3545;">' + error.message + '</p>';
+            });
+        }
+    });
+</script>
+</body>
+</html>
