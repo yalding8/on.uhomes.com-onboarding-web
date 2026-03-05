@@ -13,7 +13,6 @@ export async function POST(request: Request) {
       supplier_type,
       contact_email,
       contact_phone,
-      city,
       country,
       website_url,
       referral_code,
@@ -24,13 +23,12 @@ export async function POST(request: Request) {
       !supplier_type ||
       !contact_email ||
       !contact_phone ||
-      !city ||
       !country
     ) {
       return NextResponse.json(
         {
           error:
-            "Missing required fields: company_name, supplier_type, contact_email, contact_phone, city, and country are all required.",
+            "Missing required fields: company_name, supplier_type, contact_email, contact_phone, and country are all required.",
         },
         { status: 400 },
       );
@@ -96,7 +94,6 @@ export async function POST(request: Request) {
         supplier_type,
         contact_email,
         contact_phone,
-        city,
         country,
         website_url: website_url || null,
         status: "PENDING",
@@ -117,7 +114,6 @@ export async function POST(request: Request) {
         company_name,
         supplier_type,
         contact_email,
-        city,
         country,
       });
       sendEmail({

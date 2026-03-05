@@ -2,7 +2,6 @@ interface NewApplicationData {
   company_name: string;
   supplier_type?: string;
   contact_email: string;
-  city: string;
   country: string;
 }
 
@@ -36,8 +35,8 @@ export function buildNewApplicationEmail(app: NewApplicationData): {
             <td style="padding: 8px 0;">${escapeHtml(app.contact_email)}</td>
           </tr>
           <tr>
-            <td style="padding: 8px 0; font-weight: 600; color: #222;">Location</td>
-            <td style="padding: 8px 0;">${escapeHtml(app.city)}, ${escapeHtml(app.country)}</td>
+            <td style="padding: 8px 0; font-weight: 600; color: #222;">Country</td>
+            <td style="padding: 8px 0;">${escapeHtml(app.country)}</td>
           </tr>
         </table>
         <div style="margin-top: 24px;">

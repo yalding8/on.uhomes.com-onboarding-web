@@ -9,7 +9,6 @@ interface FormData {
   company_name: string;
   supplier_type: string;
   phone: string;
-  city: string;
   website: string;
 }
 
@@ -26,7 +25,6 @@ const INITIAL_FORM: FormData = {
   company_name: "",
   supplier_type: "",
   phone: "",
-  city: "",
   website: "",
 };
 
@@ -238,24 +236,6 @@ export function InviteForm() {
           value={form.phone}
           onChange={(e) => handleChange("phone", e.target.value)}
           placeholder="+44 20 1234 5678"
-          className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-        />
-      </div>
-
-      {/* 城市 */}
-      <div className="mb-4">
-        <label
-          htmlFor="invite-city"
-          className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
-        >
-          City
-        </label>
-        <input
-          id="invite-city"
-          type="text"
-          value={form.city}
-          onChange={(e) => handleChange("city", e.target.value)}
-          placeholder="e.g. London, UK"
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
       </div>

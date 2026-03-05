@@ -16,7 +16,6 @@ interface InvitePayload {
   company_name: string;
   supplier_type?: string;
   phone?: string;
-  city?: string;
   website?: string;
 }
 
@@ -50,10 +49,6 @@ function validatePayload(
         typeof payload.phone === "string"
           ? payload.phone.trim() || undefined
           : undefined,
-      city:
-        typeof payload.city === "string"
-          ? payload.city.trim() || undefined
-          : undefined,
       website:
         typeof payload.website === "string"
           ? payload.website.trim() || undefined
@@ -75,7 +70,7 @@ export async function POST(request: Request) {
     if (!validation.valid) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { email, company_name, supplier_type, phone, city, website } =
+    const { email, company_name, supplier_type, phone, website } =
       validation.data;
 
     const supabaseAdmin = createAdminClient();
@@ -164,7 +159,6 @@ export async function POST(request: Request) {
         supplier_type: supplier_type ?? null,
         contact_email: email,
         contact_phone: phone ?? null,
-        city: city ?? null,
         website: website ?? null,
         status: "PENDING_CONTRACT",
         role: "supplier",

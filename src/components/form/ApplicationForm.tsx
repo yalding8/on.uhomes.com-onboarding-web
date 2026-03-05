@@ -27,7 +27,6 @@ const applicantSchema = z.object({
       /^\+\d{1,4}[\s\-]?\d[\d\s\-]{3,15}$/,
       "Please select a country/region code and enter your phone number",
     ),
-  city: z.string().min(1, "City is required"),
   country: z
     .string()
     .min(2, "Please enter the full country name (e.g. United Kingdom)"),
@@ -77,7 +76,6 @@ export function ApplicationForm({
       supplier_type: "",
       contact_email: prefillEmail || "",
       contact_phone: "",
-      city: "",
       country: "",
       website_url: "",
     },
@@ -245,46 +243,27 @@ export function ApplicationForm({
           )}
         </div>
 
-        {/* City & Country / Region Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-              City *
-            </label>
-            <input
-              {...register("city")}
-              disabled={isSubmitting}
-              className={`block w-full rounded-lg border ${errors.city ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
-              placeholder="e.g. London"
-            />
-            {errors.city && (
-              <p className="text-[var(--color-warning)] text-xs mt-1">
-                {errors.city.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
-              Country / Region *
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
-                <Globe className="h-5 w-5 text-[var(--color-text-muted)]" />
-              </div>
-              <input
-                {...register("country")}
-                disabled={isSubmitting}
-                className={`block w-full rounded-lg border ${errors.country ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} ps-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
-                placeholder="e.g. United Kingdom"
-              />
+        {/* Country / Region */}
+        <div>
+          <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+            Country / Region *
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 start-0 ps-3 flex items-center pointer-events-none">
+              <Globe className="h-5 w-5 text-[var(--color-text-muted)]" />
             </div>
-            {errors.country && (
-              <p className="text-[var(--color-warning)] text-xs mt-1">
-                {errors.country.message}
-              </p>
-            )}
+            <input
+              {...register("country")}
+              disabled={isSubmitting}
+              className={`block w-full rounded-lg border ${errors.country ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} ps-10 px-4 py-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors`}
+              placeholder="e.g. United Kingdom"
+            />
           </div>
+          {errors.country && (
+            <p className="text-[var(--color-warning)] text-xs mt-1">
+              {errors.country.message}
+            </p>
+          )}
         </div>
 
         {/* Website (Optional) */}

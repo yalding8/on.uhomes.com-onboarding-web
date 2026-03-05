@@ -100,7 +100,7 @@ function ApproveButton({
 }
 
 function location(app: ApplicationRow): string {
-  return [app.city, app.country].filter(Boolean).join(", ") || "—";
+  return app.country || "—";
 }
 
 function getBdLabel(bdId: string | null, bdUsers: BdOption[]): string {
@@ -131,7 +131,7 @@ export function ApplicationTable({
               <th className="text-start px-4 py-3 font-medium">Company</th>
               <th className="text-start px-4 py-3 font-medium">Type</th>
               <th className="text-start px-4 py-3 font-medium">Email</th>
-              <th className="text-start px-4 py-3 font-medium">Location</th>
+              <th className="text-start px-4 py-3 font-medium">Country</th>
               <th className="text-start px-4 py-3 font-medium">Assigned BD</th>
               <th className="text-start px-4 py-3 font-medium">Applied</th>
               <th className="text-start px-4 py-3 font-medium">Status</th>
