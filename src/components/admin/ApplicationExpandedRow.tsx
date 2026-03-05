@@ -32,6 +32,12 @@ export function ApplicationExpandedRow({
             <div className="space-y-1 text-sm text-[var(--color-text-secondary)]">
               <p>
                 <span className="text-[var(--color-text-muted)] font-medium">
+                  Type:
+                </span>{" "}
+                {app.supplier_type ?? "—"}
+              </p>
+              <p>
+                <span className="text-[var(--color-text-muted)] font-medium">
                   Phone:
                 </span>{" "}
                 {app.contact_phone ?? "—"}

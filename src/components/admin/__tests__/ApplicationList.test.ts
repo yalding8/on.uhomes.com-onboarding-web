@@ -15,6 +15,7 @@ const STATUSES: AppStatus[] = ["PENDING", "CONVERTED", "REJECTED"];
 interface MockApp {
   id: string;
   company_name: string;
+  supplier_type: string | null;
   contact_email: string;
   contact_phone: string | null;
   city: string | null;
@@ -29,6 +30,7 @@ function makeApp(overrides: Partial<MockApp> = {}): MockApp {
   return {
     id: crypto.randomUUID(),
     company_name: "Test Co",
+    supplier_type: null,
     contact_email: "test@example.com",
     contact_phone: null,
     city: null,
@@ -119,6 +121,9 @@ const arbApp = fc
   .record({
     id: fc.uuid(),
     company_name: fc.string({ minLength: 1, maxLength: 50 }),
+    supplier_type: fc.option(fc.string({ minLength: 1, maxLength: 50 }), {
+      nil: null,
+    }),
     contact_email: fc
       .string({ minLength: 5, maxLength: 30 })
       .map((s) => `${s}@test.com`),

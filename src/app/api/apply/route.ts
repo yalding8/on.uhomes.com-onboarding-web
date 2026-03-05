@@ -10,6 +10,7 @@ export async function POST(request: Request) {
 
     const {
       company_name,
+      supplier_type,
       contact_email,
       contact_phone,
       city,
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
 
     if (
       !company_name ||
+      !supplier_type ||
       !contact_email ||
       !contact_phone ||
       !city ||
@@ -28,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error:
-            "Missing required fields: company_name, contact_email, contact_phone, city, and country are all required.",
+            "Missing required fields: company_name, supplier_type, contact_email, contact_phone, city, and country are all required.",
         },
         { status: 400 },
       );
@@ -91,6 +93,7 @@ export async function POST(request: Request) {
     const { error } = await supabase.from("applications").insert([
       {
         company_name,
+        supplier_type,
         contact_email,
         contact_phone,
         city,
@@ -112,6 +115,7 @@ export async function POST(request: Request) {
     if (process.env.RESEND_API_KEY) {
       const emailPayload = buildNewApplicationEmail({
         company_name,
+        supplier_type,
         contact_email,
         city,
         country,

@@ -26,6 +26,7 @@ type AppStatus = "PENDING" | "CONVERTED" | "REJECTED";
 interface MockApp {
   id: string;
   company_name: string;
+  supplier_type: string | null;
   contact_email: string;
   contact_phone: string | null;
   city: string | null;
@@ -40,6 +41,7 @@ function makeApp(overrides: Partial<MockApp> = {}): MockApp {
   return {
     id: crypto.randomUUID(),
     company_name: "Test Co",
+    supplier_type: null,
     contact_email: "test@example.com",
     contact_phone: null,
     city: null,

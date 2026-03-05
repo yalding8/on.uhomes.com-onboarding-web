@@ -117,6 +117,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: userId,
         company_name: application.company_name,
+        supplier_type: application.supplier_type ?? null,
         contact_email: application.contact_email,
         status: "PENDING_CONTRACT",
         role: "supplier",

@@ -27,6 +27,7 @@ function makeApplications(): ApplicationRow[] {
     {
       id: "app-1",
       company_name: "Alpha Corp",
+      supplier_type: "Property Management Company",
       contact_email: "alpha@example.com",
       contact_phone: "+1 111 1111",
       city: "London",
@@ -39,6 +40,7 @@ function makeApplications(): ApplicationRow[] {
     {
       id: "app-2",
       company_name: "Beta LLC",
+      supplier_type: null,
       contact_email: "beta@example.com",
       contact_phone: "+1 222 2222",
       city: "Paris",
@@ -51,6 +53,7 @@ function makeApplications(): ApplicationRow[] {
     {
       id: "app-3",
       company_name: "Gamma Inc",
+      supplier_type: null,
       contact_email: "gamma@example.com",
       contact_phone: null,
       city: null,
@@ -63,6 +66,7 @@ function makeApplications(): ApplicationRow[] {
     {
       id: "app-4",
       company_name: "Delta Co",
+      supplier_type: null,
       contact_email: "delta@example.com",
       contact_phone: null,
       city: "Berlin",

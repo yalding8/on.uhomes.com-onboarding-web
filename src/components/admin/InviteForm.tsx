@@ -1,20 +1,13 @@
 "use client";
 
-/**
- * 邀请供应商表单 — Client Component
- *
- * 表单字段：邮箱（必填）、公司名称（必填）、电话（选填）、城市（选填）、网站（选填）
- * 前端验证 + 提交后显示成功/错误提示。
- *
- * Requirements: 8.1, 8.2, 8.5
- */
-
 import { useState } from "react";
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, ChevronDown } from "lucide-react";
+import { SUPPLIER_TYPES } from "@/lib/constants/supplier-types";
 
 interface FormData {
   email: string;
   company_name: string;
+  supplier_type: string;
   phone: string;
   city: string;
   website: string;
@@ -23,6 +16,7 @@ interface FormData {
 interface FormErrors {
   email?: string;
   company_name?: string;
+  supplier_type?: string;
 }
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -30,6 +24,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const INITIAL_FORM: FormData = {
   email: "",
   company_name: "",
+  supplier_type: "",
   phone: "",
   city: "",
   website: "",
@@ -45,6 +40,9 @@ export function validateInviteForm(data: FormData): FormErrors {
   }
   if (!data.company_name.trim()) {
     errors.company_name = "Company name is required";
+  }
+  if (!data.supplier_type) {
+    errors.supplier_type = "Supplier type is required";
   }
   return errors;
 }
@@ -183,6 +181,45 @@ export function InviteForm() {
         {errors.company_name && (
           <p className="mt-1 text-xs text-[var(--color-warning)]">
             {errors.company_name}
+          </p>
+        )}
+      </div>
+
+      {/* 供应商类型 */}
+      <div className="mb-4">
+        <label
+          htmlFor="invite-supplier-type"
+          className="block text-sm font-medium text-[var(--color-text-primary)] mb-1"
+        >
+          Supplier Type <span className="text-[var(--color-primary)]">*</span>
+        </label>
+        <div className="relative">
+          <select
+            id="invite-supplier-type"
+            value={form.supplier_type}
+            onChange={(e) => handleChange("supplier_type", e.target.value)}
+            className={`w-full px-3 py-2 pe-8 rounded-lg border text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] appearance-none ${
+              errors.supplier_type
+                ? "border-[var(--color-warning)]"
+                : "border-[var(--color-border)]"
+            } focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]`}
+          >
+            <option value="" disabled>
+              Select supplier type
+            </option>
+            {SUPPLIER_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 end-0 pe-2 flex items-center pointer-events-none">
+            <ChevronDown className="h-4 w-4 text-[var(--color-text-muted)]" />
+          </div>
+        </div>
+        {errors.supplier_type && (
+          <p className="mt-1 text-xs text-[var(--color-warning)]">
+            {errors.supplier_type}
           </p>
         )}
       </div>

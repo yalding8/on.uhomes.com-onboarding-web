@@ -17,6 +17,7 @@ function makeApplication(
   return {
     id: "app-001",
     company_name: "测试公司",
+    supplier_type: null,
     contact_email: "test@example.com",
     contact_phone: "13800138000",
     city: "上海",

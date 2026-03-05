@@ -14,6 +14,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 interface InvitePayload {
   email: string;
   company_name: string;
+  supplier_type?: string;
   phone?: string;
   city?: string;
   website?: string;
@@ -41,6 +42,10 @@ function validatePayload(
     data: {
       email,
       company_name: companyName,
+      supplier_type:
+        typeof payload.supplier_type === "string"
+          ? payload.supplier_type.trim() || undefined
+          : undefined,
       phone:
         typeof payload.phone === "string"
           ? payload.phone.trim() || undefined
@@ -70,7 +75,8 @@ export async function POST(request: Request) {
     if (!validation.valid) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { email, company_name, phone, city, website } = validation.data;
+    const { email, company_name, supplier_type, phone, city, website } =
+      validation.data;
 
     const supabaseAdmin = createAdminClient();
 
@@ -155,6 +161,7 @@ export async function POST(request: Request) {
       .insert({
         user_id: userId,
         company_name,
+        supplier_type: supplier_type ?? null,
         contact_email: email,
         contact_phone: phone ?? null,
         city: city ?? null,

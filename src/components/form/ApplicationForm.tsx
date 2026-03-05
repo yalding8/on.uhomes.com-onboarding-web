@@ -4,13 +4,22 @@ import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Mail, Globe, ArrowRight, Loader2 } from "lucide-react";
+import {
+  Building2,
+  Mail,
+  Globe,
+  ArrowRight,
+  Loader2,
+  ChevronDown,
+} from "lucide-react";
 import { PhoneInput } from "@/components/form/PhoneInput";
 import { ApplicationSuccess } from "@/components/form/ApplicationSuccess";
+import { SUPPLIER_TYPES } from "@/lib/constants/supplier-types";
 
 // Schema corresponding exactly to PRD section 3.4
 const applicantSchema = z.object({
   company_name: z.string().min(2, "Company Name is required"),
+  supplier_type: z.string().min(1, "Supplier Type is required"),
   contact_email: z.string().email("Valid work email is required"),
   contact_phone: z
     .string()
@@ -65,6 +74,7 @@ export function ApplicationForm({
     resolver: zodResolver(applicantSchema),
     defaultValues: {
       company_name: "",
+      supplier_type: "",
       contact_email: prefillEmail || "",
       contact_phone: "",
       city: "",
@@ -149,6 +159,38 @@ export function ApplicationForm({
           {errors.company_name && (
             <p className="text-[var(--color-warning)] text-xs mt-1">
               {errors.company_name.message}
+            </p>
+          )}
+        </div>
+
+        {/* Supplier Type */}
+        <div>
+          <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+            Supplier Type *
+          </label>
+          <div className="relative">
+            <select
+              {...register("supplier_type")}
+              disabled={isSubmitting}
+              className={`block w-full rounded-lg border ${errors.supplier_type ? "border-[var(--color-warning)]" : "border-[var(--color-border)]"} px-4 py-3 pe-10 focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] transition-colors appearance-none bg-transparent`}
+              defaultValue=""
+            >
+              <option value="" disabled>
+                Select your supplier type
+              </option>
+              {SUPPLIER_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 end-0 pe-3 flex items-center pointer-events-none">
+              <ChevronDown className="h-4 w-4 text-[var(--color-text-muted)]" />
+            </div>
+          </div>
+          {errors.supplier_type && (
+            <p className="text-[var(--color-warning)] text-xs mt-1">
+              {errors.supplier_type.message}
             </p>
           )}
         </div>

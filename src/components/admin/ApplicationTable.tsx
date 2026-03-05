@@ -129,6 +129,7 @@ export function ApplicationTable({
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
               <th className="text-start px-4 py-3 font-medium w-8" />
               <th className="text-start px-4 py-3 font-medium">Company</th>
+              <th className="text-start px-4 py-3 font-medium">Type</th>
               <th className="text-start px-4 py-3 font-medium">Email</th>
               <th className="text-start px-4 py-3 font-medium">Location</th>
               <th className="text-start px-4 py-3 font-medium">Assigned BD</th>
@@ -156,6 +157,9 @@ export function ApplicationTable({
                     <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
                       {app.company_name}
                     </td>
+                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs max-w-[160px] truncate">
+                      {app.supplier_type ?? "—"}
+                    </td>
                     <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">
                       {app.contact_email}
                     </td>
@@ -182,7 +186,7 @@ export function ApplicationTable({
                     <ApplicationExpandedRow
                       app={app}
                       bdUsers={bdUsers}
-                      colSpan={8}
+                      colSpan={9}
                     />
                   )}
                 </Fragment>
@@ -206,6 +210,11 @@ export function ApplicationTable({
               <StatusBadge status={app.status} />
             </div>
             <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
+              {app.supplier_type && (
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  {app.supplier_type}
+                </p>
+              )}
               <p>{app.contact_email}</p>
               {app.contact_phone && <p>{app.contact_phone}</p>}
               <p>{location(app)}</p>

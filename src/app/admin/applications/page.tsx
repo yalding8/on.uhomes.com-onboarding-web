@@ -15,6 +15,7 @@ import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 export interface ApplicationRow {
   id: string;
   company_name: string;
+  supplier_type: string | null;
   contact_email: string;
   contact_phone: string | null;
   city: string | null;
@@ -37,7 +38,7 @@ async function getApplications(): Promise<ApplicationRow[]> {
   const { data, error } = await supabaseAdmin
     .from("applications")
     .select(
-      "id, company_name, contact_email, contact_phone, city, country, website_url, status, created_at, assigned_bd_id",
+      "id, company_name, supplier_type, contact_email, contact_phone, city, country, website_url, status, created_at, assigned_bd_id",
     )
     .order("created_at", { ascending: false });
 
