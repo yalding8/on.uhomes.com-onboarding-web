@@ -11,7 +11,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { extractContractFields } from "@/lib/llm/extract-contract";
@@ -86,10 +86,8 @@ export async function POST(request: Request, context: RouteContext) {
 
     // 4. 提取 PDF 文本
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    const pdf = new PDFParse({ data: new Uint8Array(buffer) });
-    const textResult = await pdf.getText();
-    const text = textResult.text;
-    await pdf.destroy();
+    const pdfData = await pdfParse(buffer);
+    const text = pdfData.text;
 
     if (!text.trim()) {
       return NextResponse.json(
