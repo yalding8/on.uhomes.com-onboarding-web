@@ -11,6 +11,7 @@ const DEFAULT_ADMIN_EMAILS: ReadonlyArray<string> = [
   "ning.ding@uhomes.com",
   "abby.zhang@uhomes.com",
   "lei.tian@uhomes.com",
+  "lifan.wen@uhomes.com",
 ];
 
 function loadAdminEmails(): ReadonlyArray<string> {
