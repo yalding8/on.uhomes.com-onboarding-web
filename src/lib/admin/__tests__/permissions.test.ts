@@ -23,6 +23,7 @@ describe("permissions — default admin emails (no env var)", () => {
     expect(isAdmin("ning.ding@uhomes.com")).toBe(true);
     expect(isAdmin("abby.zhang@uhomes.com")).toBe(true);
     expect(isAdmin("lei.tian@uhomes.com")).toBe(true);
+    expect(isAdmin("lifan.wen@uhomes.com")).toBe(true);
   });
 
   it("isAdmin is case-insensitive", async () => {
@@ -37,12 +38,13 @@ describe("permissions — default admin emails (no env var)", () => {
     expect(isAdmin("")).toBe(false);
   });
 
-  it("ADMIN_EMAILS contains the three default admins", async () => {
+  it("ADMIN_EMAILS contains the four default admins", async () => {
     const { ADMIN_EMAILS } = await import("../permissions");
-    expect(ADMIN_EMAILS).toHaveLength(3);
+    expect(ADMIN_EMAILS).toHaveLength(4);
     expect(ADMIN_EMAILS).toContain("ning.ding@uhomes.com");
     expect(ADMIN_EMAILS).toContain("abby.zhang@uhomes.com");
     expect(ADMIN_EMAILS).toContain("lei.tian@uhomes.com");
+    expect(ADMIN_EMAILS).toContain("lifan.wen@uhomes.com");
   });
 });
 
@@ -81,13 +83,13 @@ describe("permissions — ADMIN_EMAILS env var override", () => {
   it("falls back to defaults when env var is empty string", async () => {
     process.env.ADMIN_EMAILS = "";
     const { ADMIN_EMAILS } = await import("../permissions");
-    expect(ADMIN_EMAILS).toHaveLength(3);
+    expect(ADMIN_EMAILS).toHaveLength(4);
   });
 
   it("falls back to defaults when env var is only whitespace", async () => {
     process.env.ADMIN_EMAILS = "   ";
     const { ADMIN_EMAILS } = await import("../permissions");
-    expect(ADMIN_EMAILS).toHaveLength(3);
+    expect(ADMIN_EMAILS).toHaveLength(4);
   });
 });
 
