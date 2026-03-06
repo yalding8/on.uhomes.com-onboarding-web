@@ -3,6 +3,7 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  serverExternalPackages: ["pdf-parse"],
 };
 
 export default withSentryConfig(nextConfig, {
