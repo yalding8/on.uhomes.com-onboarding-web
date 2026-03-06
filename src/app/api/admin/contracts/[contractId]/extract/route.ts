@@ -13,8 +13,6 @@
 import { NextResponse } from "next/server";
 // Import the inner module directly to avoid pdf-parse's debug-mode wrapper
 // which tries to read a test PDF file during Next.js build.
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-expect-error — pdf-parse/lib/pdf-parse has no type declarations
 import pdfParse from "pdf-parse/lib/pdf-parse";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
