@@ -3,9 +3,12 @@
  *
  * Defines all measurable funnel events for the onboarding platform.
  * Five funnels: Landing → BD Assignment → Contract Signing → Onboarding → SLA
+ *
+ * All tracking functions are gated behind cookie consent (GDPR compliance).
  */
 
 import posthog from "posthog-js";
+import { readConsent } from "@/lib/compliance/cookie-consent";
 
 // ── Event Name Constants ──
 
@@ -52,16 +55,25 @@ export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
 
 export type EventProperties = Record<string, string | number | boolean | null>;
 
+// ── Consent Check ──
+
+function hasAnalyticsConsent(): boolean {
+  const consent = readConsent();
+  return consent?.analytics === true;
+}
+
 // ── Core Functions ──
 
 export function trackEvent(
   event: EventName,
   properties?: EventProperties,
 ): void {
+  if (!hasAnalyticsConsent()) return;
   posthog.capture(event, properties);
 }
 
 export function initAnalytics(apiKey: string, apiHost: string): void {
+  if (!hasAnalyticsConsent()) return;
   posthog.init(apiKey, {
     api_host: apiHost,
     capture_pageview: true,
@@ -74,9 +86,16 @@ export function identifyUser(
   userId: string,
   traits?: Record<string, string | number | boolean>,
 ): void {
+  if (!hasAnalyticsConsent()) return;
   posthog.identify(userId, traits);
 }
 
 export function resetAnalytics(): void {
   posthog.reset();
+  // Clear PostHog localStorage keys
+  if (typeof window !== "undefined") {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith("ph_")) localStorage.removeItem(key);
+    });
+  }
 }

@@ -66,13 +66,10 @@ async function downloadAndStorePdf(
     throw new Error(`Storage upload failed: ${uploadError.message}`);
   }
 
-  const { data: urlData } = adminClient.storage
-    .from("signed-contracts")
-    .getPublicUrl(storagePath);
-
+  // Store the storage path (not a public URL) — signed URLs generated on demand
   await adminClient
     .from("contracts")
-    .update({ document_url: urlData.publicUrl })
+    .update({ document_url: storagePath })
     .eq("id", contractId);
 }
 
@@ -182,7 +179,8 @@ export async function POST(request: Request) {
         status: "SIGNED",
         signed_at: new Date().toISOString(),
       })
-      .eq("id", row.id);
+      .eq("id", row.id)
+      .eq("status", "SENT"); // H-11: atomic precondition check
 
     if (updateContractError) {
       // 合同更新失败，未修改任何数据，返回 500 让 DocuSign 重试

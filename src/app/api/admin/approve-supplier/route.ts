@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
-import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
+import { verifyAdminRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+const VALID_CONTRACT_TYPES = [
+  "STANDARD_PROMOTION_2026",
+  "PREMIUM_PROMOTION_2026",
+] as const;
 
 export async function POST(request: Request) {
   try {
-    // 1. Authorization: verify BD role via cookie session
-    const authResult = await verifyBdRole();
+    // 1. Authorization: verify admin role (H-03 fix)
+    const authResult = await verifyAdminRole();
     if (isBdAuthError(authResult)) {
       return authResult;
     }
@@ -20,30 +25,34 @@ export async function POST(request: Request) {
       );
     }
 
+    // Validate contract_type against allowlist
+    const resolvedContractType =
+      contract_type && VALID_CONTRACT_TYPES.includes(contract_type)
+        ? contract_type
+        : "STANDARD_PROMOTION_2026";
+
     const supabaseAdmin = createAdminClient();
 
-    // 2. Fetch and validate application
-    const { data: application, error: fetchAppError } = await supabaseAdmin
+    // 2. Atomic claim: set PENDING → CONVERTING to prevent race conditions (C-05 fix)
+    const { data: claimed, error: claimError } = await supabaseAdmin
       .from("applications")
-      .select("*")
+      .update({ status: "CONVERTING" })
       .eq("id", application_id)
+      .eq("status", "PENDING")
+      .select("*")
       .single();
 
-    if (fetchAppError || !application) {
+    if (claimError || !claimed) {
       return NextResponse.json(
-        { error: "Application not found" },
-        { status: 404 },
+        {
+          error:
+            "Application not found or already being processed by another admin",
+        },
+        { status: 409 },
       );
     }
 
-    if (application.status !== "PENDING") {
-      return NextResponse.json(
-        {
-          error: `Cannot approve application with status: ${application.status}`,
-        },
-        { status: 400 },
-      );
-    }
+    const application = claimed;
 
     // 3. Check if a supplier already exists for this email
     const { data: existingSupplier } = await supabaseAdmin
@@ -129,6 +138,11 @@ export async function POST(request: Request) {
     if (supplierError || !supplier) {
       console.error("[approve-supplier]", supplierError);
       await supabaseAdmin.auth.admin.deleteUser(userId);
+      // Reset application status so it can be retried
+      await supabaseAdmin
+        .from("applications")
+        .update({ status: "PENDING" })
+        .eq("id", application.id);
       return NextResponse.json(
         { error: "Failed to create supplier record" },
         { status: 500 },
@@ -144,7 +158,7 @@ export async function POST(request: Request) {
         signature_provider: "DOCUSIGN",
         contract_fields: {},
         provider_metadata: {
-          type: contract_type || "STANDARD_PROMOTION_2026",
+          type: resolvedContractType,
           source_application: application.id,
         },
       });
@@ -153,6 +167,11 @@ export async function POST(request: Request) {
       console.error("[approve-supplier]", contractError);
       await supabaseAdmin.from("suppliers").delete().eq("id", supplier.id);
       await supabaseAdmin.auth.admin.deleteUser(userId);
+      // Reset application status so it can be retried
+      await supabaseAdmin
+        .from("applications")
+        .update({ status: "PENDING" })
+        .eq("id", application.id);
       return NextResponse.json(
         { error: "Failed to create contract record" },
         { status: 500 },

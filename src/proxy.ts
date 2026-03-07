@@ -38,7 +38,31 @@ export async function proxy(request: NextRequest) {
       extra: { path: request.nextUrl.pathname },
     });
     console.error("[proxy]", error);
-    return NextResponse.next({ request });
+
+    // Fail-closed: deny access when auth cannot be verified.
+    // Exempt public routes and webhooks that handle their own auth.
+    const { pathname } = request.nextUrl;
+    const isPublicRoute =
+      pathname === "/" ||
+      pathname === "/login" ||
+      pathname.startsWith("/auth/") ||
+      pathname === "/api/apply" ||
+      pathname.startsWith("/api/webhooks/") ||
+      pathname === "/terms" ||
+      pathname === "/privacy";
+
+    if (isPublicRoute) {
+      return NextResponse.next({ request });
+    }
+
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 }
 

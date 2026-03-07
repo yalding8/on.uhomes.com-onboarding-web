@@ -40,11 +40,10 @@ describe("POST /api/contracts/[contractId]/confirm — action=confirm", () => {
     );
   });
 
-  describe("DocuSign 信封创建失败时的状态保持", () => {
-    it("CONFIRMED 状态不能直接回退到 PENDING_REVIEW", () => {
-      // 设计决策：DocuSign 失败时保持 CONFIRMED，不回退
+  describe("DocuSign 信封创建失败时的状态回退", () => {
+    it("CONFIRMED 可以回退到 PENDING_REVIEW（DocuSign 失败时自动回退）", () => {
       const result = validateTransition("CONFIRMED", "PENDING_REVIEW");
-      expect(result.valid).toBe(false);
+      expect(result.valid).toBe(true);
     });
 
     it("CONFIRMED 可以转到 CANCELED（BD 取消）", () => {

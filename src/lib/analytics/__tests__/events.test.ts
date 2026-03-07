@@ -18,6 +18,15 @@ vi.mock("posthog-js", () => ({
   },
 }));
 
+// Mock cookie consent to return analytics: true for all tests
+vi.mock("@/lib/compliance/cookie-consent", () => ({
+  readConsent: vi.fn(() => ({
+    necessary: true,
+    functional: true,
+    analytics: true,
+  })),
+}));
+
 import posthog from "posthog-js";
 
 beforeEach(() => {

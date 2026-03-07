@@ -61,10 +61,9 @@ describe("POST /api/admin/contracts/[contractId] — 推送审阅", () => {
       expect(result.valid).toBe(true);
     });
 
-    it("非 DRAFT 状态不能转换到 PENDING_REVIEW", () => {
+    it("非 DRAFT 状态不能转换到 PENDING_REVIEW（CONFIRMED 除外，用于 DocuSign 失败回退）", () => {
       const nonDraftStatuses: ContractStatus[] = [
         "PENDING_REVIEW",
-        "CONFIRMED",
         "SENT",
         "SIGNED",
         "CANCELED",
@@ -74,6 +73,10 @@ describe("POST /api/admin/contracts/[contractId] — 推送审阅", () => {
         const result = validateTransition(status, "PENDING_REVIEW");
         expect(result.valid).toBe(false);
       }
+
+      // CONFIRMED → PENDING_REVIEW is valid (C-01 fix: DocuSign failure rollback)
+      const confirmed = validateTransition("CONFIRMED", "PENDING_REVIEW");
+      expect(confirmed.valid).toBe(true);
     });
   });
 
