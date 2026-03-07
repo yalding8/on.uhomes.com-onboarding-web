@@ -45,7 +45,7 @@ export async function checkDeletionEligibility(
     .from("contracts")
     .select("id", { count: "exact", head: true })
     .eq("supplier_id", supplierId)
-    .in("status", ["DRAFT", "SENT"]);
+    .in("status", ["DRAFT", "PENDING_REVIEW", "CONFIRMED", "SENT"]);
 
   if (activeContractCount && activeContractCount > 0) {
     blockers.push({
@@ -103,29 +103,29 @@ export async function executeDeletion(
 ): Promise<void> {
   const isAustralia = countryCode === "AU";
 
-  // 1. Delete buildings and building_data
+  // 0. Delete Storage files (signed contracts + uploaded documents)
+  const storageBuckets = ["signed-contracts", "uploaded-contracts"];
+  for (const bucket of storageBuckets) {
+    const { data: files } = await adminClient.storage
+      .from(bucket)
+      .list(supplierId);
+    if (files && files.length > 0) {
+      const paths = files.map((f) => `${supplierId}/${f.name}`);
+      await adminClient.storage.from(bucket).remove(paths);
+    }
+  }
+
+  // 1. Delete buildings and building_data (child tables cascade via FK)
   await adminClient.from("buildings").delete().eq("supplier_id", supplierId);
 
   // 2. Anonymize contracts (keep financial data for legal compliance)
-  if (isAustralia) {
-    // APPs: anonymize instead of delete
-    await adminClient
-      .from("contracts")
-      .update({
-        document_url: null,
-        signature_fields: null,
-      })
-      .eq("supplier_id", supplierId);
-  } else {
-    // GDPR: anonymize personal info, keep contract amounts
-    await adminClient
-      .from("contracts")
-      .update({
-        document_url: null,
-        signature_fields: null,
-      })
-      .eq("supplier_id", supplierId);
-  }
+  await adminClient
+    .from("contracts")
+    .update({
+      document_url: null,
+      signature_fields: null,
+    })
+    .eq("supplier_id", supplierId);
 
   // 3. Delete applications linked to supplier email
   const { data: supplier } = await adminClient
