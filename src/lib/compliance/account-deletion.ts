@@ -78,6 +78,7 @@ export async function markForDeletion(
     .from("suppliers")
     .update({
       status: "DELETION_PENDING",
+      deletion_scheduled_at: deletionDate.toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq("id", supplierId);
