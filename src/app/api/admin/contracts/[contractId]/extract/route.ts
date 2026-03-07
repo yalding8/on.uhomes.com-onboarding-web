@@ -11,7 +11,6 @@
  */
 
 import { NextResponse } from "next/server";
-import pdfParse from "pdf-parse";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { extractContractFields } from "@/lib/llm/extract-contract";
@@ -84,8 +83,9 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 4. 提取 PDF 文本
+    // 4. 提取 PDF 文本 (dynamic import to avoid pdf-parse test file side-effect)
     const buffer = Buffer.from(await fileData.arrayBuffer());
+    const pdfParse = (await import("pdf-parse")).default;
     const pdfData = await pdfParse(buffer);
     const text = pdfData.text;
 
