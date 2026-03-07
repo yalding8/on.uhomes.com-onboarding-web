@@ -341,4 +341,17 @@
 | Testing Reproduction (4 agents) | Done — 28 confirmed, 4 partially confirmed        |
 | Product Review (2 agents)       | Done — 7 P0, 7 P1, 10 P2, 4 P3                    |
 | Expert Panel Review (3 experts) | Done — all 7 P0 fixes approved with modifications |
-| Implementation                  | Pending — awaiting approval to proceed            |
+| P0 Implementation               | Done — 11 fixes committed (187a552)               |
+| P1 Implementation               | Done — 8 fixes committed (4a3cb37)                |
+| P2 Implementation               | Pending                                           |
+
+## Manual Action Items (Post-Deployment)
+
+> These items require human intervention and cannot be automated via code changes.
+
+1. **Supabase Dashboard**: Change `signed-contracts` storage bucket from **public** to **private**
+2. **Data Migration**: Update existing `contracts.document_url` values from full public URLs to storage paths (`{supplierId}/{contractId}.pdf`)
+3. **Supabase Dashboard**: Add UNIQUE constraint on `suppliers.contact_email`
+4. **Supabase Dashboard**: Verify RLS INSERT policy exists for suppliers on `building_onboarding_data` (M-09)
+5. **Database Migration**: Add `deletion_scheduled_at` column to `suppliers` table (M-10)
+6. **GitLab Sync**: Run `git -c http.proxy= -c https.proxy= push gitlab main` when network is available
