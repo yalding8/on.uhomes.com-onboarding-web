@@ -80,6 +80,7 @@ export function ContractPreview({
           status={status}
           fields={fields}
           documentUrl={documentUrl}
+          contractId={contractId}
           isLoading={isLoading}
           onAction={handleAction}
         />

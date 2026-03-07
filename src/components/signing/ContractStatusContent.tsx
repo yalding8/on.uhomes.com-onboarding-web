@@ -3,12 +3,12 @@ import {
   CheckCircle2,
   Clock,
   Mail,
-  Download,
   AlertCircle,
   ArrowLeft,
 } from "lucide-react";
 import type { ContractStatus, ContractFields } from "@/lib/contracts/types";
 import { ContractDocumentPreview } from "@/components/contracts/ContractDocumentPreview";
+import { SignedContractDownload } from "@/components/contracts/SignedContractDownload";
 
 /** Field labels for the 9 dynamic contract fields */
 export const FIELD_LABELS: Record<keyof ContractFields, string> = {
@@ -72,12 +72,14 @@ export function StatusContent({
   status,
   fields,
   documentUrl,
+  contractId,
   isLoading,
   onAction,
 }: {
   status: ContractStatus;
   fields: ContractFields | null;
   documentUrl: string | null;
+  contractId: string;
   isLoading: boolean;
   onAction: (action: "confirm" | "request_changes" | "resend") => void;
 }) {
@@ -102,7 +104,9 @@ export function StatusContent({
         />
       );
     case "SIGNED":
-      return <SignedContent documentUrl={documentUrl} />;
+      return (
+        <SignedContent documentUrl={documentUrl} contractId={contractId} />
+      );
     case "CANCELED":
       return <CanceledContent />;
   }
@@ -236,7 +240,13 @@ function SentContent({
   );
 }
 
-function SignedContent({ documentUrl }: { documentUrl: string | null }) {
+function SignedContent({
+  documentUrl,
+  contractId,
+}: {
+  documentUrl: string | null;
+  contractId: string;
+}) {
   return (
     <div className="text-center py-12">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--color-success-light)] text-[var(--color-success)] mb-4">
@@ -249,17 +259,7 @@ function SignedContent({ documentUrl }: { documentUrl: string | null }) {
         Your partnership agreement has been signed and is now in effect. Thank
         you for your trust and cooperation.
       </p>
-      {documentUrl && (
-        <a
-          href={documentUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] font-medium transition-all active:scale-[0.98]"
-        >
-          <Download className="w-4 h-4 me-2" />
-          Download Signed Contract (PDF)
-        </a>
-      )}
+      {documentUrl && <SignedContractDownload contractId={contractId} />}
     </div>
   );
 }
