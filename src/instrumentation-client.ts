@@ -1,8 +1,9 @@
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  enabled: !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: "https://64de63bd7b0315c4c9c4fbab7e77a979@o4511003322351616.ingest.us.sentry.io/4511003327594496",
+
+  integrations: [Sentry.replayIntegration()],
 
   tracesSampleRate: 0.2,
   replaysSessionSampleRate: 0,
@@ -18,3 +19,5 @@ Sentry.init({
     "Load failed",
   ],
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
