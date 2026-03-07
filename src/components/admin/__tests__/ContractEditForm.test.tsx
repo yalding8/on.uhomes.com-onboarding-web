@@ -47,6 +47,7 @@ function renderForm(overrides: Partial<ContractEditFormProps> = {}) {
     supplierInfo: { company_name: "Acme Corp", city: "Shanghai" },
     contractStatus: "DRAFT",
     uploadedDocumentUrl: null,
+    initialUpdatedAt: "2025-01-01T00:00:00.000Z",
     ...overrides,
   };
   return render(<ContractEditForm {...props} />);

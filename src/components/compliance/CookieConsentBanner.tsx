@@ -14,7 +14,9 @@ import {
 
 type BannerView = "banner" | "settings" | "hidden";
 
-export function CookieConsentBanner() {
+export function CookieConsentBanner({
+  countryCode,
+}: { countryCode?: string } = {}) {
   const [view, setView] = useState<BannerView>("hidden");
   const [consent, setConsent] = useState<ConsentState>({
     necessary: true,
@@ -28,7 +30,7 @@ export function CookieConsentBanner() {
     const id = requestAnimationFrame(() => {
       if (shouldShowBanner()) {
         setView("banner");
-        setConsent(getDefaultConsent());
+        setConsent(getDefaultConsent(countryCode));
       } else {
         const saved = readConsent();
         if (saved) setConsent(saved);

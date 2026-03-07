@@ -78,14 +78,23 @@ export async function POST(_request: Request, { params }: RouteParams) {
       );
     }
 
-    // 更新状态 → ready_to_publish
-    const { error: updateErr } = await supabase
+    // 更新状态 → ready_to_publish (atomic: WHERE guard prevents race condition)
+    const { data: updated, error: updateErr } = await supabase
       .from("buildings")
       .update({ onboarding_status: "ready_to_publish" })
-      .eq("id", buildingId);
+      .eq("id", buildingId)
+      .eq("onboarding_status", "previewable")
+      .select("id");
 
     if (updateErr) {
       return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    }
+
+    if (!updated || updated.length === 0) {
+      return NextResponse.json(
+        { error: "Building status has changed, please refresh and try again" },
+        { status: 409 },
+      );
     }
 
     return NextResponse.json({ status: "ready_to_publish" });

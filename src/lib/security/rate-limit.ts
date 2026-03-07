@@ -85,6 +85,46 @@ export function matchRule(pathname: string): {
   return { rule: DEFAULT_RULE, keyBy: "ip", label: "Default API" };
 }
 
+function getIp(request: NextRequest): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown"
+  );
+}
+
+/**
+ * Try to extract user sub from Supabase auth cookie JWT (base64 payload).
+ * Returns null if no valid token found — caller falls back to IP.
+ */
+function extractUserIdFromCookie(request: NextRequest): string | null {
+  // Supabase stores auth tokens in cookies named sb-<ref>-auth-token
+  for (const cookie of request.cookies.getAll()) {
+    if (cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token")) {
+      try {
+        // Cookie value may be a JSON array (chunked) or a raw JWT
+        let jwt: string;
+        const val = cookie.value;
+        if (val.startsWith("[")) {
+          const parts = JSON.parse(val) as string[];
+          jwt = parts.join("");
+        } else {
+          jwt = val;
+        }
+        const payloadB64 = jwt.split(".")[1];
+        if (!payloadB64) continue;
+        const payload = JSON.parse(
+          Buffer.from(payloadB64, "base64").toString("utf-8"),
+        ) as { sub?: string };
+        if (payload.sub) return payload.sub;
+      } catch {
+        // Malformed token — skip
+      }
+    }
+  }
+  return null;
+}
+
 /**
  * Extract the rate-limit identifier from the request.
  */
@@ -93,20 +133,13 @@ export function extractKey(
   keyBy: "ip" | "email" | "user" | "supplier",
 ): string {
   if (keyBy === "ip") {
-    return (
-      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      request.headers.get("x-real-ip") ??
-      "unknown"
-    );
+    return getIp(request);
   }
-  // For user/supplier/email, fall back to IP when no auth info available.
-  // The actual user ID is resolved after Supabase session validation,
-  // which happens downstream. Middleware uses IP as best-effort key.
-  return (
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown"
-  );
+  // For user/supplier/email, try to extract user ID from auth cookie
+  const userId = extractUserIdFromCookie(request);
+  if (userId) return userId;
+  // Fall back to IP when no auth info available
+  return getIp(request);
 }
 
 /** Create an Upstash Ratelimit instance for a given rule */

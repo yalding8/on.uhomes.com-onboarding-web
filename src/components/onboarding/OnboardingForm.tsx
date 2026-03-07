@@ -43,7 +43,8 @@ export function OnboardingForm({
   const [fields, setFields] = useState(initialFields);
   const [score, setScore] = useState(initialScore);
   const [gapReport, setGapReport] = useState(initialGapReport);
-  const [version, setVersion] = useState(initialVersion);
+  const [version, _setVersion] = useState(initialVersion);
+  const versionRef = useRef(initialVersion);
   const [status, setStatus] = useState(initialStatus);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -65,7 +66,10 @@ export function OnboardingForm({
         const res = await fetch(`/api/buildings/${buildingId}/fields`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fields: { [key]: value }, version }),
+          body: JSON.stringify({
+            fields: { [key]: value },
+            version: versionRef.current,
+          }),
         });
 
         if (res.status === 409) {
@@ -86,7 +90,8 @@ export function OnboardingForm({
         setFields(data.fields);
         setScore(data.score);
         setGapReport(data.gapReport);
-        setVersion(data.version);
+        _setVersion(data.version);
+        versionRef.current = data.version;
         setStatus(data.status);
         toast("success", "Saved");
       } catch {
@@ -95,7 +100,7 @@ export function OnboardingForm({
         setSaving(false);
       }
     },
-    [buildingId, version, toast],
+    [buildingId, toast],
   );
 
   const handleChange = useCallback(
