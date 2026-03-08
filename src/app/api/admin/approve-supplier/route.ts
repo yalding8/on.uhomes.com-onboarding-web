@@ -44,6 +44,11 @@ export async function POST(request: Request) {
       .single();
 
     if (claimError || !claimed) {
+      console.error("[approve-supplier] claim failed", {
+        application_id,
+        claimError,
+        claimed,
+      });
       return NextResponse.json(
         {
           error:
