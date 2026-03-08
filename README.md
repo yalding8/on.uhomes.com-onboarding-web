@@ -270,33 +270,36 @@ USING (
 
 ## API 路由
 
-| 路径                                        | 方法  | 鉴权方式                               | 说明                                                |
-| :------------------------------------------ | :---- | :------------------------------------- | :-------------------------------------------------- |
-| `/api/apply`                                | POST  | 无（公开）                             | 供应商提交申请，写入 `applications` 表              |
-| `/api/admin/approve-supplier`               | POST  | Supabase Session（BD 角色）            | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录  |
-| `/api/admin/invite-supplier`                | POST  | Supabase Session（BD 角色）            | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
-| `/api/admin/assign-application-bd`          | POST  | Supabase Session（Admin）              | Admin 分配/更换申请的负责 BD                        |
-| `/api/admin/generate-referral`              | POST  | Supabase Session（BD 角色）            | BD 生成/获取推荐链接码                              |
-| `/api/admin/contracts/[contractId]`         | PUT   | Supabase Session（BD 角色）            | 保存合同动态字段（仅 DRAFT 状态）                   |
-| `/api/admin/contracts/[contractId]`         | POST  | Supabase Session（BD 角色）            | 推送审阅（DRAFT → PENDING_REVIEW）                  |
-| `/api/contracts/[contractId]/confirm`       | POST  | Supabase Session（供应商）             | 供应商确认签署或请求修改                            |
-| `/api/webhooks/docusign`                    | POST  | HMAC Signature                         | DocuSign 签署完成回调，更新合同 + 供应商状态        |
-| `/api/buildings/[buildingId]/fields`        | GET   | Supabase Auth Session                  | 获取 building 字段数据 + 评分 + Gap Report          |
-| `/api/buildings/[buildingId]/fields`        | PATCH | Supabase Auth Session                  | 更新字段值（乐观锁 + 审计日志 + 字段值校验）        |
-| `/api/buildings/[buildingId]/images`        | POST  | Supabase Auth Session                  | 上传楼宇图片至 Supabase Storage                     |
-| `/api/buildings/[buildingId]/submit`        | POST  | Supabase Auth Session                  | 提交楼宇审核（previewable → ready_to_publish）      |
-| `/api/admin/buildings/[id]/status`          | PUT   | Supabase Session（BD 角色）            | 更新楼宇状态 + 状态回滚支持                         |
-| `/api/admin/contracts`                      | GET   | Supabase Session（BD 角色）            | 查询合同列表（筛选、分页）                          |
-| `/api/admin/assign-bd`                      | POST  | Supabase Session（Admin）              | Admin 分配/更换供应商的负责 BD                      |
-| `/api/admin/contracts/[contractId]/upload`  | POST  | Supabase Session（BD 角色）            | BD 上传非标准合同 PDF 至 Storage                    |
-| `/api/admin/contracts/[contractId]/extract` | POST  | Supabase Session（BD 角色）            | 从已上传 PDF 提取合同字段（LLM 提取）               |
-| `/api/account/delete`                       | POST  | Supabase Session（供应商）             | 请求账户删除（30 天冷却期）                         |
-| `/api/account/cancel-deletion`              | POST  | Supabase Session（供应商）             | 冷却期内取消账户删除                                |
-| `/api/account/export`                       | GET   | Supabase Session（供应商）             | GDPR 数据可移植性：导出全部个人数据                 |
-| `/api/admin/contracts/[contractId]/status`  | PATCH | Supabase Session（BD/Admin）           | 合同状态变更（取消、回滚等）                        |
-| `/api/cron/cleanup`                         | GET   | `Authorization: Bearer` (CRON_SECRET)  | 定时清理：CONVERTING 超时、DocuSign 过期、删除执行  |
-| `/api/extraction/trigger`                   | POST  | `Authorization: Bearer` (service_role) | 触发多源数据提取，创建 3 个 extraction_jobs         |
-| `/api/extraction/callback`                  | POST  | `Authorization: Bearer` (service_role) | 接收 Worker 提取结果，融合数据并更新评分            |
+| 路径                                        | 方法     | 鉴权方式                               | 说明                                                |
+| :------------------------------------------ | :------- | :------------------------------------- | :-------------------------------------------------- |
+| `/api/apply`                                | POST     | 无（公开）                             | 供应商提交申请，写入 `applications` 表              |
+| `/api/admin/approve-supplier`               | POST     | Supabase Session（BD 角色）            | BD 审批：创建 supplier + 发邀请邮件 + 生成合同记录  |
+| `/api/admin/invite-supplier`                | POST     | Supabase Session（BD 角色）            | BD 手动邀请供应商：创建 Auth 用户 + supplier + 合同 |
+| `/api/admin/assign-application-bd`          | POST     | Supabase Session（Admin）              | Admin 分配/更换申请的负责 BD                        |
+| `/api/admin/generate-referral`              | POST     | Supabase Session（BD 角色）            | BD 生成/获取推荐链接码                              |
+| `/api/admin/contracts/[contractId]`         | PUT      | Supabase Session（BD 角色）            | 保存合同动态字段（仅 DRAFT 状态）                   |
+| `/api/admin/contracts/[contractId]`         | POST     | Supabase Session（BD 角色）            | 推送审阅（DRAFT → PENDING_REVIEW）                  |
+| `/api/contracts/[contractId]/confirm`       | POST     | Supabase Session（供应商）             | 供应商确认签署或请求修改                            |
+| `/api/webhooks/docusign`                    | POST     | HMAC Signature                         | DocuSign 签署完成回调，更新合同 + 供应商状态        |
+| `/api/buildings/[buildingId]/fields`        | GET      | Supabase Auth Session                  | 获取 building 字段数据 + 评分 + Gap Report          |
+| `/api/buildings/[buildingId]/fields`        | PATCH    | Supabase Auth Session                  | 更新字段值（乐观锁 + 审计日志 + 字段值校验）        |
+| `/api/buildings/[buildingId]/images`        | POST     | Supabase Auth Session                  | 上传楼宇图片至 Supabase Storage                     |
+| `/api/buildings/[buildingId]/submit`        | POST     | Supabase Auth Session                  | 提交楼宇审核（previewable → ready_to_publish）      |
+| `/api/admin/buildings/[id]/status`          | PUT      | Supabase Session（BD 角色）            | 更新楼宇状态 + 状态回滚支持                         |
+| `/api/admin/contracts`                      | GET      | Supabase Session（BD 角色）            | 查询合同列表（筛选、分页）                          |
+| `/api/admin/assign-bd`                      | POST     | Supabase Session（Admin）              | Admin 分配/更换供应商的负责 BD                      |
+| `/api/admin/contracts/[contractId]/upload`  | POST     | Supabase Session（BD 角色）            | BD 上传非标准合同 PDF 至 Storage                    |
+| `/api/admin/contracts/[contractId]/extract` | POST     | Supabase Session（BD 角色）            | 从已上传 PDF 提取合同字段（LLM 提取）               |
+| `/api/account/delete`                       | POST     | Supabase Session（供应商）             | 请求账户删除（30 天冷却期）                         |
+| `/api/account/cancel-deletion`              | POST     | Supabase Session（供应商）             | 冷却期内取消账户删除                                |
+| `/api/account/export`                       | GET      | Supabase Session（供应商）             | GDPR 数据可移植性：导出全部个人数据                 |
+| `/api/admin/contracts/[contractId]/status`  | PATCH    | Supabase Session（BD/Admin）           | 合同状态变更（取消、回滚等）                        |
+| `/api/cron/cleanup`                         | GET      | `Authorization: Bearer` (CRON_SECRET)  | 定时清理：CONVERTING 超时、DocuSign 过期、删除执行  |
+| `/api/admin/applications/stats`             | GET      | Supabase Session（BD/Admin）           | 申请 KPI 统计（待处理数、未分配数、转化率）         |
+| `/api/admin/applications/[id]/notes`        | GET/POST | Supabase Session（BD/Admin）           | 申请跟进备注（查看/添加）                           |
+| `/api/admin/applications/[id]/claim`        | POST     | Supabase Session（BD）                 | BD 认领未分配的申请                                 |
+| `/api/extraction/trigger`                   | POST     | `Authorization: Bearer` (service_role) | 触发多源数据提取，创建 3 个 extraction_jobs         |
+| `/api/extraction/callback`                  | POST     | `Authorization: Bearer` (service_role) | 接收 Worker 提取结果，融合数据并更新评分            |
 
 ## Demo 流程（本地）
 
