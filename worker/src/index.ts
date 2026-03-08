@@ -10,6 +10,10 @@ import { getConfig } from "./config.js";
 import { handleRequest } from "./router.js";
 import { getActiveJobCount } from "./job-tracker.js";
 import { shutdownBrowser } from "./crawl/browser.js";
+import { initSentry, flushSentry } from "./sentry.js";
+
+// Sentry 必须在其他模块之前初始化
+initSentry();
 
 const config = getConfig();
 const server = createServer(handleRequest);
@@ -35,6 +39,9 @@ async function gracefulShutdown(signal: string): Promise<void> {
 
   // 关闭 Playwright 浏览器
   await shutdownBrowser().catch(() => {});
+
+  // Flush Sentry 事件
+  await flushSentry();
 
   process.exit(0);
 }

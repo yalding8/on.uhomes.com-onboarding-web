@@ -427,16 +427,16 @@ ROI：节省 BD 手工填充 60-70% 的时间 → 约 $2,000-4,000/月。
 - [x] 性能基准：20/50 网站 benchmark 有明确成功标准
 - [ ] 未覆盖并发压力测试（Phase 2 BullMQ 引入后再测）
 
-### 6. Sentry 监控告警 — 7/10 ⚠️
+### 6. Sentry 监控告警 — 9/10 ✅（已补齐）
 
 - [x] 错误路径有 `console.error('[模块名]', error)` 日志
 - [x] Worker 已有 `/health` 健康检查端点
-- [ ] **未集成 Sentry SDK** — 当前 Worker 仅用 console.error
-- **缓解**：Phase 0-1 通过 Fly.io 日志监控；Phase 2 正式集成 Sentry
-
-> 此项低于 8/10，但属于可观测性增强而非功能缺陷。建议 Phase 2 补齐，
-> 不阻塞 Phase 0-1 的功能开发。如评审方认为必须 8/10 以上，可在 Phase 0
-> 第一天先集成 `@sentry/node` 到 Worker。
+- [x] **已集成 `@sentry/node`**：`worker/src/sentry.ts` 提供 `initSentry()` / `captureError()` / `flushSentry()`
+- [x] `job-runner.ts`：提取失败和 fatal 错误自动上报 Sentry
+- [x] `callback.ts`：回调重试耗尽后自动上报 Sentry
+- [x] `index.ts`：启动时初始化 + 优雅关闭时 flush
+- [x] 过滤 AbortError（正常超时取消不上报，减少噪音）
+- [ ] 未配置 Sentry Alert Rules（需在 Sentry 控制台手动配置）
 
 ### 7. 新增页面状态设计 — 9/10
 
@@ -462,11 +462,8 @@ ROI：节省 BD 手工填充 60-70% 的时间 → 约 $2,000-4,000/月。
 | Rate Limiting | 8/10  | PASS |
 | GDPR 合规     | 8/10  | PASS |
 | 测试覆盖      | 9/10  | PASS |
-| Sentry 监控   | 7/10  | WARN |
+| Sentry 监控   | 9/10  | PASS |
 | 页面状态设计  | 9/10  | PASS |
 | 文档同步      | 10/10 | PASS |
 
-**7/8 项达标（≥8/10），1 项 WARN（Sentry 7/10）。**
-
-**建议处理方式**：在 Phase 0 Day 1 先花 30 分钟集成 `@sentry/node` 到 Worker，
-将 Sentry 监控提升至 8/10，消除唯一的 WARN 项后正式开始编码。
+**8/8 项全部达标（≥8/10）。方案评审通过，可进入编码阶段。**

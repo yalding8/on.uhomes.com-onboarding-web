@@ -164,6 +164,7 @@ cd worker && npx tsx tests/benchmarks/verify-pipeline.ts --with-llm https://exam
 | `QWEN_API_KEY`              | 通义千问 API Key（可选，作为备用 LLM） |
 | `KIMI_API_KEY`              | Kimi (Moonshot) API Key（可选）        |
 | `MINIMAX_API_KEY`           | MiniMax API Key（可选）                |
+| `SENTRY_DSN`                | Sentry DSN（可选，未设置则跳过监控）   |
 | `JOB_TIMEOUT_MS`            | 单任务超时时间（默认 300000 = 5 分钟） |
 
 ### 本地运行

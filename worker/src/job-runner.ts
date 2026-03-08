@@ -12,6 +12,7 @@ import { getConfig } from "./config.js";
 import { sendCallback } from "./callback.js";
 import { trackJobStart, trackJobEnd } from "./job-tracker.js";
 import { extract } from "./extractors/index.js";
+import { captureError } from "./sentry.js";
 import type {
   ExtractionRequest,
   ExtractedFields,
@@ -61,6 +62,14 @@ export async function runJob(request: ExtractionRequest): Promise<void> {
         err instanceof Error ? err.message : "Unknown extraction error";
       const isTimeout = message.includes("timed out");
 
+      if (!isTimeout) {
+        captureError(err, {
+          jobId: request.jobId,
+          source: request.source,
+          sourceUrl: request.sourceUrl,
+        });
+      }
+
       const payload: CallbackPayload = {
         jobId: request.jobId,
         buildingId: request.buildingId,
@@ -83,6 +92,7 @@ export async function runJob(request: ExtractionRequest): Promise<void> {
       status,
     });
   } catch (err) {
+    captureError(err, { jobId: request.jobId, phase: "fatal" });
     console.error(`[job-runner] Fatal error for job ${request.jobId}:`, err);
   } finally {
     trackJobEnd();
