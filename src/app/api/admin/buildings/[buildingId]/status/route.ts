@@ -194,6 +194,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     });
   } catch (error) {
     console.error("[admin/buildings/status]", error);
-    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

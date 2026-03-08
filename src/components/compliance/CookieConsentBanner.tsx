@@ -11,6 +11,7 @@ import {
   readConsent,
   type ConsentState,
 } from "@/lib/compliance/cookie-consent";
+import { resetAnalytics } from "@/lib/analytics/events";
 
 type BannerView = "banner" | "settings" | "hidden";
 
@@ -48,14 +49,18 @@ export function CookieConsentBanner({
   };
 
   const handleRejectOptional = () => {
+    const prev = readConsent();
     const state = rejectOptional();
     setConsent(state);
     setView("hidden");
+    if (prev?.analytics) resetAnalytics();
   };
 
   const handleSaveSettings = () => {
+    const prev = readConsent();
     saveConsent(consent);
     setView("hidden");
+    if (prev?.analytics && !consent.analytics) resetAnalytics();
   };
 
   if (view === "settings") {

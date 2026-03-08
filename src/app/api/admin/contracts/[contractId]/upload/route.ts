@@ -121,6 +121,9 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ success: true, documentUrl: publicUrl });
   } catch (error) {
     console.error("[upload]", error);
-    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

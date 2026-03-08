@@ -15,7 +15,7 @@ const serverApplicantSchema = z
     contact_phone: z
       .string()
       .trim()
-      .regex(/^\+\d{1,4}[\s\-]?\d[\d\s\-]{3,15}$/),
+      .regex(/^\+\d{1,4}[\s\-]?\(?\d[\d\s\-()]{3,15}$/),
     country: z.string().trim().min(2).max(100),
     website_url: z
       .string()
@@ -146,6 +146,9 @@ export async function POST(request: Request) {
     );
   } catch (error: unknown) {
     console.error("[apply]", error);
-    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

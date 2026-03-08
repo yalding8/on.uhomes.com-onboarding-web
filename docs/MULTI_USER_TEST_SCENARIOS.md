@@ -50,7 +50,7 @@
 - **Steps**:
   1. Supplier-A submits again with `john@example.com`
   2. Supplier-A submits again with `JOHN@EXAMPLE.COM`
-  3. Supplier-A submits again with ` john@example.com ` (leading/trailing spaces)
+  3. Supplier-A submits again with `john@example.com` (leading/trailing spaces)
 - **Expected Outcomes**: All three attempts rejected as duplicates. Input is trimmed and lowercased before comparison.
 - **Risk Level**: Prevents M-08 + M-11 regression (case-sensitive email check, no input trimming)
 

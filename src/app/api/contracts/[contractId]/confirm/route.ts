@@ -74,6 +74,9 @@ export async function POST(request: Request, context: RouteContext) {
     return toResponse(await handleRequestChanges(contract));
   } catch (err: unknown) {
     console.error("[contracts/confirm]", err);
-    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

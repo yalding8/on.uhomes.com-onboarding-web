@@ -106,6 +106,9 @@ export async function POST(request: Request, context: RouteContext) {
     });
   } catch (error) {
     console.error("[extract]", error);
-    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

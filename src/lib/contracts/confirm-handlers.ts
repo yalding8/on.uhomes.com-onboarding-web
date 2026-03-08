@@ -108,16 +108,27 @@ export async function handleRequestChanges(
   }
 
   const adminClient = createAdminClient();
-  const { error: updateError } = await adminClient
+  // Atomic WHERE guard: prevent race with concurrent confirm
+  const { data: updated, error: updateError } = await adminClient
     .from("contracts")
     .update({ status: "DRAFT" })
-    .eq("id", contract.id);
+    .eq("id", contract.id)
+    .eq("status", "PENDING_REVIEW")
+    .select("id");
 
   if (updateError) {
     return {
       success: false,
       error: "Failed to update contract status",
       httpStatus: 500,
+    };
+  }
+
+  if (!updated || updated.length === 0) {
+    return {
+      success: false,
+      error: "Contract status has already changed. Please refresh.",
+      httpStatus: 409,
     };
   }
 
