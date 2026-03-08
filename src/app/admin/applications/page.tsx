@@ -22,7 +22,7 @@ export interface ApplicationRow {
   country: string | null;
   website_url: string | null;
   referral_code: string | null;
-  status: "PENDING" | "CONVERTED" | "REJECTED";
+  status: "PENDING" | "CONVERTING" | "CONVERTED" | "REJECTED";
   created_at: string;
   assigned_bd_id: string | null;
 }

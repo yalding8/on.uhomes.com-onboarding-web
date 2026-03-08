@@ -37,6 +37,7 @@ export function getStatusCounts(
   const counts: Record<StatusFilter, number> = {
     ALL: applications.length,
     PENDING: 0,
+    CONVERTING: 0,
     CONVERTED: 0,
     REJECTED: 0,
   };

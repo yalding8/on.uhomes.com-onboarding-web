@@ -30,6 +30,7 @@ export type ContractTypeValue = (typeof CONTRACT_TYPES)[number]["value"];
 
 const STATUS_LABELS: Record<ApplicationRow["status"], string> = {
   PENDING: "Pending",
+  CONVERTING: "Converting",
   CONVERTED: "Converted",
   REJECTED: "Rejected",
 };

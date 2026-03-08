@@ -43,6 +43,11 @@ const STATUS_CONFIG: Record<
     icon: Clock,
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
+  CONVERTING: {
+    label: "Converting",
+    icon: AlertTriangle,
+    className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
+  },
   CONVERTED: {
     label: "Converted",
     icon: CheckCircle2,
@@ -56,7 +61,7 @@ const STATUS_CONFIG: Record<
 };
 
 function StatusBadge({ status }: { status: ApplicationRow["status"] }) {
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING;
   const Icon = config.icon;
   return (
     <span
