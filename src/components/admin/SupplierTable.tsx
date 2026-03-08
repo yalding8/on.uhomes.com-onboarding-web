@@ -12,6 +12,7 @@ import {
   computeStageDays,
   type PipelineStage,
 } from "@/lib/suppliers/pipeline";
+import { CopyText } from "./CopyText";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
 export interface SupplierTableRow {
@@ -168,11 +169,11 @@ export function SupplierTable({
                 className={`border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getBorderClass(s)}`}
               >
                 <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] font-mono">
-                  {s.ref_code ?? "—"}
+                  {s.ref_code ? <CopyText text={s.ref_code} /> : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-[var(--color-text-primary)] truncate">
-                    {s.company_name}
+                    <CopyText text={s.company_name} />
                   </p>
                   {isAdmin && s.bd_display_name && (
                     <p className="text-xs text-[var(--color-text-muted)] truncate">

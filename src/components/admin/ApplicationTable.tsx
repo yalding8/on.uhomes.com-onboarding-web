@@ -9,6 +9,7 @@
 
 import { Clock, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { CopyText } from "./CopyText";
 import type { ApplicationRow, BdOption } from "@/app/admin/applications/page";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -142,7 +143,7 @@ export function ApplicationTable({
                   onClick={() => onRowClick(app)}
                 >
                   <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] font-mono">
-                    {app.ref_code ?? "—"}
+                    {app.ref_code ? <CopyText text={app.ref_code} /> : "—"}
                   </td>
                   {/* Company + BD sub-line */}
                   <td className="px-4 py-3">
@@ -156,7 +157,7 @@ export function ApplicationTable({
                       {!isPending && <StatusBadge status={app.status} />}
                       <div className="min-w-0">
                         <p className="font-medium text-[var(--color-text-primary)] truncate">
-                          {app.company_name}
+                          <CopyText text={app.company_name} />
                         </p>
                         <p
                           className={`text-xs truncate ${
