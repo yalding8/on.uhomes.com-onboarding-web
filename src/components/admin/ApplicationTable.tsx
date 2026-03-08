@@ -117,6 +117,7 @@ export function ApplicationTable({
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
+              <th className="text-start px-4 py-3 font-medium w-20">Ref</th>
               <th className="text-start px-4 py-3 font-medium">Company</th>
               <th className="text-start px-4 py-3 font-medium lg:table-cell hidden">
                 Type
@@ -140,6 +141,9 @@ export function ApplicationTable({
                   className={`border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getRowBorderClass(app)} ${getRowOpacity(app)}`}
                   onClick={() => onRowClick(app)}
                 >
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] font-mono">
+                    {app.ref_code ?? "—"}
+                  </td>
                   {/* Company + BD sub-line */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -152,11 +156,6 @@ export function ApplicationTable({
                       {!isPending && <StatusBadge status={app.status} />}
                       <div className="min-w-0">
                         <p className="font-medium text-[var(--color-text-primary)] truncate">
-                          {app.ref_code && (
-                            <span className="text-xs text-[var(--color-text-muted)] font-normal me-1.5">
-                              {app.ref_code}
-                            </span>
-                          )}
                           {app.company_name}
                         </p>
                         <p

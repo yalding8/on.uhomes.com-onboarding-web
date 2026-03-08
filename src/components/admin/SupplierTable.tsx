@@ -151,6 +151,7 @@ export function SupplierTable({
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
+              <th className="text-start px-4 py-3 font-medium w-20">Ref</th>
               <th className="text-start px-4 py-3 font-medium">Company</th>
               <th className="text-start px-4 py-3 font-medium">Stage</th>
               <th className="text-start px-4 py-3 font-medium">Contract</th>
@@ -166,13 +167,11 @@ export function SupplierTable({
                 onClick={() => onRowClick(s)}
                 className={`border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getBorderClass(s)}`}
               >
+                <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] font-mono">
+                  {s.ref_code ?? "—"}
+                </td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-[var(--color-text-primary)] truncate">
-                    {s.ref_code && (
-                      <span className="text-xs text-[var(--color-text-muted)] font-normal me-1.5">
-                        {s.ref_code}
-                      </span>
-                    )}
                     {s.company_name}
                   </p>
                   {isAdmin && s.bd_display_name && (
@@ -215,13 +214,13 @@ export function SupplierTable({
               onClick={() => onRowClick(s)}
               className={`rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getBorderClass(s)}`}
             >
+              {s.ref_code && (
+                <p className="text-xs text-[var(--color-text-muted)] font-mono mb-0.5">
+                  {s.ref_code}
+                </p>
+              )}
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-[var(--color-text-primary)] truncate">
-                  {s.ref_code && (
-                    <span className="text-xs text-[var(--color-text-muted)] font-normal me-1.5">
-                      {s.ref_code}
-                    </span>
-                  )}
                   {s.company_name}
                 </span>
                 <StageBadge stage={s.pipeline_stage} />
