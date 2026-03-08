@@ -30,7 +30,13 @@ export default async function SupplierDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const ctx = await getPageContext();
+  let ctx: Awaited<ReturnType<typeof getPageContext>>;
+  try {
+    ctx = await getPageContext();
+  } catch (err) {
+    console.error("[supplier-detail] getPageContext failed", err);
+    redirect("/login");
+  }
   if (!ctx) redirect("/login");
   const { id } = await params;
 
@@ -39,7 +45,13 @@ export default async function SupplierDetailPage({
     if (!hasAccess) notFound();
   }
 
-  const data = await fetchSupplierData(id, ctx.isAdmin);
+  let data: Awaited<ReturnType<typeof fetchSupplierData>>;
+  try {
+    data = await fetchSupplierData(id, ctx.isAdmin);
+  } catch (err) {
+    console.error("[supplier-detail] fetchSupplierData failed", err);
+    notFound();
+  }
   if (!data) notFound();
 
   const { supplier, contract, buildings, onboardingData, bdUsers } = data;
