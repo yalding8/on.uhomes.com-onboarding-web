@@ -26,6 +26,7 @@ function makeApplication(
     status: "PENDING",
     created_at: new Date().toISOString(),
     assigned_bd_id: null,
+    referral_code: null,
     ...overrides,
   };
 }

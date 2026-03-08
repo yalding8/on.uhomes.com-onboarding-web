@@ -79,11 +79,13 @@
 每次 commit 前，**必须**在本地依次通过以下检查，否则 CI 会失败并触发自动回滚：
 
 ```bash
-npx prettier --write .   # 格式化所有文件
+npx prettier --write .   # 格式化所有文件（必须第一步执行，不是检查而是直接写入）
 npx tsc --noEmit         # TypeScript 类型检查
 bash scripts/check-file-lines.sh  # 文件行数检查（≤ 300 行）
 ```
 
+> **核心原则：格式化是写入操作，不是检查操作。** CI 用 `prettier --check` 验证，本地用 `prettier --write` 修正。顺序必须是「先格式化 → 再 add → 再 commit」，而非 commit 后靠 CI 发现。这是 CI 格式类失败的第一大根因——创建或修改了文件（尤其是 `.md`、新建文件）但没有跑 Prettier 就提交。
+>
 > CI 门禁（Main Branch Guard）运行顺序：Prettier → ESLint → tsc → 行数检查 → Vitest → Build。
 > 任意一步失败，后续步骤全部跳过，且会尝试自动 revert。
 

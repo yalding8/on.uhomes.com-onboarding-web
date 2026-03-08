@@ -36,6 +36,7 @@ function makeApplications(): ApplicationRow[] {
       status: "PENDING",
       created_at: "2026-02-01T00:00:00Z",
       assigned_bd_id: null,
+      referral_code: null,
     },
     {
       id: "app-2",
@@ -49,6 +50,7 @@ function makeApplications(): ApplicationRow[] {
       status: "PENDING",
       created_at: "2026-02-02T00:00:00Z",
       assigned_bd_id: "bd-1",
+      referral_code: null,
     },
     {
       id: "app-3",
@@ -62,6 +64,7 @@ function makeApplications(): ApplicationRow[] {
       status: "CONVERTED",
       created_at: "2026-01-15T00:00:00Z",
       assigned_bd_id: null,
+      referral_code: null,
     },
     {
       id: "app-4",
@@ -75,6 +78,7 @@ function makeApplications(): ApplicationRow[] {
       status: "REJECTED",
       created_at: "2026-01-10T00:00:00Z",
       assigned_bd_id: null,
+      referral_code: null,
     },
   ];
 }
@@ -84,24 +88,41 @@ function renderList(apps?: ApplicationRow[]) {
     <ApplicationList
       applications={apps ?? makeApplications()}
       bdUsers={BD_USERS}
+      isAdmin={true}
+      currentBdId="bd-1"
     />,
   );
 }
 
+const MOCK_STATS_RESPONSE = {
+  ok: true,
+  json: () =>
+    Promise.resolve({
+      pending_total: 2,
+      unassigned_count: 1,
+      converted_this_week: 0,
+      total_this_week: 0,
+      pending_last_week: 0,
+    }),
+};
+
 describe("Application Approval Workflow", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    global.fetch = vi.fn();
+    // Default mock returns stats response for ApplicationStats useEffect
+    global.fetch = vi.fn().mockResolvedValue(MOCK_STATS_RESPONSE);
   });
 
   // AA-01: 页面加载
-  it("AA-01: renders filter tabs and application list", () => {
+  it("AA-01: renders filter tabs and application list", async () => {
+    const user = userEvent.setup();
     renderList();
     expect(screen.getByRole("tab", { name: /all/i })).toBeVisible();
     expect(screen.getByRole("tab", { name: /pending/i })).toBeVisible();
     expect(screen.getByRole("tab", { name: /converted/i })).toBeVisible();
     expect(screen.getByRole("tab", { name: /rejected/i })).toBeVisible();
-    // All 4 applications visible (desktop table + mobile cards = 2 each)
+    // Default tab is PENDING — switch to ALL to see all apps
+    await user.click(screen.getByRole("tab", { name: /all/i }));
     expect(screen.getAllByText("Alpha Corp").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Beta LLC").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Gamma Inc").length).toBeGreaterThanOrEqual(1);
@@ -113,6 +134,9 @@ describe("Application Approval Workflow", () => {
     renderList();
     const allTab = screen.getByRole("tab", { name: /all/i });
     expect(allTab).toHaveTextContent("4");
+    // Default tab is Pending, verify count
+    const pendingTab = screen.getByRole("tab", { name: /pending/i });
+    expect(pendingTab).toHaveTextContent("2");
   });
 
   // AA-03: PENDING 筛选
@@ -243,15 +267,15 @@ describe("Application Approval Workflow", () => {
     });
   });
 
-  // AA-14: 已转化行 — Approve 按钮 disabled
-  it("AA-14: CONVERTED row has disabled status button", () => {
+  // AA-14: 已转化行 — no Approve button
+  it("AA-14: CONVERTED row has no Approve button", async () => {
+    const user = userEvent.setup();
     renderList();
-    // Desktop table + mobile cards both render the button
-    const convertedBtns = screen.getAllByRole("button", { name: "Converted" });
-    expect(convertedBtns.length).toBeGreaterThanOrEqual(1);
-    for (const btn of convertedBtns) {
-      expect(btn).toBeDisabled();
-    }
+    // Switch to Converted tab
+    await user.click(screen.getByRole("tab", { name: /converted/i }));
+    // No Approve buttons should be visible for CONVERTED applications
+    const approveButtons = screen.queryAllByRole("button", { name: "Approve" });
+    expect(approveButtons).toHaveLength(0);
   });
 
   // AA-15: 空列表
@@ -262,19 +286,14 @@ describe("Application Approval Workflow", () => {
     renderList([apps[0], apps[1]]);
 
     await user.click(screen.getByRole("tab", { name: /converted/i }));
-    expect(
-      screen.getByText(/no applications match this filter/i),
-    ).toBeVisible();
+    expect(screen.getByText(/no applications match/i)).toBeVisible();
   });
 
-  // Active tab highlight
-  it("active tab has aria-selected=true", async () => {
-    const user = userEvent.setup();
+  // Active tab highlight — default is PENDING
+  it("active tab has aria-selected=true", () => {
     renderList();
 
     const pendingTab = screen.getByRole("tab", { name: /pending/i });
-    await user.click(pendingTab);
-
     expect(pendingTab).toHaveAttribute("aria-selected", "true");
 
     const allTab = screen.getByRole("tab", { name: /all/i });
@@ -284,7 +303,7 @@ describe("Application Approval Workflow", () => {
   // Assigned BD column shows BD name
   it("shows assigned BD name in table", () => {
     renderList();
-    // Beta LLC has bd-1 assigned → should show "BD Office"
+    // Default tab is PENDING — Beta LLC (PENDING, assigned to bd-1) should show BD Office
     expect(screen.getAllByText("BD Office").length).toBeGreaterThanOrEqual(1);
   });
 });
