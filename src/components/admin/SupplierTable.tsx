@@ -1,119 +1,198 @@
 "use client";
 
 /**
- * 供应商列表渲染组件 — Client Component
+ * Supplier pipeline table — desktop table + mobile cards.
  *
- * 桌面端表格 + 移动端卡片，行可点击导航到详情页。
- * 从 SupplierList 拆分，保持 300 行限制。
- *
- * Requirements: 5.2, 5.4
+ * Left border color-coded by urgency / stage.
+ * Sorted by pipeline priority (NEW_CONTRACT first, oldest = most urgent).
  */
 
-import type { SupplierRow } from "@/app/admin/suppliers/page";
-import { CircleDot, Clock, CheckCircle2 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import {
+  PIPELINE_STAGES,
+  computeStageDays,
+  type PipelineStage,
+} from "@/lib/suppliers/pipeline";
+import { formatRelativeTime } from "@/lib/utils/relative-time";
 
-interface SupplierTableProps {
-  suppliers: SupplierRow[];
-  onRowClick: (supplier: SupplierRow) => void;
-  isAdmin?: boolean;
+export interface SupplierTableRow {
+  id: string;
+  company_name: string;
+  contact_email: string;
+  contact_phone: string | null;
+  city: string | null;
+  country: string | null;
+  website_url: string | null;
+  status: string;
+  created_at: string;
+  bd_display_name: string | null;
+  pipeline_stage: PipelineStage;
+  contract_status: string | null;
+  contract_created_at: string | null;
+  contract_updated_at: string | null;
+  contract_signed_at: string | null;
+  building_count: number;
+  avg_score: number | null;
+  published_count: number;
+  next_action: { text: string; actionType?: "copy_email" | "link" };
 }
 
-const STATUS_CONFIG: Record<
-  SupplierRow["status"],
-  { label: string; icon: LucideIcon; className: string }
-> = {
-  NEW: {
-    label: "New",
-    icon: CircleDot,
-    className:
-      "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
-  },
-  PENDING_CONTRACT: {
-    label: "Pending Contract",
-    icon: Clock,
-    className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
-  },
-  SIGNED: {
-    label: "Signed",
-    icon: CheckCircle2,
-    className: "bg-[var(--color-success-light)] text-[var(--color-success)]",
-  },
+interface SupplierTableProps {
+  suppliers: SupplierTableRow[];
+  onRowClick: (supplier: SupplierTableRow) => void;
+  isAdmin: boolean;
+}
+
+const STAGE_ORDER: Record<PipelineStage, number> = {
+  NEW_CONTRACT: 0,
+  CONTRACT_IN_PROGRESS: 1,
+  AWAITING_SIGNATURE: 2,
+  SIGNED: 3,
+  LIVE: 4,
 };
 
-function StatusBadge({ status }: { status: SupplierRow["status"] }) {
-  const config = STATUS_CONFIG[status];
-  const Icon = config.icon;
+function getStageMeta(stage: PipelineStage) {
+  return PIPELINE_STAGES.find((s) => s.value === stage) ?? PIPELINE_STAGES[0];
+}
+
+function getDays(s: SupplierTableRow): number {
+  return computeStageDays(
+    s.pipeline_stage,
+    s.created_at,
+    s.contract_created_at,
+    s.contract_updated_at,
+    s.contract_signed_at,
+  );
+}
+
+function getBorderClass(s: SupplierTableRow): string {
+  const days = getDays(s);
+  if (s.pipeline_stage === "AWAITING_SIGNATURE")
+    return "border-s-2 border-s-[var(--color-primary)]";
+  if (s.pipeline_stage === "SIGNED" || s.pipeline_stage === "LIVE")
+    return "border-s-2 border-s-[var(--color-success)]";
+  if (days > 14) return "border-s-2 border-s-red-500";
+  if (days > 7) return "border-s-2 border-s-[var(--color-warning)]";
+  return "border-s-2 border-s-transparent";
+}
+
+function StageBadge({ stage }: { stage: PipelineStage }) {
+  const meta = getStageMeta(stage);
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${config.className}`}
-    >
-      <Icon className="h-3.5 w-3.5" />
-      {config.label}
+    <span className="inline-flex items-center gap-1.5 text-xs font-medium">
+      <span
+        className="h-2 w-2 rounded-full shrink-0"
+        style={{ backgroundColor: meta.color }}
+      />
+      {meta.label}
     </span>
   );
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
+function ContractBadge({ status }: { status: string | null }) {
+  if (!status) return <span className="text-[var(--color-text-muted)]">—</span>;
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
+      {status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+    </span>
+  );
+}
+
+function DaysCell({ s }: { s: SupplierTableRow }) {
+  if (s.pipeline_stage === "LIVE") return null;
+  const days = getDays(s);
+  const color =
+    days > 14
+      ? "text-red-500 font-medium"
+      : days > 7
+        ? "text-[var(--color-warning)] font-medium"
+        : "text-[var(--color-text-muted)]";
+  return <span className={color}>{days}d</span>;
+}
+
+function BuildingsCell({ s }: { s: SupplierTableRow }) {
+  if (s.pipeline_stage === "LIVE") {
+    return (
+      <span className="text-[var(--color-text-secondary)]">
+        {s.published_count}/{s.building_count} published
+      </span>
+    );
+  }
+  const score = s.avg_score !== null ? ` (${Math.round(s.avg_score)}%)` : "";
+  return (
+    <span className="text-[var(--color-text-secondary)]">
+      {s.building_count}
+      {score}
+    </span>
+  );
+}
+
+function sortSuppliers(list: SupplierTableRow[]): SupplierTableRow[] {
+  return [...list].sort((a, b) => {
+    const oa = STAGE_ORDER[a.pipeline_stage];
+    const ob = STAGE_ORDER[b.pipeline_stage];
+    if (oa !== ob) return oa - ob;
+    // Within same stage: oldest first for urgency
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
   });
 }
 
 export function SupplierTable({
   suppliers,
   onRowClick,
-  isAdmin = false,
+  isAdmin,
 }: SupplierTableProps) {
+  const sorted = sortSuppliers(suppliers);
+
   return (
     <>
-      {/* 桌面端表格 — >=768px */}
+      {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto rounded-lg border border-[var(--color-border)]">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
               <th className="text-start px-4 py-3 font-medium">Company</th>
-              <th className="text-start px-4 py-3 font-medium">Email</th>
-              <th className="text-start px-4 py-3 font-medium">Status</th>
+              <th className="text-start px-4 py-3 font-medium">Stage</th>
+              <th className="text-start px-4 py-3 font-medium">Contract</th>
               <th className="text-start px-4 py-3 font-medium">Buildings</th>
-              {isAdmin && (
-                <th className="text-start px-4 py-3 font-medium">
-                  Assigned BD
-                </th>
-              )}
-              <th className="text-start px-4 py-3 font-medium">Created</th>
+              <th className="text-start px-4 py-3 font-medium">Days</th>
+              <th className="text-start px-4 py-3 font-medium">Updated</th>
             </tr>
           </thead>
           <tbody>
-            {suppliers.map((s) => (
+            {sorted.map((s) => (
               <tr
                 key={s.id}
                 onClick={() => onRowClick(s)}
-                className="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer"
+                className={`border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getBorderClass(s)}`}
               >
-                <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
-                  {s.company_name}
-                </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                  {s.contact_email}
+                <td className="px-4 py-3">
+                  <p className="font-medium text-[var(--color-text-primary)] truncate">
+                    {s.company_name}
+                  </p>
+                  {isAdmin && s.bd_display_name && (
+                    <p className="text-xs text-[var(--color-text-muted)] truncate">
+                      {s.bd_display_name}
+                    </p>
+                  )}
                 </td>
                 <td className="px-4 py-3">
-                  <StatusBadge status={s.status} />
+                  <StageBadge stage={s.pipeline_stage} />
                 </td>
-                <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                  {s.building_count}
+                <td className="px-4 py-3">
+                  {s.pipeline_stage === "NEW_CONTRACT" ? (
+                    <span className="text-[var(--color-text-muted)]">—</span>
+                  ) : (
+                    <ContractBadge status={s.contract_status} />
+                  )}
                 </td>
-                {isAdmin && (
-                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                    {s.bd_display_name ?? "—"}
-                  </td>
-                )}
-                <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap">
-                  {formatDate(s.created_at)}
+                <td className="px-4 py-3">
+                  <BuildingsCell s={s} />
+                </td>
+                <td className="px-4 py-3 whitespace-nowrap">
+                  <DaysCell s={s} />
+                </td>
+                <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap text-xs">
+                  {formatRelativeTime(s.contract_updated_at ?? s.created_at)}
                 </td>
               </tr>
             ))}
@@ -121,31 +200,39 @@ export function SupplierTable({
         </table>
       </div>
 
-      {/* 移动端卡片 — <768px */}
+      {/* Mobile cards */}
       <div className="md:hidden flex flex-col gap-3">
-        {suppliers.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => onRowClick(s)}
-            className="w-full text-start rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] active:scale-[0.98] transition-all"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-[var(--color-text-primary)]">
-                {s.company_name}
-              </span>
-              <StatusBadge status={s.status} />
+        {sorted.map((s) => {
+          const days = getDays(s);
+          return (
+            <div
+              key={s.id}
+              onClick={() => onRowClick(s)}
+              className={`rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getBorderClass(s)}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-[var(--color-text-primary)] truncate">
+                  {s.company_name}
+                </span>
+                <StageBadge stage={s.pipeline_stage} />
+              </div>
+              <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
+                {isAdmin && s.bd_display_name && (
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    {s.bd_display_name}
+                  </p>
+                )}
+                <div className="flex items-center justify-between">
+                  <BuildingsCell s={s} />
+                  {s.pipeline_stage !== "LIVE" && <DaysCell s={s} />}
+                </div>
+                <p className="text-xs text-[var(--color-text-muted)]">
+                  {formatRelativeTime(s.contract_updated_at ?? s.created_at)}
+                </p>
+              </div>
             </div>
-            <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
-              <p>{s.contact_email}</p>
-              <p>Buildings: {s.building_count}</p>
-              {isAdmin && s.bd_display_name && <p>BD: {s.bd_display_name}</p>}
-              <p className="text-[var(--color-text-muted)] text-xs">
-                {formatDate(s.created_at)}
-              </p>
-            </div>
-          </button>
-        ))}
+          );
+        })}
       </div>
     </>
   );

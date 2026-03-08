@@ -131,6 +131,9 @@ export async function createEnvelope(
       url: `${appUrl}/api/webhooks/docusign`,
       requireAcknowledgment: true,
       envelopeEvents: [{ envelopeEventStatusCode: "completed" }],
+      recipientEvents: [{ recipientEventStatusCode: "completed" }],
+      includeDocumentFields: false,
+      includeRecipients: true,
       includeHMAC: true,
     },
   };

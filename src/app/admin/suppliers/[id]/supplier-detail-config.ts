@@ -15,6 +15,8 @@ export interface ContractInfo {
   status: string;
   embedded_signing_url: string | null;
   document_url: string | null;
+  provider_metadata: { type?: string } | null;
+  signed_at: string | null;
   created_at: string;
 }
 
@@ -22,6 +24,9 @@ export interface SupplierDetail {
   id: string;
   company_name: string;
   contact_email: string;
+  contact_phone: string | null;
+  city: string | null;
+  country: string | null;
   role: string;
   status: string;
   created_at: string;
