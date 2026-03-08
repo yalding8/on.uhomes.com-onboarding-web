@@ -131,6 +131,22 @@ uhomes.com 作为全球学生住宿聚合平台，需要从供应商网站提取
 | Studapart (FR)         | 法国市场 | Vue.js       | 低-中      | 中         |
 | Immobilienscout24 (DE) | 德国综合 | React        | 高（严格） | 很高       |
 
+#### 全球学生住宿聚合平台（竞品/数据源）
+
+| 平台              | 覆盖范围             | 特点                     |
+| ----------------- | -------------------- | ------------------------ |
+| Student.com       | 400+ 城市，全球最大  | 自家平台，可直接访问数据 |
+| HousingAnywhere   | 53 国 484 城         | 交换生起家，中长租       |
+| Uniplaces         | 56 城，欧/澳/南非    | 视频验房，强欧洲覆盖     |
+| AmberStudent      | 150K+ 房源，UK/AU/US | 强英联邦市场             |
+| University Living | 全球                 | 大学合作型聚合器         |
+| Flatio            | 欧洲为主             | 免押金灵活租期           |
+| Erasmusu          | 欧洲                 | 交换生专用               |
+| WG-Gesucht        | 德国                 | 德国合租主导平台         |
+| PropertyGuru      | 东南亚 4 国          | 新加坡/马来/泰/越        |
+
+> **合作优先策略**：上述聚合平台可能提供 Partner API 或数据合作接口，应优先评估 API 合作而非爬取。
+
 ### 2.2 技术架构分类
 
 分析 200+ 个目标网站后，归纳为 4 种主要架构模式：
@@ -192,6 +208,16 @@ Cloudflare 是学生公寓网站中最常见的 CDN/安全层，防护分级：
 - **多层关联检测**：TLS 指纹 + HTTP/2 设置 + 行为模式 + 请求间隔时序分析。即使 TLS 完美伪装，行为信号不一致也会被识别
 - **Cloudflare 数据优势**：占全球反向代理网站 80.8% 的流量，Bot Management 代理识别率 97%
 - **突破策略**：成本极高，需要组合多层技术；建议改用 API 合作或人工采集
+
+#### 2025 新增检测机制 — CDP 检测
+
+Cloudflare 于 2025 年引入 **Chrome DevTools Protocol (CDP) 检测**，可捕获 99% 的自动化工具（Playwright/Puppeteer 均基于 CDP）。检测维度：
+
+- CDP 连接特征（WebSocket 端口模式）
+- utility world 脚本注入痕迹
+- `Runtime.evaluate` 调用模式
+
+**应对方案**：`rebrowser-patches`（深层补丁修复 CDP 泄漏特征），比传统 JS 注入式 stealth 更底层、更难被检测。
 
 ### 3.2 其他反爬措施
 
@@ -345,6 +371,7 @@ interface SiteProbeResult {
   - Next.js 站点的 __NEXT_DATA__ / API Routes
   - GraphQL 端点（Unite Students 等）
   - REST API（部分 PBSA 管理平台）
+  - 移动端 API（通常反爬弱于 Web 前端，可通过 mitmproxy 抓包还原）
 ```
 
 ### 4.5 反爬对策工具箱（2026 最新）
@@ -352,6 +379,7 @@ interface SiteProbeResult {
 | 工具                      | 用途                  | 推荐方案                                                    | 备注                                          |
 | ------------------------- | --------------------- | ----------------------------------------------------------- | --------------------------------------------- |
 | **Playwright + Stealth**  | 隐藏浏览器自动化特征  | `playwright-extra` + `puppeteer-extra-plugin-stealth`       | 隐藏 `navigator.webdriver`、伪装 runtime 属性 |
+| **rebrowser-patches**     | CDP 泄漏深层修复      | 修复 CDP 连接特征、utility world、注入脚本标签              | 2025 最强方案，对抗 Cloudflare CDP 检测       |
 | **Camoufox**              | 引擎级指纹拦截        | 基于 Firefox 的定制浏览器，C++ 层指纹操控                   | 比 JS 注入方案更难被检测，新兴方案            |
 | **Undetected Playwright** | Playwright 反检测封装 | GitHub 2.5K stars，持续更新                                 | 通过基础 Cloudflare 不触发 1020 错误          |
 | **住宅代理**              | IP 轮换，避免封禁     | Bright Data / Oxylabs / IPRoyal                             | 住宅 IP 信任度最高；移动代理最贵但最有效      |
@@ -622,13 +650,13 @@ Building 去重：
 
 ### 8.1 各市场法律框架
 
-| 地区       | 法律依据                    | 关键要求                               | 风险等级 |
-| ---------- | --------------------------- | -------------------------------------- | -------- |
-| **美国**   | CFAA + hiQ v. LinkedIn 判例 | 公开信息可爬取；不绕过访问控制         | 中       |
-| **英国**   | DPA 2018 + GDPR             | 个人数据需合法基础；公开商业信息可提取 | 中       |
-| **澳洲**   | Privacy Act 1988            | 类似 GDPR；商业信息不受限              | 低       |
-| **欧盟**   | GDPR + Database Directive   | 需合法利益评估；尊重 robots.txt        | 高       |
-| **加拿大** | PIPEDA                      | 商业联系信息可合理使用                 | 低       |
+| 地区       | 法律依据                                     | 关键要求                                               | 风险等级 |
+| ---------- | -------------------------------------------- | ------------------------------------------------------ | -------- |
+| **美国**   | CFAA + hiQ v. LinkedIn + Meta v. Bright Data | 公开信息可爬取；不绕过访问控制；ToS 违规可触发合同诉讼 | 中       |
+| **英国**   | DPA 2018 + GDPR                              | 个人数据需合法基础；公开商业信息可提取                 | 中       |
+| **澳洲**   | Privacy Act 1988                             | 类似 GDPR；商业信息不受限                              | 低       |
+| **欧盟**   | GDPR + Database Directive                    | 需合法利益评估；尊重 robots.txt                        | 高       |
+| **加拿大** | PIPEDA                                       | 商业联系信息可合理使用                                 | 低       |
 
 ### 8.2 合规最佳实践
 
