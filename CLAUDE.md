@@ -156,7 +156,7 @@ git push gitlab --tags
 3. **测试用例先行**：在编码前完成 Unit / Integration / E2E 测试用例设计
 4. **编码实现**：代码必须通过已设计的测试用例
 5. **全量测试**：新增测试 + 回归测试全部通过
-6. **上线评审**：对照上线清单逐项确认
+6. **上线评审**：对照上线清单逐项确认 + **Smoke Test 必须在真实环境走完整业务流程**（不能只靠 mock 级测试）
 
 ### 9.3 方案评审清单（Major Track 适用）
 
@@ -196,5 +196,7 @@ git push gitlab --tags
 - [ ] 新增路由/环境变量已同步 `README.md`
 - [ ] 数据库变更已有 migration 文件
 - [ ] **代码引用的所有数据库列在 Supabase 中已存在**（对照 migration 逐条核实）
+- [ ] **代码使用的所有状态值在数据库 CHECK 约束中已存在**（对照 `CHECK (status IN (...))` 逐条核实）
+- [ ] **涉及已有 API 端点的功能，必须验证该端点依赖的完整数据库 schema**（不能假设已有代码的 DB 依赖都已同步——教训：`approve-supplier` 依赖 `CONVERTING` 状态和 `supplier_type` 列，均未在 DB 中创建）
 - [ ] **Vercel 功能（Cron、Edge Config 等）符合当前计划限制**（Hobby: Cron 最低每天一次）
 - [ ] **push 后确认 Vercel Deployments 出现新部署**（防止 webhook 断裂无感知）
