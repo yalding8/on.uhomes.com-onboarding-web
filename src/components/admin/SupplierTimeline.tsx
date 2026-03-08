@@ -120,10 +120,10 @@ export function SupplierTimeline({ supplierId }: SupplierTimelineProps) {
           throw new Error(`HTTP ${res.status}`);
         }
 
-        const data: { nodes: TimelineNode[] } = await res.json();
+        const data = await res.json();
 
         if (!cancelled) {
-          setNodes(data.nodes);
+          setNodes(Array.isArray(data.nodes) ? data.nodes : []);
           setLoading(false);
         }
       } catch (err) {

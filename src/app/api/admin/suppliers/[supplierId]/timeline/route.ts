@@ -134,7 +134,7 @@ export async function GET(_request: Request, context: RouteContext) {
       buildPublished(buildings),
     ];
 
-    return NextResponse.json(timeline);
+    return NextResponse.json({ nodes: timeline });
   } catch (error) {
     console.error("[supplier-timeline]", error);
     return NextResponse.json(
