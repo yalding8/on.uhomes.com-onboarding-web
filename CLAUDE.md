@@ -39,6 +39,7 @@
 - **日志规范**：
   - 禁止在业务逻辑中使用 `console.log`（调试完毕后必须删除）。
   - 错误日志统一使用 `console.error`，仅限 `catch` 块内，格式：`console.error('[模块名]', error)`。
+  - **Supabase 操作的 error 分支必须带 `console.error`**，不能只返回通用错误而不记录具体原因（教训：`/api/apply` 的 insert 错误被吞掉，排查浪费大量时间）。
   - 后续如引入统一 logger（`src/lib/logger.ts`），全部迁移至该工具，届时此规则更新。
 
 ---
@@ -71,6 +72,7 @@
 1. 该文件是否已存在对应的测试文件（`__tests__/`）？如有，修改后需同步更新测试。
 2. 修改是否涉及数据库表结构？如有，需评估是否需要新增 Supabase migration。
 3. 修改是否影响路由或环境变量？如有，需同步更新 `README.md`。
+4. **代码中引用了新的数据库列时，必须确认该列已在 Supabase 中存在**。如果是新增列，必须同步提供 migration SQL 并记录到 `memory/manual-actions.md` 待执行（教训：`supplier_type`、`assigned_bd_id` 列在代码中引用但数据库未同步，导致线上 500）。
 
 ## 7. 提交前必须通过的本地检查
 
@@ -191,3 +193,6 @@ git push gitlab --tags
 - [ ] `npx next build` 构建成功
 - [ ] 新增路由/环境变量已同步 `README.md`
 - [ ] 数据库变更已有 migration 文件
+- [ ] **代码引用的所有数据库列在 Supabase 中已存在**（对照 migration 逐条核实）
+- [ ] **Vercel 功能（Cron、Edge Config 等）符合当前计划限制**（Hobby: Cron 最低每天一次）
+- [ ] **push 后确认 Vercel Deployments 出现新部署**（防止 webhook 断裂无感知）
