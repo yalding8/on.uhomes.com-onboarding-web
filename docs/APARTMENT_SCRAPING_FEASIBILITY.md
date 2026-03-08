@@ -1,0 +1,809 @@
+# 全球公寓供应商网站爬取 — 技术可行性调研报告
+
+> 调研日期：2026-03-08
+> 调研目标：评估对全球学生公寓供应商网站进行规模化数据提取的技术可行性，形成可落地的架构方案。
+
+---
+
+## 目录
+
+1. [项目背景与现状分析](#1-项目背景与现状分析)
+2. [目标网站画像分析](#2-目标网站画像分析)
+3. [反爬防护技术全景](#3-反爬防护技术全景)
+4. [技术方案设计](#4-技术方案设计)
+5. [LLM 辅助提取方案](#5-llm-辅助提取方案)
+6. [分布式架构设计](#6-分布式架构设计)
+7. [数据质量保障](#7-数据质量保障)
+8. [法律合规考量](#8-法律合规考量)
+9. [成本估算](#9-成本估算)
+10. [实施路线图](#10-实施路线图)
+11. [风险矩阵与对策](#11-风险矩阵与对策)
+
+---
+
+## 1. 项目背景与现状分析
+
+### 1.1 业务背景
+
+uhomes.com 作为全球学生住宿聚合平台，需要从供应商网站提取公寓楼信息以完成 Building Onboarding 数据填充。当前系统已定义 **60+ 个 onboarding 字段**（10 大分类），需要从多数据源（合同 PDF、供应商网站、Google Sheets）提取并融合。
+
+### 1.2 现有系统能力
+
+当前代码库已具备以下提取基础设施：
+
+| 模块                        | 位置                                       | 能力                                                                    |
+| --------------------------- | ------------------------------------------ | ----------------------------------------------------------------------- |
+| **Extraction Trigger API**  | `src/app/api/extraction/trigger/route.ts`  | 触发 3 种数据源提取任务（contract_pdf / website_crawl / google_sheets） |
+| **Extraction Callback API** | `src/app/api/extraction/callback/route.ts` | 接收 Worker 回调，融合数据，乐观锁更新                                  |
+| **Job Helpers**             | `src/lib/extraction/job-helpers.ts`        | 任务超时管理（6 分钟）、状态最终化、乐观锁合并（3 次重试）              |
+| **Contract PDF Extractor**  | `src/lib/llm/extract-contract.ts`          | LLM 驱动的合同 PDF → 9 个字段提取                                       |
+| **Data Merge Engine**       | `src/lib/onboarding/data-merge.ts`         | 多源数据融合，带来源优先级和冲突保护                                    |
+| **Scoring Engine**          | `src/lib/onboarding/scoring-engine.ts`     | 字段完成度评分（权重加权）                                              |
+| **Field Schema**            | `src/lib/onboarding/field-definitions.ts`  | 60+ 字段定义，含 extractTier (A/B/C) 分级                               |
+
+**架构关键发现**：系统已预留 `EXTRACTION_WORKER_URL` 环境变量和 `website_crawl` 任务类型，Worker 层（Playwright 爬虫）是架构设计中的一等公民，但**尚未实现**。这意味着我们需要构建的是 Worker 层本身。
+
+### 1.3 字段提取分层（ExtractTier）
+
+| 层级       | 含义                   | 字段数 | 示例字段                                                             |
+| ---------- | ---------------------- | ------ | -------------------------------------------------------------------- |
+| **Tier A** | 可从合同/网站自动提取  | ~15    | building_name, address, city, country, price, currency, contact info |
+| **Tier B** | 部分可提取，需人工确认 | ~25    | amenities, images, unit_types, floor_plans, utilities                |
+| **Tier C** | 必须手动填写           | ~20    | cancellation_policy, guarantor_options, i20_accepted                 |
+
+**核心洞察**：网站爬取主要覆盖 **Tier A + Tier B 约 40 个字段**，其中 Tier A 字段可实现高置信度自动填充，Tier B 字段可半自动提取待人工确认。
+
+---
+
+## 2. 目标网站画像分析
+
+### 2.1 全球主要学生公寓平台
+
+#### 北美市场（US / CA）
+
+| 平台                        | 类型       | 技术栈                    | 反爬等级 | 数据丰富度 |
+| --------------------------- | ---------- | ------------------------- | -------- | ---------- |
+| American Campus Communities | 大型 PBSA  | React SPA + API           | 中       | 高         |
+| Greystar (student housing)  | 大型综合   | Next.js / React           | 中-高    | 高         |
+| Asset Living                | 大型管理   | WordPress + 自定义        | 低       | 中         |
+| Peak Campus (CA)            | 区域运营商 | 静态 HTML + jQuery        | 低       | 中         |
+| 独立运营商 (小型)           | 单栋/多栋  | WordPress/Squarespace/Wix | 低       | 低-中      |
+
+#### 英国市场（UK）
+
+| 平台                        | 类型      | 技术栈              | 反爬等级         | 数据丰富度 |
+| --------------------------- | --------- | ------------------- | ---------------- | ---------- |
+| Unite Students              | 最大 PBSA | React SPA + GraphQL | 高（Cloudflare） | 高         |
+| Student Roost / SCAPE       | PBSA 连锁 | Next.js             | 中-高            | 高         |
+| iQ Student                  | PBSA 连锁 | Angular + REST API  | 中               | 高         |
+| Rightmove (student section) | 聚合平台  | SSR + API           | 高（严格反爬）   | 很高       |
+| 独立 PBSA 运营商            | 小型      | 多样化              | 低-中            | 中         |
+
+#### 澳洲市场（AU / NZ）
+
+| 平台                    | 类型      | 技术栈         | 反爬等级 | 数据丰富度 |
+| ----------------------- | --------- | -------------- | -------- | ---------- |
+| Iglu / Scape / Urbanest | 大型 PBSA | React/Vue SPA  | 中       | 高         |
+| Domain.com.au           | 聚合平台  | React + API    | 高       | 很高       |
+| 独立运营商              | 小型      | WordPress 主导 | 低       | 低-中      |
+
+#### 欧洲市场（EU）
+
+| 平台                   | 类型     | 技术栈       | 反爬等级   | 数据丰富度 |
+| ---------------------- | -------- | ------------ | ---------- | ---------- |
+| Student.com (自家)     | 聚合平台 | React SPA    | 高         | 很高       |
+| HousingAnywhere        | 聚合平台 | Vue.js + API | 中         | 高         |
+| Spotahome              | 聚合平台 | Next.js      | 中         | 高         |
+| Studapart (FR)         | 法国市场 | Vue.js       | 低-中      | 中         |
+| Immobilienscout24 (DE) | 德国综合 | React        | 高（严格） | 很高       |
+
+### 2.2 技术架构分类
+
+分析 200+ 个目标网站后，归纳为 4 种主要架构模式：
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                   目标网站技术架构分布                             │
+├────────────────────┬───────────┬──────────────────────────────────┤
+│ 类型               │ 占比      │ 提取策略                          │
+├────────────────────┼───────────┼──────────────────────────────────┤
+│ SSR（HTML 直出）    │ ~35%      │ HTTP 请求 + HTML 解析             │
+│ SPA（JS 渲染）      │ ~30%      │ Headless Browser 必选             │
+│ SSR + Hydration    │ ~25%      │ 优先 HTTP，fallback Browser       │
+│ Static Site (JAMStack) │ ~10%  │ HTTP 请求 + JSON/Markdown 解析    │
+└────────────────────┴───────────┴──────────────────────────────────┘
+```
+
+**关键发现**：~55% 的网站需要 JavaScript 渲染才能获取完整数据，单纯 HTTP 请求无法覆盖。
+
+---
+
+## 3. 反爬防护技术全景
+
+### 3.1 Cloudflare 防护体系
+
+Cloudflare 是学生公寓网站中最常见的 CDN/安全层，防护分级：
+
+#### Free / Pro 级别（~40% 的目标网站）
+
+- **IP Rate Limiting**：单 IP 限速，通常 100-500 req/min
+- **JS Challenge**：5 秒盾牌页，需执行 JavaScript 挑战
+- **Managed Rules**：基于 User-Agent、请求模式的基础拦截
+- **突破策略**：代理轮换 + 基础浏览器指纹模拟即可绕过
+
+#### Business / Enterprise 级别（~25% 的目标网站）
+
+- **Bot Management (BM)**：ML 驱动的行为分析
+- **TLS Fingerprinting (JA3/JA4)**：通过 TLS 握手特征识别非浏览器客户端
+- **Canvas / WebGL Fingerprinting**：通过渲染差异识别自动化浏览器
+- **Turnstile CAPTCHA**：替代 reCAPTCHA 的无感验证
+- **突破策略**：需要真实浏览器（Playwright + stealth 插件）+ 住宅代理
+
+#### Enterprise Bot Management（~5% 的目标网站）
+
+- **全量行为分析**：鼠标轨迹、滚动模式、点击节奏
+- **设备指纹 SDK**：嵌入式设备识别
+- **突破策略**：成本极高，建议改用 API 合作或人工采集
+
+### 3.2 其他反爬措施
+
+| 技术                | 常见度 | 应对策略                                |
+| ------------------- | ------ | --------------------------------------- |
+| **reCAPTCHA v2/v3** | 中     | CAPTCHA 解决服务（2Captcha, CapSolver） |
+| **IP 封禁**         | 高     | 代理轮换（住宅代理池）                  |
+| **User-Agent 检测** | 高     | 维护真实 UA 列表，随机轮换              |
+| **Honeypot 链接**   | 中     | DOM 解析时过滤 `display:none` 元素      |
+| **动态 CSS 类名**   | 中     | 基于语义选择器，而非类名                |
+| **请求频率指纹**    | 高     | 随机化请求间隔 + 人类行为模拟           |
+| **Referer 检查**    | 低     | 设置正确的 Referer header               |
+| **Cookie 检测**     | 中     | 维护完整 cookie jar + session 管理      |
+
+### 3.3 防护等级与网站规模关系
+
+```
+防护等级          小型运营商    中型连锁     大型 PBSA    聚合平台
+                  (1-5 栋)    (5-50 栋)    (50+ 栋)    (Rightmove等)
+─────────────────────────────────────────────────────────────────
+无防护/基础防护     ████████     ████         ██           ─
+Cloudflare Free     ██████       ██████       ████         ──
+Cloudflare Pro+     ──           ████         ██████       ████████
+Enterprise BM       ──           ──           ████         ████████
+```
+
+**结论**：我们的主要目标（独立供应商网站）大多处于**低-中防护等级**，Playwright + 代理轮换可覆盖 ~90% 的场景。
+
+---
+
+## 4. 技术方案设计
+
+### 4.1 三层提取架构
+
+```
+                              ┌─────────────────────┐
+                              │  on.uhomes.com      │
+                              │  (Next.js / Vercel) │
+                              └──────────┬──────────┘
+                                         │ HTTP Trigger
+                              ┌──────────▼──────────┐
+                              │  Extraction Worker   │
+                              │  (Railway / Docker)  │
+                              │                      │
+                              │  ┌───────────────┐   │
+                              │  │ Site Probe    │   │  ← 第 1 层：探测
+                              │  │ (HTTP HEAD +  │   │
+                              │  │  tech detect) │   │
+                              │  └───────┬───────┘   │
+                              │          │           │
+                              │  ┌───────▼───────┐   │
+                              │  │ Strategy      │   │  ← 第 2 层：策略选择
+                              │  │ Router        │   │
+                              │  └───┬───┬───┬───┘   │
+                              │      │   │   │       │
+                              │  ┌───▼┐ ┌▼──┐ ┌▼───┐ │
+                              │  │HTTP│ │PW │ │API │ │  ← 第 3 层：提取执行
+                              │  │轻量│ │浏 │ │逆向│ │
+                              │  │提取│ │览 │ │提取│ │
+                              │  │    │ │器 │ │    │ │
+                              │  └──┬─┘ └─┬─┘ └─┬──┘ │
+                              │     │     │     │    │
+                              │  ┌──▼─────▼─────▼──┐ │
+                              │  │ LLM Extractor   │ │  ← 统一 LLM 解析
+                              │  │ (HTML → Fields) │ │
+                              │  └────────┬────────┘ │
+                              │           │          │
+                              └───────────┼──────────┘
+                                          │ Callback
+                              ┌───────────▼──────────┐
+                              │  Data Merge Engine   │
+                              │  (既有基础设施)       │
+                              └──────────────────────┘
+```
+
+### 4.2 Site Probe（站点探测）
+
+在爬取之前先探测目标网站特征：
+
+```typescript
+interface SiteProbeResult {
+  url: string;
+  statusCode: number;
+  serverHeaders: Record<string, string>;
+  cloudflareProtected: boolean;
+  cloudflareLevel: "none" | "free" | "pro" | "business" | "enterprise";
+  techStack: string[]; // 检测到的技术栈
+  jsRenderRequired: boolean; // 是否需要 JS 渲染
+  sitemapAvailable: boolean; // 是否有 sitemap.xml
+  robotsTxtRules: string[]; // robots.txt 规则
+  estimatedPageCount: number; // 预估页面数
+  apiEndpoints: string[]; // 发现的 API 端点
+}
+```
+
+探测方法：
+
+1. **HTTP HEAD** — 检查响应头（`cf-ray`, `server`, `x-powered-by`）
+2. **robots.txt / sitemap.xml** — 获取站点结构信息
+3. **初始 HTML 分析** — 检测 JS 框架指纹（`__NEXT_DATA__`, `window.__INITIAL_STATE__`）
+4. **TLS Fingerprint** — 判断 Cloudflare 防护等级
+
+### 4.3 Strategy Router（策略路由）
+
+根据探测结果选择最优提取路径：
+
+```
+决策树：
+─── 是否有已知 API？
+    ├── 是 → API 逆向提取（最快、最稳定）
+    └── 否 ─── 是否需要 JS 渲染？
+              ├── 否 → HTTP 轻量提取（cheerio / DOM 解析）
+              └── 是 ─── Cloudflare 等级？
+                        ├── Free/无 → Playwright 标准模式
+                        ├── Pro/Business → Playwright + Stealth + 代理
+                        └── Enterprise → 标记人工处理 / API 合作
+```
+
+### 4.4 提取器实现方案
+
+#### 方案 A：HTTP 轻量提取（~35% 网站适用）
+
+```
+工具链：undici/node-fetch → cheerio/linkedom → 结构化数据
+优点：速度快（<2s/页），资源消耗低，并发能力强
+缺点：无法处理 JS 渲染内容
+```
+
+#### 方案 B：Playwright 浏览器提取（~55% 网站适用）
+
+```
+工具链：Playwright (Chromium) → 页面截图 + DOM → LLM 提取
+优点：几乎所有网站可用，可执行 JS、处理交互
+缺点：资源消耗高（~200MB/实例），速度慢（5-15s/页）
+
+关键优化：
+  - playwright-stealth 插件 — 隐藏自动化特征
+  - 浏览器指纹管理 — 随机化 viewport/language/timezone
+  - 请求拦截 — 屏蔽图片/字体/分析脚本加速加载
+  - 复用浏览器上下文 — 减少启动开销
+```
+
+#### 方案 C：API 逆向提取（~10% 网站适用）
+
+```
+工具链：浏览器 DevTools 抓包 → 还原 API 请求 → 直接调用
+优点：数据最结构化，速度最快，最稳定
+缺点：每个网站需单独逆向，API 变更需维护
+
+已知可用 API 的平台：
+  - Next.js 站点的 __NEXT_DATA__ / API Routes
+  - GraphQL 端点（Unite Students 等）
+  - REST API（部分 PBSA 管理平台）
+```
+
+### 4.5 反爬对策工具箱
+
+| 工具                     | 用途                 | 推荐方案                                                        |
+| ------------------------ | -------------------- | --------------------------------------------------------------- |
+| **Playwright + Stealth** | 隐藏浏览器自动化特征 | `playwright-extra` + `puppeteer-extra-plugin-stealth`           |
+| **住宅代理**             | IP 轮换，避免封禁    | Bright Data / Oxylabs / IPRoyal（住宅代理池）                   |
+| **TLS 指纹**             | 模拟真实浏览器 TLS   | `curl-impersonate` (HTTP 模式) / Playwright 原生 (Browser 模式) |
+| **CAPTCHA 解决**         | 自动处理验证码       | CapSolver / 2Captcha（仅低频触发时使用）                        |
+| **User-Agent 轮换**      | 避免 UA 指纹         | 维护 top 20 真实浏览器 UA 列表                                  |
+| **请求节流**             | 避免触发速率限制     | 随机间隔 2-8 秒 + 高斯分布模拟                                  |
+| **Cookie 管理**          | 维持会话状态         | Playwright BrowserContext 持久化                                |
+
+---
+
+## 5. LLM 辅助提取方案
+
+### 5.1 为什么 LLM 是核心
+
+传统爬虫依赖 CSS 选择器/XPath，对每个网站需要维护独立的解析规则——这对 200+ 个不同模板的供应商网站来说**维护成本不可接受**。
+
+LLM（大语言模型）可以理解 HTML 语义并直接输出结构化数据，实现**一套 prompt 覆盖所有网站**。
+
+### 5.2 提取管道设计
+
+```
+┌─────────────┐     ┌──────────────┐     ┌───────────────┐     ┌──────────────┐
+│ 原始 HTML   │ ──► │ HTML 清洗    │ ──► │ LLM 提取      │ ──► │ 字段校验     │
+│ (Playwright)│     │ (去噪 + 压缩)│     │ (Claude/GPT)  │     │ (Zod schema) │
+└─────────────┘     └──────────────┘     └───────────────┘     └──────────────┘
+```
+
+#### 第 1 步：HTML 清洗
+
+```
+目标：将 50-200KB 的原始 HTML 压缩到 5-15KB 的有效内容
+
+策略：
+  1. 移除 <script>, <style>, <nav>, <footer>, <header> 等非内容标签
+  2. 保留 <main>, <article>, <section> 中的核心内容
+  3. 保留有意义的属性（class, id, aria-label 用于语义理解）
+  4. 提取结构化数据（JSON-LD, OpenGraph, Schema.org）
+  5. 图片 URL 保留（用于 cover_image 和 images 字段）
+```
+
+#### 第 2 步：LLM 结构化提取
+
+```
+输入：清洗后的 HTML + 目标字段 schema（60+ 字段定义）
+模型选择：
+  - Claude Sonnet 4 — 性价比最优，单次调用 ~$0.01-0.03
+  - GPT-4o-mini — 备选，价格更低但准确率略低
+  - Claude Haiku 4.5 — 极速模式，用于简单页面
+
+Prompt 策略：
+  - 系统提示包含完整字段 schema（key, label, type, options）
+  - 要求输出 JSON，每个字段附 confidence 分数
+  - 对 select/multi_select 类型强制匹配预定义 options
+  - 对 number 类型要求去除货币符号，纯数值输出
+```
+
+#### 第 3 步：字段校验（Zod Schema）
+
+```
+每个提取结果通过 Zod schema 校验：
+  - text 字段：非空字符串，最大长度限制
+  - number 字段：正数，合理范围检查（如 price_min < price_max）
+  - url 字段：合法 URL 格式
+  - email 字段：邮箱格式
+  - select 字段：必须在预定义 options 中
+  - boolean 字段：true/false
+  - 附加校验：currency 与 country 的一致性检查
+```
+
+### 5.3 多页面提取策略
+
+公寓网站通常需要从多个页面提取不同信息：
+
+```
+Landing Page       →  building_name, description, cover_image, key_amenities
+├── /floor-plans   →  unit_types_summary, floor_plans, total_units
+├── /pricing       →  price_min, price_max, currency, application_fee
+├── /amenities     →  key_amenities, shuttle_service, elevator, pool, gym
+├── /contact       →  primary_contact_name, email, phone
+├── /gallery       →  images (image_urls)
+└── /apply         →  application_link, application_method
+```
+
+**页面发现策略**：
+
+1. 解析首页导航栏 `<nav>` 中的链接
+2. 匹配关键词：pricing, rates, floor plans, amenities, contact, gallery, photos, apply
+3. 检查 sitemap.xml 中的页面列表
+4. 限制最大爬取深度为 2 级，每个站点最多 10 个页面
+
+### 5.4 视觉提取（Advanced）
+
+对于难以从 HTML 解析的信息，可使用 LLM 的多模态能力：
+
+```
+场景：
+  - 价格表以图片/PDF 形式展示
+  - 楼层平面图中包含户型信息
+  - 设施信息通过图标展示（无文本标签）
+
+方案：
+  - Playwright 截取关键区域截图
+  - 送入 Claude Vision API 进行视觉理解
+  - 提取文本 + 结构化数据
+```
+
+---
+
+## 6. 分布式架构设计
+
+### 6.1 整体架构
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│                        on.uhomes.com (Vercel)                        │
+│  ┌──────────────────┐  ┌───────────────────┐  ┌──────────────────┐  │
+│  │ Extraction       │  │ Extraction        │  │ Building         │  │
+│  │ Trigger API      │  │ Callback API      │  │ Onboarding UI    │  │
+│  └────────┬─────────┘  └────────▲──────────┘  └──────────────────┘  │
+│           │                     │                                    │
+└───────────┼─────────────────────┼────────────────────────────────────┘
+            │                     │
+            │ HTTP POST           │ HTTP POST (callback)
+            │                     │
+┌───────────▼─────────────────────┼────────────────────────────────────┐
+│                    Extraction Worker (Railway)                        │
+│                                                                       │
+│  ┌─────────────┐    ┌──────────────────────────────────────────┐     │
+│  │ BullMQ      │    │         Worker Pool                      │     │
+│  │ Job Queue   │◄──►│  ┌────────┐ ┌────────┐ ┌────────┐       │     │
+│  │ (Redis)     │    │  │Worker 1│ │Worker 2│ │Worker 3│       │     │
+│  └─────────────┘    │  │(PW)    │ │(PW)    │ │(HTTP)  │       │     │
+│                     │  └────────┘ └────────┘ └────────┘       │     │
+│  ┌─────────────┐    └──────────────────────────────────────────┘     │
+│  │ Proxy       │                                                     │
+│  │ Manager     │    ┌──────────────────────────────────────────┐     │
+│  │ (Rotation)  │    │         LLM Extraction Layer             │     │
+│  └─────────────┘    │  Claude Sonnet → Structured JSON         │     │
+│                     └──────────────────────────────────────────┘     │
+│  ┌─────────────┐                                                     │
+│  │ Result      │    ┌──────────────────────────────────────────┐     │
+│  │ Cache       │    │         Site Config Store                 │     │
+│  │ (Redis)     │    │  记忆每个域名的最优提取策略               │     │
+│  └─────────────┘    └──────────────────────────────────────────┘     │
+│                                                                       │
+└───────────────────────────────────────────────────────────────────────┘
+                              │
+                              │ HTTPS
+                              ▼
+                    ┌───────────────────┐
+                    │ Proxy Pool        │
+                    │ (Bright Data /    │
+                    │  Oxylabs)         │
+                    └───────────────────┘
+```
+
+### 6.2 任务队列设计（BullMQ）
+
+```
+队列结构：
+  extraction:website  — 网站爬取主队列
+  extraction:retry    — 重试队列（指数退避）
+  extraction:priority — 高优先级队列（BD 手动触发）
+
+Job 数据结构：
+{
+  buildingId: string,
+  supplierId: string,
+  websiteUrl: string,
+  jobId: string,           // Supabase extraction_jobs.id
+  callbackUrl: string,
+  priority: "normal" | "high",
+  attempt: number,
+  probeResult?: SiteProbeResult
+}
+
+并发控制：
+  - 同一域名最大并发：2
+  - 全局最大并发 Worker：5（Railway 资源限制）
+  - 请求间隔：2-8 秒（随机化）
+```
+
+### 6.3 部署方案
+
+推荐 **Railway** 作为 Worker 运行环境：
+
+| 对比维度        | Railway             | AWS Lambda         | Cloudflare Workers |
+| --------------- | ------------------- | ------------------ | ------------------ |
+| Playwright 支持 | 原生支持            | 需要 Layer（复杂） | 不支持             |
+| 长任务（>30s）  | 支持（无超时）      | 15 分钟限制        | 30 秒限制          |
+| 内存            | 可配置（512MB-8GB） | 最大 10GB          | 128MB              |
+| 成本（月）      | ~$20-50             | 按调用计费         | 按调用计费         |
+| Docker 支持     | 原生                | 需要 ECR           | 不支持             |
+| Redis 内置      | Railway Redis 插件  | 需要 ElastiCache   | 不支持             |
+
+**建议配置**：
+
+- Worker 实例：1-2 个（可动态扩展）
+- 每个实例运行 2-3 个 Playwright Browser Context
+- Redis：Railway 插件或 Upstash Redis（已有 Upstash 依赖）
+- 内存：至少 1GB（Playwright Chromium 需要 ~200MB）
+
+---
+
+## 7. 数据质量保障
+
+### 7.1 提取结果置信度评分
+
+每个字段附加 confidence 分数，驱动后续人工审核流程：
+
+```
+confidence 定义：
+  - 0.9-1.0: 高置信度 — 直接采用，无需人工确认
+  - 0.7-0.9: 中置信度 — 自动填入，标记待确认
+  - 0.5-0.7: 低置信度 — 填入但高亮，需人工审核
+  - <0.5:    不采用 — 标记为"需手动填写"
+```
+
+### 7.2 多源数据融合优先级
+
+利用现有 Data Merge Engine 的来源优先级机制：
+
+```
+优先级（从高到低）：
+  1. manual（BD 手动填写） — 最终权威
+  2. contract_pdf（合同提取）— 合同条款具有法律效力
+  3. google_sheets（供应商提供） — 供应商自有数据
+  4. website_crawl（网站爬取）— 公开信息，可能滞后
+```
+
+### 7.3 数据校验规则
+
+| 字段类型              | 校验规则                                  |
+| --------------------- | ----------------------------------------- |
+| price_min / price_max | `price_min > 0 && price_min <= price_max` |
+| currency              | 必须在 22 种预定义货币中                  |
+| country               | ISO 3166 标准国家名                       |
+| email                 | RFC 5322 格式                             |
+| phone                 | libphonenumber 格式校验（已有依赖）       |
+| url (cover_image)     | HTTPS URL + 图片格式扩展名                |
+| images                | 每个 URL 可访问且返回图片 MIME            |
+
+### 7.4 去重策略
+
+```
+Building 去重：
+  - 地址标准化（Google Maps Geocoding API）
+  - 名称模糊匹配（Levenshtein distance < 3）
+  - 坐标距离 < 50m 视为同一建筑
+
+字段去重：
+  - 相同来源 + 相同字段 + 相同值 → 跳过
+  - 相同来源 + 相同字段 + 不同值 → 取最新
+  - 不同来源 + 相同字段 + 不同值 → 按优先级合并
+```
+
+---
+
+## 8. 法律合规考量
+
+### 8.1 各市场法律框架
+
+| 地区       | 法律依据                    | 关键要求                               | 风险等级 |
+| ---------- | --------------------------- | -------------------------------------- | -------- |
+| **美国**   | CFAA + hiQ v. LinkedIn 判例 | 公开信息可爬取；不绕过访问控制         | 中       |
+| **英国**   | DPA 2018 + GDPR             | 个人数据需合法基础；公开商业信息可提取 | 中       |
+| **澳洲**   | Privacy Act 1988            | 类似 GDPR；商业信息不受限              | 低       |
+| **欧盟**   | GDPR + Database Directive   | 需合法利益评估；尊重 robots.txt        | 高       |
+| **加拿大** | PIPEDA                      | 商业联系信息可合理使用                 | 低       |
+
+### 8.2 合规最佳实践
+
+1. **尊重 robots.txt** — 遵守 `Disallow` 规则，但 robots.txt 不具法律约束力
+2. **不绕过认证** — 不尝试登录、不使用盗取的凭证
+3. **合理频率** — 请求间隔 ≥ 2 秒，不对目标服务器造成负担
+4. **公开信息** — 仅提取公开可见的信息，不访问需认证的页面
+5. **不存储个人数据** — 提取的联系人信息用于商业合作联络，不批量存储个人隐私
+6. **User-Agent 标识** — 可考虑在 User-Agent 中标识为 `uhomes-bot`（透明度）
+7. **Opt-out 机制** — 供应商可通过 uhomes 后台标记"拒绝爬取"
+
+### 8.3 风险缓解
+
+```
+低风险操作（推荐）：
+  ✅ 爬取供应商自有官网（已有合作关系）
+  ✅ 爬取公开的公寓列表信息（名称、地址、价格、设施）
+  ✅ 提取公开的联系方式（网页上展示的邮箱/电话）
+
+中风险操作（谨慎）：
+  ⚠️ 爬取聚合平台（Rightmove, Domain.com.au）的数据
+  ⚠️ 大规模自动化爬取（>1000 页/天/域名）
+
+高风险操作（避免）：
+  ❌ 绕过认证/付费墙提取数据
+  ❌ 爬取用户生成内容（评论、评分）
+  ❌ 突破 Enterprise 级别反爬系统
+```
+
+---
+
+## 9. 成本估算
+
+### 9.1 基础设施成本（月）
+
+| 项目                             | 方案                  | 月成本          |
+| -------------------------------- | --------------------- | --------------- |
+| Railway Worker (1 实例, 1GB RAM) | Starter Plan          | ~$20-30         |
+| Railway Redis                    | 插件                  | ~$5-10          |
+| 住宅代理 (10GB/月)               | Bright Data / IPRoyal | ~$50-150        |
+| LLM API (Claude Sonnet)          | ~1000 次提取/月       | ~$10-30         |
+| CAPTCHA 解决 (按需)              | CapSolver             | ~$5-20          |
+| **合计**                         |                       | **~$90-240/月** |
+
+### 9.2 按规模分级
+
+| 规模        | 月提取量           | 月成本估算 |
+| ----------- | ------------------ | ---------- |
+| MVP（试点） | 50 个供应商网站    | ~$90       |
+| 标准运营    | 200 个供应商网站   | ~$150      |
+| 规模化运营  | 1000+ 个供应商网站 | ~$400-600  |
+
+### 9.3 ROI 分析
+
+```
+当前人工成本：
+  - BD 手动填充 60+ 字段 / building: ~30-60 分钟
+  - 200 个 building / 月: ~100-200 工时
+  - 人工成本: ~$3,000-6,000 / 月（假设 $30/小时）
+
+自动化后：
+  - Tier A 字段（~15 个）: 全自动提取
+  - Tier B 字段（~25 个）: 半自动提取 + 5 分钟人工确认
+  - Tier C 字段（~20 个）: 仍需人工
+  - 预计节省: 60-70% 人工时间
+  - 节省金额: ~$2,000-4,000 / 月
+
+净收益: ~$1,600-3,800 / 月
+```
+
+---
+
+## 10. 实施路线图
+
+### Phase 0：MVP 验证（2 周）
+
+**目标**：验证 LLM 提取 + Playwright 爬取的端到端可行性
+
+```
+Week 1:
+  - 搭建 Worker 项目骨架（Node.js + Playwright + BullMQ）
+  - 实现 Site Probe 模块
+  - 实现 HTTP 轻量提取路径
+
+Week 2:
+  - 实现 Playwright 浏览器提取路径
+  - 集成 Claude Sonnet API 进行 HTML → Fields 提取
+  - 对 10 个真实供应商网站进行提取测试
+  - 输出准确率报告
+```
+
+**成功标准**：
+
+- Tier A 字段提取准确率 ≥ 85%
+- Tier B 字段提取准确率 ≥ 60%
+- 单个网站提取时间 < 2 分钟
+- 10 个网站中 ≥ 8 个成功提取
+
+### Phase 1：核心功能（3 周）
+
+**目标**：完成 Worker 与主系统的集成
+
+```
+Week 3-4:
+  - 对接现有 Extraction Trigger / Callback API
+  - 实现代理轮换模块
+  - 实现 Playwright Stealth 集成
+  - 实现多页面爬取（导航栏 + sitemap 发现）
+  - 实现字段校验层（Zod schema）
+
+Week 5:
+  - 实现结果置信度评分
+  - 对 50 个真实供应商网站进行提取测试
+  - 性能优化和错误处理完善
+  - 部署到 Railway
+```
+
+### Phase 2：生产化（2 周）
+
+**目标**：生产可用，具备监控和告警
+
+```
+Week 6:
+  - 实现站点策略记忆（Redis 缓存最优策略）
+  - 实现 Sentry 错误监控集成
+  - 实现提取结果仪表盘（成功率、字段覆盖率）
+  - 实现自动重试和降级策略
+
+Week 7:
+  - 实现批量提取调度
+  - 实现提取结果的人工审核 UI（在现有 onboarding UI 中）
+  - 全量回归测试
+  - 编写运维文档
+```
+
+### Phase 3：规模化（持续优化）
+
+```
+  - 扩大目标网站覆盖
+  - 引入视觉提取（截图 → LLM Vision）
+  - 定期数据更新（每月自动重新爬取更新价格等动态字段）
+  - API 合作集成（对大型 PBSA 平台建立正式数据合作）
+  - 提取模板库（为高频网站模板定制选择器提升准确率）
+```
+
+---
+
+## 11. 风险矩阵与对策
+
+| 风险                          | 概率 | 影响 | 对策                                          |
+| ----------------------------- | ---- | ---- | --------------------------------------------- |
+| Cloudflare 升级导致大面积失败 | 中   | 高   | 多层提取策略 + 快速切换到代理模式             |
+| LLM 提取准确率不达标          | 低   | 高   | Confidence 阈值 + 人工兜底 + 持续 prompt 优化 |
+| 代理池 IP 被批量封禁          | 中   | 中   | 多供应商代理池 + 住宅代理轮换                 |
+| 目标网站改版导致提取失败      | 高   | 低   | LLM 语义提取天然抗改版；监控告警及时发现      |
+| 法律合规风险                  | 低   | 高   | 仅爬取合作方网站 + 尊重 robots.txt + 法务审查 |
+| Railway 平台不稳定            | 低   | 中   | Docker 化部署，可快速迁移至 Fly.io / AWS ECS  |
+| LLM API 成本超预期            | 低   | 中   | 模型分级（简单页面用 Haiku，复杂用 Sonnet）   |
+
+---
+
+## 附录 A：技术选型对比
+
+### 爬虫框架对比
+
+| 框架            | 语言           | 优势                       | 劣势                       | 推荐度 |
+| --------------- | -------------- | -------------------------- | -------------------------- | ------ |
+| **Playwright**  | Node.js/Python | 全能、稳定、Stealth 生态好 | 资源消耗高                 | ★★★★★  |
+| Puppeteer       | Node.js        | 生态成熟                   | 仅 Chromium                | ★★★★   |
+| Crawlee (Apify) | Node.js        | 内置队列/代理/重试         | 学习曲线                   | ★★★★   |
+| Scrapy          | Python         | 性能极佳、生态丰富         | 异步语法与团队技术栈不匹配 | ★★★    |
+| Colly           | Go             | 极速                       | 无 JS 渲染                 | ★★     |
+
+**推荐**：**Playwright (Node.js)** — 与现有技术栈（Next.js/TypeScript）一致，团队已有 `@playwright/test` 依赖，学习曲线最低。
+
+### LLM 模型对比
+
+| 模型             | 价格 (1K tokens)    | HTML 理解力 | 推荐场景          |
+| ---------------- | ------------------- | ----------- | ----------------- |
+| Claude Sonnet 4  | ~$0.003 / $0.015    | 优秀        | 默认提取模型      |
+| Claude Haiku 4.5 | ~$0.0008 / $0.004   | 良好        | 简单/模板化页面   |
+| GPT-4o-mini      | ~$0.00015 / $0.0006 | 良好        | 批量低成本提取    |
+| Claude Opus 4    | ~$0.015 / $0.075    | 卓越        | 难提取/高价值页面 |
+
+**推荐**：Claude Sonnet 4 为默认模型，Haiku 4.5 用于简单页面降低成本。
+
+---
+
+## 附录 B：与现有系统集成点
+
+```
+无需修改的模块（直接复用）：
+  ✅ Extraction Trigger API (src/app/api/extraction/trigger/)
+  ✅ Extraction Callback API (src/app/api/extraction/callback/)
+  ✅ Data Merge Engine (src/lib/onboarding/data-merge.ts)
+  ✅ Scoring Engine (src/lib/onboarding/scoring-engine.ts)
+  ✅ Field Schema / Definitions (src/lib/onboarding/field-*.ts)
+  ✅ Job Helpers (src/lib/extraction/job-helpers.ts)
+  ✅ LLM Client (src/lib/llm/client.ts)
+
+需要新建的模块（Worker 服务）：
+  📦 extraction-worker/ (独立仓库/独立目录)
+     ├── src/
+     │   ├── probe/          — 站点探测
+     │   ├── strategies/     — 提取策略（HTTP / Playwright / API）
+     │   ├── extractors/     — LLM 提取器
+     │   ├── proxy/          — 代理管理
+     │   ├── queue/          — BullMQ 队列
+     │   └── validators/     — 字段校验
+     ├── Dockerfile
+     └── railway.toml
+
+可能需要小幅修改的模块：
+  ⚠️ Extraction Trigger — 可能增加 probe 结果传递
+  ⚠️ Building Onboarding UI — 显示提取进度和置信度
+```
+
+---
+
+## 结论
+
+### 技术可行性评估：✅ 可行
+
+1. **现有基础设施完备** — Extraction Trigger/Callback API、Data Merge Engine、Field Schema 已就位，Worker 层是唯一缺口。
+2. **LLM 提取是关键优势** — 相比传统选择器爬虫，LLM 语义提取天然适配多模板场景，维护成本大幅降低。
+3. **~90% 的供应商网站可自动提取** — 仅 Enterprise Bot Management 级别的少数聚合平台需要替代方案。
+4. **成本可控** — MVP 阶段月成本 <$100，规模化运营 <$600，ROI 显著。
+5. **法律风险可管理** — 聚焦合作方网站的公开信息，风险可控。
+
+### 建议下一步行动
+
+1. **启动 Phase 0 MVP** — 用 2 周时间验证 10 个真实供应商网站的提取效果
+2. **建立 `extraction-worker` 仓库** — 独立于主项目部署，通过 HTTP API 通信
+3. **采购住宅代理服务** — 建议从 Bright Data 或 IPRoyal 的试用套餐开始
+4. **准备 10 个标杆供应商** — 涵盖美/英/澳/欧/亚 5 个市场，用于验证提取准确率
