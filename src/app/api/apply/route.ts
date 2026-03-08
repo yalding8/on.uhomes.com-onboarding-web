@@ -117,6 +117,7 @@ export async function POST(request: Request) {
     ]);
 
     if (error) {
+      console.error("[apply] insert error", error);
       return NextResponse.json(
         { error: "Internal database error saving application." },
         { status: 500 },
