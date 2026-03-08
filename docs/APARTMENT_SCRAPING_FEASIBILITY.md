@@ -41,7 +41,41 @@ uhomes.com 作为全球学生住宿聚合平台，需要从供应商网站提取
 | **Scoring Engine**          | `src/lib/onboarding/scoring-engine.ts`     | 字段完成度评分（权重加权）                                              |
 | **Field Schema**            | `src/lib/onboarding/field-definitions.ts`  | 60+ 字段定义，含 extractTier (A/B/C) 分级                               |
 
-**架构关键发现**：系统已预留 `EXTRACTION_WORKER_URL` 环境变量和 `website_crawl` 任务类型，Worker 层（Playwright 爬虫）是架构设计中的一等公民，但**尚未实现**。这意味着我们需要构建的是 Worker 层本身。
+### 1.2.1 已实现的 Worker 层（`worker/` 目录）
+
+**关键发现**：代码库中 `worker/` 目录已包含一个**功能完整的 Extraction Worker 服务**，部署于 Fly.io：
+
+| 模块                       | 位置                                              | 能力                                                                                                  |
+| -------------------------- | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **HTTP Server**            | `worker/src/index.ts`                             | Node.js 原生 HTTP，优雅关闭（SIGTERM 等待 30s）                                                       |
+| **Site Probe**             | `worker/src/crawl/site-probe.ts`                  | 轻量 HTTP 预检：SPA/WordPress/Platform 分类、JSON-LD/OG 检测、框架指纹（React/Vue/Next/Nuxt/Angular） |
+| **Playwright Scraper**     | `worker/src/crawl/scraper.ts`                     | SPA 智能等待（DOM 稳定检测）、懒加载图片触发、HTML → Markdown 转换                                    |
+| **Browser Manager**        | `worker/src/crawl/browser.ts`                     | Chromium 单例、3 并发页面信号量、断开自动重启                                                         |
+| **Website Extractor**      | `worker/src/extractors/website-crawl.ts`          | 分层提取：JSON-LD → OpenGraph → LLM 补充（覆盖率 <80% 才启动 LLM）                                    |
+| **Structured Data Mapper** | `worker/src/extractors/structured-data-mapper.ts` | JSON-LD (Schema.org) 直接映射到 60+ 字段                                                              |
+| **OpenGraph Mapper**       | `worker/src/extractors/og-mapper.ts`              | OG 元数据提取                                                                                         |
+| **LLM Client**             | `worker/src/llm/client.ts`                        | OpenAI 兼容 API，多 Provider fallback（DeepSeek → Qwen → Kimi → MiniMax）                             |
+| **Field Mapper**           | `worker/src/llm/field-mapper.ts`                  | LLM JSON → 字段 schema 映射 + 置信度                                                                  |
+| **Field Validator**        | `worker/src/validators/field-validator.ts`        | 提取后校验：修复/降级/移除不合理字段                                                                  |
+| **Contract PDF**           | `worker/src/extractors/contract-pdf.ts`           | PDF 下载 → 文本提取 → LLM 字段提取                                                                    |
+
+**已有 benchmark 结果**（3 个真实站点）：
+
+- Estelle New Haven (SPA React): 25s, 8 fields
+- Housing4U (SPA React): 35s, 13 fields
+- 平均: 29.9s, 10.5 fields, 2/3 成功率
+
+**当前架构缺口**（Worker 已有基础，但需增强以支持规模化爬取）：
+
+| 缺口                      | 说明                                                               | 优先级 |
+| ------------------------- | ------------------------------------------------------------------ | ------ |
+| **无代理轮换**            | 当前直连目标站点，大规模爬取易被 IP 封禁                           | P0     |
+| **无 Stealth 模式**       | Playwright 未集成 stealth 插件，可被检测为自动化浏览器             | P0     |
+| **单页面爬取**            | 当前只爬首页，未发现和爬取子页面（/pricing, /amenities, /contact） | P1     |
+| **无任务队列**            | Worker 直接处理 HTTP 请求，无持久化队列（BullMQ/Redis）            | P1     |
+| **无 CAPTCHA 处理**       | 遇到验证码直接失败                                                 | P2     |
+| **无批量调度**            | 无法批量触发多个供应商的提取                                       | P2     |
+| **LLM 仅用中文 Provider** | DeepSeek/Qwen/Kimi/MiniMax 对英文房产页面理解力可能不如 Claude/GPT | P1     |
 
 ### 1.3 字段提取分层（ExtractTier）
 
@@ -607,14 +641,14 @@ Building 去重：
 
 ### 9.1 基础设施成本（月）
 
-| 项目                             | 方案                  | 月成本          |
-| -------------------------------- | --------------------- | --------------- |
-| Railway Worker (1 实例, 1GB RAM) | Starter Plan          | ~$20-30         |
-| Railway Redis                    | 插件                  | ~$5-10          |
-| 住宅代理 (10GB/月)               | Bright Data / IPRoyal | ~$50-150        |
-| LLM API (Claude Sonnet)          | ~1000 次提取/月       | ~$10-30         |
-| CAPTCHA 解决 (按需)              | CapSolver             | ~$5-20          |
-| **合计**                         |                       | **~$90-240/月** |
+| 项目                          | 方案                  | 月成本          |
+| ----------------------------- | --------------------- | --------------- |
+| Fly.io Worker (已有, 1GB RAM) | 已部署                | ~$10-30         |
+| Redis (Upstash, 已有依赖)     | REST API              | ~$5-10          |
+| 住宅代理 (10GB/月)            | Bright Data / IPRoyal | ~$50-150        |
+| LLM API (Claude Sonnet)       | ~1000 次提取/月       | ~$10-30         |
+| CAPTCHA 解决 (按需)           | CapSolver             | ~$5-20          |
+| **合计**                      |                       | **~$90-240/月** |
 
 ### 9.2 按规模分级
 
@@ -646,44 +680,50 @@ Building 去重：
 
 ## 10. 实施路线图
 
-### Phase 0：MVP 验证（2 周）
+### Phase 0：现有系统评测 + 快速增强（1 周）
 
-**目标**：验证 LLM 提取 + Playwright 爬取的端到端可行性
+**目标**：在已有 Worker 基础上评测和快速增强
+
+> 注意：Worker 层（Site Probe、Playwright Scraper、JSON-LD/OG/LLM 分层提取、字段校验）**已基本实现**，
+> 不需要从零搭建。重点是评测现有能力并补齐关键缺口。
 
 ```
-Week 1:
-  - 搭建 Worker 项目骨架（Node.js + Playwright + BullMQ）
-  - 实现 Site Probe 模块
-  - 实现 HTTP 轻量提取路径
+Day 1-2:
+  - 对 20 个真实供应商网站运行现有 Worker 提取，记录成功率和字段覆盖
+  - 分析失败原因分类（反爬拦截 / JS 渲染不足 / LLM 提取错误 / 超时）
+  - 生成基线 benchmark 报告
 
-Week 2:
-  - 实现 Playwright 浏览器提取路径
-  - 集成 Claude Sonnet API 进行 HTML → Fields 提取
-  - 对 10 个真实供应商网站进行提取测试
-  - 输出准确率报告
+Day 3-4:
+  - 集成 playwright-stealth 插件（减少自动化检测）
+  - 集成住宅代理轮换（Bright Data / IPRoyal 试用）
+  - 切换/增加 Claude Sonnet 4 作为 LLM provider（提升英文页面提取质量）
+
+Day 5:
+  - 重新运行 20 个网站 benchmark，对比改善幅度
+  - 输出增强后准确率报告
 ```
 
 **成功标准**：
 
-- Tier A 字段提取准确率 ≥ 85%
+- Tier A 字段提取准确率 ≥ 85%（当前 benchmark 约 60-70%）
 - Tier B 字段提取准确率 ≥ 60%
-- 单个网站提取时间 < 2 分钟
-- 10 个网站中 ≥ 8 个成功提取
+- 20 个网站中 ≥ 16 个成功提取（当前 2/3 成功率需提升至 4/5）
+- 单个网站提取时间 < 60 秒
 
-### Phase 1：核心功能（3 周）
+### Phase 1：多页面爬取 + 规模化（2 周）
 
-**目标**：完成 Worker 与主系统的集成
+**目标**：突破单页面限制，支持批量提取
 
 ```
-Week 3-4:
-  - 对接现有 Extraction Trigger / Callback API
-  - 实现代理轮换模块
-  - 实现 Playwright Stealth 集成
-  - 实现多页面爬取（导航栏 + sitemap 发现）
-  - 实现字段校验层（Zod schema）
+Week 1:
+  - 实现多页面发现（导航栏解析 + sitemap.xml + 关键词匹配）
+  - 实现子页面爬取（/pricing, /amenities, /floor-plans, /contact, /gallery）
+  - 多页面提取结果合并（per-page LLM → 统一 merge）
+  - 实现代理轮换模块（域名级别粘性 + 失败自动切换）
 
-Week 5:
-  - 实现结果置信度评分
+Week 2:
+  - 实现 BullMQ 任务队列（Redis 持久化，替代当前直接 HTTP 处理）
+  - 实现批量提取调度（BD 可一次触发多个供应商）
   - 对 50 个真实供应商网站进行提取测试
   - 性能优化和错误处理完善
   - 部署到 Railway
@@ -772,17 +812,23 @@ Week 7:
   ✅ Job Helpers (src/lib/extraction/job-helpers.ts)
   ✅ LLM Client (src/lib/llm/client.ts)
 
-需要新建的模块（Worker 服务）：
-  📦 extraction-worker/ (独立仓库/独立目录)
-     ├── src/
-     │   ├── probe/          — 站点探测
-     │   ├── strategies/     — 提取策略（HTTP / Playwright / API）
-     │   ├── extractors/     — LLM 提取器
-     │   ├── proxy/          — 代理管理
-     │   ├── queue/          — BullMQ 队列
-     │   └── validators/     — 字段校验
-     ├── Dockerfile
-     └── railway.toml
+已有 Worker 模块（worker/ 目录，部署于 Fly.io）：
+  ✅ worker/src/crawl/site-probe.ts      — 站点类型探测（SPA/WordPress/Platform）
+  ✅ worker/src/crawl/scraper.ts          — Playwright 页面爬取（DOM 稳定检测、懒加载）
+  ✅ worker/src/crawl/browser.ts          — Chromium 单例管理（3 并发页面信号量）
+  ✅ worker/src/extractors/website-crawl.ts — 分层提取（JSON-LD → OG → LLM）
+  ✅ worker/src/extractors/structured-data-mapper.ts — JSON-LD 直接映射
+  ✅ worker/src/extractors/og-mapper.ts   — OpenGraph 提取
+  ✅ worker/src/llm/                      — LLM 多 Provider Fallback
+  ✅ worker/src/validators/               — 字段校验
+  ✅ worker/Dockerfile + fly.toml         — Fly.io 部署配置
+
+需要增强的模块（在现有 Worker 基础上）：
+  🔧 worker/src/crawl/stealth.ts         — Playwright Stealth 插件集成
+  🔧 worker/src/proxy/                   — 住宅代理轮换管理
+  🔧 worker/src/crawl/multi-page.ts      — 多页面发现和爬取
+  🔧 worker/src/queue/                   — BullMQ 任务队列（可选）
+  🔧 worker/src/llm/config.ts            — 增加 Claude Sonnet 4 作为 Provider
 
 可能需要小幅修改的模块：
   ⚠️ Extraction Trigger — 可能增加 probe 结果传递
@@ -793,17 +839,19 @@ Week 7:
 
 ## 结论
 
-### 技术可行性评估：✅ 可行
+### 技术可行性评估：✅ 高度可行（基础设施已就绪）
 
-1. **现有基础设施完备** — Extraction Trigger/Callback API、Data Merge Engine、Field Schema 已就位，Worker 层是唯一缺口。
-2. **LLM 提取是关键优势** — 相比传统选择器爬虫，LLM 语义提取天然适配多模板场景，维护成本大幅降低。
-3. **~90% 的供应商网站可自动提取** — 仅 Enterprise Bot Management 级别的少数聚合平台需要替代方案。
-4. **成本可控** — MVP 阶段月成本 <$100，规模化运营 <$600，ROI 显著。
-5. **法律风险可管理** — 聚焦合作方网站的公开信息，风险可控。
+1. **端到端管线已实现** — 不仅 Trigger/Callback/Merge/Scoring 等主系统基础设施已就位，Worker 层（Site Probe + Playwright Scraper + JSON-LD/OG/LLM 分层提取 + 字段校验）也**已基本建成并部署于 Fly.io**。这大幅缩短了落地周期。
+2. **LLM 语义提取是核心优势** — 一套 prompt 覆盖所有网站模板，相比传统选择器爬虫维护成本降低 10 倍以上。现有 Worker 已实现 JSON-LD → OG → LLM 三层降级策略。
+3. **关键增强点明确** — 当前 Worker 的主要瓶颈在于：(a) 无代理轮换易被封禁，(b) 无 stealth 模式易被检测，(c) 仅爬首页遗漏大量信息，(d) LLM provider 以中文模型为主需补充英文能力。这些均为**增量改进**而非重新架构。
+4. **~90% 的供应商网站可自动提取** — 仅 Enterprise Bot Management 级别的少数聚合平台需要替代方案。
+5. **成本可控** — MVP 增强阶段月成本 <$100，规模化运营 <$600，ROI 显著。
+6. **法律风险可管理** — 聚焦合作方网站的公开信息，风险可控。
 
 ### 建议下一步行动
 
-1. **启动 Phase 0 MVP** — 用 2 周时间验证 10 个真实供应商网站的提取效果
-2. **建立 `extraction-worker` 仓库** — 独立于主项目部署，通过 HTTP API 通信
-3. **采购住宅代理服务** — 建议从 Bright Data 或 IPRoyal 的试用套餐开始
-4. **准备 10 个标杆供应商** — 涵盖美/英/澳/欧/亚 5 个市场，用于验证提取准确率
+1. **立即启动 Phase 0** — 用现有 Worker 对 20 个真实供应商网站进行 benchmark，获取基线数据（仅需 1-2 天）
+2. **快速增强** — 集成 playwright-stealth + 住宅代理 + Claude Sonnet 4（3 天可完成），预期提取成功率从 ~67% 提升至 ~85%
+3. **采购住宅代理服务** — 建议从 Bright Data 或 IPRoyal 的试用套餐开始（$50-100/月即可覆盖 MVP）
+4. **准备 20 个标杆供应商** — 涵盖美/英/澳/欧/亚 5 个市场，每市场 4 个（大型连锁 1 + 中型 1 + 小型 WordPress 1 + 特殊模板 1）
+5. **多页面爬取（Phase 1 核心）** — 这是提升字段覆盖率的最大杠杆点——从首页的 ~10 个字段扩展到 ~30+ 个字段
