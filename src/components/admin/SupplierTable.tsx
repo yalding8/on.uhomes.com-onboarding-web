@@ -203,7 +203,6 @@ export function SupplierTable({
       {/* Mobile cards */}
       <div className="md:hidden flex flex-col gap-3">
         {sorted.map((s) => {
-          const days = getDays(s);
           return (
             <div
               key={s.id}
