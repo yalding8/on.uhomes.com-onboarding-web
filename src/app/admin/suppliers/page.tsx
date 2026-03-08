@@ -108,7 +108,7 @@ async function getEnrichedSuppliers(
   // 3. Fetch buildings with onboarding status + score
   const { data: buildings, error: buildingsErr } = await db
     .from("buildings")
-    .select("supplier_id, onboarding_status, score, status")
+    .select("supplier_id, onboarding_status, score")
     .in("supplier_id", ids);
   if (buildingsErr) {
     console.error("[suppliers page] fetch buildings", buildingsErr);
@@ -116,14 +116,13 @@ async function getEnrichedSuppliers(
 
   const buildingMap = new Map<
     string,
-    { onboarding_status: string; score: number; status: string }[]
+    { onboarding_status: string; score: number }[]
   >();
   for (const b of buildings ?? []) {
     const arr = buildingMap.get(b.supplier_id) ?? [];
     arr.push({
       onboarding_status: b.onboarding_status ?? "incomplete",
       score: b.score ?? 0,
-      status: b.status ?? "draft",
     });
     buildingMap.set(b.supplier_id, arr);
   }
