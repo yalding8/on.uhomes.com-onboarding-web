@@ -91,6 +91,7 @@ npm run dev
 | `SENTRY_AUTH_TOKEN`             | Sentry Auth Token，用于 CI source map 上传（可选）    |
 | `NEXT_PUBLIC_POSTHOG_KEY`       | PostHog API Key，用于前端 Analytics（可选）           |
 | `NEXT_PUBLIC_POSTHOG_HOST`      | PostHog API Host（默认 `https://app.posthog.com`）    |
+| `CRON_SECRET`                   | Vercel Cron 认证密钥，用于 `/api/cron/cleanup` 鉴权   |
 
 > 每次新增环境变量后，必须同步更新本表。
 
@@ -290,7 +291,10 @@ USING (
 | `/api/admin/contracts/[contractId]/upload`  | POST  | Supabase Session（BD 角色）            | BD 上传非标准合同 PDF 至 Storage                    |
 | `/api/admin/contracts/[contractId]/extract` | POST  | Supabase Session（BD 角色）            | 从已上传 PDF 提取合同字段（LLM 提取）               |
 | `/api/account/delete`                       | POST  | Supabase Session（供应商）             | 请求账户删除（30 天冷却期）                         |
+| `/api/account/cancel-deletion`              | POST  | Supabase Session（供应商）             | 冷却期内取消账户删除                                |
 | `/api/account/export`                       | GET   | Supabase Session（供应商）             | GDPR 数据可移植性：导出全部个人数据                 |
+| `/api/admin/contracts/[contractId]/status`  | PATCH | Supabase Session（BD/Admin）           | 合同状态变更（取消、回滚等）                        |
+| `/api/cron/cleanup`                         | GET   | `Authorization: Bearer` (CRON_SECRET)  | 定时清理：CONVERTING 超时、DocuSign 过期、删除执行  |
 | `/api/extraction/trigger`                   | POST  | `Authorization: Bearer` (service_role) | 触发多源数据提取，创建 3 个 extraction_jobs         |
 | `/api/extraction/callback`                  | POST  | `Authorization: Bearer` (service_role) | 接收 Worker 提取结果，融合数据并更新评分            |
 

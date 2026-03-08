@@ -94,6 +94,36 @@ export async function markForDeletion(
 }
 
 /**
+ * Cancel a pending deletion during the 30-day cooling period.
+ * Resets supplier status from DELETION_PENDING back to previous state.
+ */
+export async function cancelDeletion(
+  supabase: SupabaseClient,
+  supplierId: string,
+): Promise<{ success: boolean }> {
+  const { data: updated, error } = await supabase
+    .from("suppliers")
+    .update({
+      status: "SIGNED",
+      deletion_scheduled_at: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", supplierId)
+    .eq("status", "DELETION_PENDING")
+    .select("id");
+
+  if (error) {
+    throw new Error(`Failed to cancel deletion: ${error.message}`);
+  }
+
+  if (!updated || updated.length === 0) {
+    throw new Error("Supplier is not in DELETION_PENDING status");
+  }
+
+  return { success: true };
+}
+
+/**
  * Execute final deletion after cooling period.
  * For AU suppliers: anonymize instead of hard-delete (Privacy Act 1988).
  * For all others: full erasure (GDPR Right to Erasure).
