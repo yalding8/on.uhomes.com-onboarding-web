@@ -158,20 +158,40 @@ uhomes.com 作为全球学生住宿聚合平台，需要从供应商网站提取
 
 Cloudflare 是学生公寓网站中最常见的 CDN/安全层，防护分级：
 
-#### Free / Pro 级别（~40% 的目标网站）
+#### Free 级别 — Bot Fight Mode（~25% 的目标网站）
+
+- **基础 Bot 检测**：挑战或阻止简单自动化流量
+- **5 条 WAF 规则**：有限的自定义规则
+- **突破策略**：代理轮换 + 基础浏览器指纹即可绕过
+
+#### Pro 级别 ($20/月) — Super Bot Fight Mode（~15% 的目标网站）
 
 - **IP Rate Limiting**：单 IP 限速，通常 100-500 req/min
-- **JS Challenge**：5 秒盾牌页，需执行 JavaScript 挑战
-- **Managed Rules**：基于 User-Agent、请求模式的基础拦截
-- **突破策略**：代理轮换 + 基础浏览器指纹模拟即可绕过
+- **JS Challenge**：注入 JavaScript 片段进行三层检测：
+  - TLS/HTTP 指纹分析（握手签名是否匹配已知浏览器）
+  - 浏览器环境指纹（`navigator.webdriver`、WebGL、Canvas、plugins）
+  - 行为分析（鼠标移动、滚动模式、输入时序）
+- **验证通过后**：发放 `cf_clearance` cookie，绑定 IP 和浏览器会话
+- **突破策略**：Playwright + stealth 插件 + 代理轮换
 
-#### Business / Enterprise 级别（~25% 的目标网站）
+#### Business 级别 ($200/月) — Super Bot Fight Mode Advanced（~20% 的目标网站）
 
-- **Bot Management (BM)**：ML 驱动的行为分析
-- **TLS Fingerprinting (JA3/JA4)**：通过 TLS 握手特征识别非浏览器客户端
-- **Canvas / WebGL Fingerprinting**：通过渲染差异识别自动化浏览器
+- **行为检测**：>95% 非人类流量识别准确率
 - **Turnstile CAPTCHA**：替代 reCAPTCHA 的无感验证
-- **突破策略**：需要真实浏览器（Playwright + stealth 插件）+ 住宅代理
+  - 运行旋转式非侵入性挑战（工作量证明、空间证明、Web API 探测）
+  - 使用 Private Access Tokens 验证设备
+  - 挑战难度按访客行为自适应调整
+  - 三种模式：不可见 / 简短验证 / 交互式（罕见）
+  - 已知弱点：专业解决服务（2Captcha/CapSolver）可解决，~$1.45-5.00/千次
+- **突破策略**：需要真实浏览器 + 住宅代理 + CAPTCHA 解决服务
+
+#### Enterprise — Bot Management（~5% 的目标网站）
+
+- **Bot Score (1-99)**：每个请求生成评分（<30 = 可能是 bot）
+- **JA4+ TLS 指纹**：JA3 已被 Chrome 108+ 的 TLS 扩展随机化削弱；JA4 排序扩展后哈希，抗随机化，加入 ALPN 维度。2026 年跨层指纹准确率 92-98%
+- **多层关联检测**：TLS 指纹 + HTTP/2 设置 + 行为模式 + 请求间隔时序分析。即使 TLS 完美伪装，行为信号不一致也会被识别
+- **Cloudflare 数据优势**：占全球反向代理网站 80.8% 的流量，Bot Management 代理识别率 97%
+- **突破策略**：成本极高，需要组合多层技术；建议改用 API 合作或人工采集
 
 #### Enterprise Bot Management（~5% 的目标网站）
 
@@ -333,17 +353,20 @@ interface SiteProbeResult {
   - REST API（部分 PBSA 管理平台）
 ```
 
-### 4.5 反爬对策工具箱
+### 4.5 反爬对策工具箱（2026 最新）
 
-| 工具                     | 用途                 | 推荐方案                                                        |
-| ------------------------ | -------------------- | --------------------------------------------------------------- |
-| **Playwright + Stealth** | 隐藏浏览器自动化特征 | `playwright-extra` + `puppeteer-extra-plugin-stealth`           |
-| **住宅代理**             | IP 轮换，避免封禁    | Bright Data / Oxylabs / IPRoyal（住宅代理池）                   |
-| **TLS 指纹**             | 模拟真实浏览器 TLS   | `curl-impersonate` (HTTP 模式) / Playwright 原生 (Browser 模式) |
-| **CAPTCHA 解决**         | 自动处理验证码       | CapSolver / 2Captcha（仅低频触发时使用）                        |
-| **User-Agent 轮换**      | 避免 UA 指纹         | 维护 top 20 真实浏览器 UA 列表                                  |
-| **请求节流**             | 避免触发速率限制     | 随机间隔 2-8 秒 + 高斯分布模拟                                  |
-| **Cookie 管理**          | 维持会话状态         | Playwright BrowserContext 持久化                                |
+| 工具                      | 用途                  | 推荐方案                                                    | 备注                                          |
+| ------------------------- | --------------------- | ----------------------------------------------------------- | --------------------------------------------- |
+| **Playwright + Stealth**  | 隐藏浏览器自动化特征  | `playwright-extra` + `puppeteer-extra-plugin-stealth`       | 隐藏 `navigator.webdriver`、伪装 runtime 属性 |
+| **Camoufox**              | 引擎级指纹拦截        | 基于 Firefox 的定制浏览器，C++ 层指纹操控                   | 比 JS 注入方案更难被检测，新兴方案            |
+| **Undetected Playwright** | Playwright 反检测封装 | GitHub 2.5K stars，持续更新                                 | 通过基础 Cloudflare 不触发 1020 错误          |
+| **住宅代理**              | IP 轮换，避免封禁     | Bright Data / Oxylabs / IPRoyal                             | 住宅 IP 信任度最高；移动代理最贵但最有效      |
+| **TLS 指纹**              | 模拟真实浏览器 TLS    | `curl-impersonate`（HTTP/3 + QUIC）/ `httpcloak`（Go/Node） | 关键：TLS 指纹必须与 UA、HTTP/2 设置一致      |
+| **CAPTCHA 解决**          | Turnstile/reCAPTCHA   | CapSolver（AI 驱动，3-9s）/ 2Captcha（人工+AI）             | Turnstile ~$1.45-5.00/千次                    |
+| **请求节流**              | 避免触发速率限制      | 随机间隔 2-8 秒 + 高斯分布模拟                              | 公开页面间隔 ≥ 2 秒                           |
+| **Browser-as-a-Service**  | 托管浏览器            | Browserless ($250/月) / Browserbase ($100/月)               | 内置 CAPTCHA 解决和代理，适合规模化           |
+
+> **2026 关键趋势**：单一技术已无法可靠绕过 Cloudflare。生产级爬取需要组合：stealth 浏览器 + 当前 TLS 指纹 + 住宅代理 + CAPTCHA 服务 + 人类行为模拟。Cloudflare 已默认阻止 AI 爬虫，并引入「按爬取付费」和 AI 生成的蜜罐页面。
 
 ---
 
