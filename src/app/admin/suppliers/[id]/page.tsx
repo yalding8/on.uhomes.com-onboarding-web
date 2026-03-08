@@ -111,6 +111,11 @@ export default async function SupplierDetailPage({
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
         <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          {supplier.ref_code && (
+            <span className="text-sm text-[var(--color-text-muted)] font-normal me-2">
+              {supplier.ref_code}
+            </span>
+          )}
           {supplier.company_name}
         </h1>
         {stageConfig && (

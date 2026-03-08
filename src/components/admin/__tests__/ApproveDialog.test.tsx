@@ -16,6 +16,7 @@ function makeApplication(
 ): ApplicationRow {
   return {
     id: "app-001",
+    ref_code: "APP-0001",
     company_name: "测试公司",
     supplier_type: null,
     contact_email: "test@example.com",

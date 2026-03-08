@@ -152,6 +152,11 @@ export function ApplicationTable({
                       {!isPending && <StatusBadge status={app.status} />}
                       <div className="min-w-0">
                         <p className="font-medium text-[var(--color-text-primary)] truncate">
+                          {app.ref_code && (
+                            <span className="text-xs text-[var(--color-text-muted)] font-normal me-1.5">
+                              {app.ref_code}
+                            </span>
+                          )}
                           {app.company_name}
                         </p>
                         <p

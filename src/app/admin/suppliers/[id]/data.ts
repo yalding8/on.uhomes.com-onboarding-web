@@ -63,7 +63,7 @@ export async function fetchSupplierData(id: string, isAdmin: boolean) {
   const { data: supplier, error } = await admin
     .from("suppliers")
     .select(
-      "id, company_name, contact_email, contact_phone, city, country, role, status, created_at, bd_user_id",
+      "id, ref_code, company_name, contact_email, contact_phone, city, country, role, status, created_at, bd_user_id",
     )
     .eq("id", id)
     .single();

@@ -22,6 +22,7 @@ export interface ContractInfo {
 
 export interface SupplierDetail {
   id: string;
+  ref_code: string | null;
   company_name: string;
   contact_email: string;
   contact_phone: string | null;

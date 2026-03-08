@@ -64,6 +64,7 @@ export function filterSuppliers(
       (s) =>
         s.company_name.toLowerCase().includes(q) ||
         s.contact_email.toLowerCase().includes(q) ||
+        (s.ref_code?.toLowerCase().includes(q) ?? false) ||
         (s.city?.toLowerCase().includes(q) ?? false) ||
         (s.country?.toLowerCase().includes(q) ?? false),
     );

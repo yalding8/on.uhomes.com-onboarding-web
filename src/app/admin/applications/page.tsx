@@ -14,6 +14,7 @@ import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 
 export interface ApplicationRow {
   id: string;
+  ref_code: string | null;
   company_name: string;
   supplier_type: string | null;
   contact_email: string;
@@ -34,7 +35,7 @@ export interface BdOption {
 }
 
 const SELECT_FIELDS =
-  "id, company_name, supplier_type, contact_email, contact_phone, city, country, website_url, referral_code, status, created_at, assigned_bd_id";
+  "id, ref_code, company_name, supplier_type, contact_email, contact_phone, city, country, website_url, referral_code, status, created_at, assigned_bd_id";
 
 async function getApplications(
   bdId: string | null,

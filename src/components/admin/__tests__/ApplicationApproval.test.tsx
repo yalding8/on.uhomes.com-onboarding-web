@@ -37,6 +37,7 @@ function makeApplications(): ApplicationRow[] {
       created_at: "2026-02-01T00:00:00Z",
       assigned_bd_id: null,
       referral_code: null,
+      ref_code: null,
     },
     {
       id: "app-2",
@@ -51,6 +52,7 @@ function makeApplications(): ApplicationRow[] {
       created_at: "2026-02-02T00:00:00Z",
       assigned_bd_id: "bd-1",
       referral_code: null,
+      ref_code: null,
     },
     {
       id: "app-3",
@@ -65,6 +67,7 @@ function makeApplications(): ApplicationRow[] {
       created_at: "2026-01-15T00:00:00Z",
       assigned_bd_id: null,
       referral_code: null,
+      ref_code: null,
     },
     {
       id: "app-4",
@@ -79,6 +82,7 @@ function makeApplications(): ApplicationRow[] {
       created_at: "2026-01-10T00:00:00Z",
       assigned_bd_id: null,
       referral_code: null,
+      ref_code: null,
     },
   ];
 }

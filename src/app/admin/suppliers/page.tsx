@@ -55,7 +55,7 @@ async function getEnrichedSuppliers(
   let query = db
     .from("suppliers")
     .select(
-      "id, company_name, contact_email, contact_phone, city, country, website_url, status, created_at, bd_user_id",
+      "id, ref_code, company_name, contact_email, contact_phone, city, country, website_url, status, created_at, bd_user_id",
     )
     .eq("role", "supplier")
     .order("created_at", { ascending: false });
@@ -179,6 +179,7 @@ async function getEnrichedSuppliers(
 
     return {
       id: s.id,
+      ref_code: s.ref_code ?? null,
       company_name: s.company_name,
       contact_email: s.contact_email,
       contact_phone: s.contact_phone ?? null,

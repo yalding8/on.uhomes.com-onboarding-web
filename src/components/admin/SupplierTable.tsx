@@ -16,6 +16,7 @@ import { formatRelativeTime } from "@/lib/utils/relative-time";
 
 export interface SupplierTableRow {
   id: string;
+  ref_code: string | null;
   company_name: string;
   contact_email: string;
   contact_phone: string | null;
@@ -167,6 +168,11 @@ export function SupplierTable({
               >
                 <td className="px-4 py-3">
                   <p className="font-medium text-[var(--color-text-primary)] truncate">
+                    {s.ref_code && (
+                      <span className="text-xs text-[var(--color-text-muted)] font-normal me-1.5">
+                        {s.ref_code}
+                      </span>
+                    )}
                     {s.company_name}
                   </p>
                   {isAdmin && s.bd_display_name && (
@@ -211,6 +217,11 @@ export function SupplierTable({
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="font-medium text-[var(--color-text-primary)] truncate">
+                  {s.ref_code && (
+                    <span className="text-xs text-[var(--color-text-muted)] font-normal me-1.5">
+                      {s.ref_code}
+                    </span>
+                  )}
                   {s.company_name}
                 </span>
                 <StageBadge stage={s.pipeline_stage} />

@@ -62,7 +62,8 @@ export function filterApplications(
     result = result.filter(
       (app) =>
         app.company_name.toLowerCase().includes(q) ||
-        app.contact_email.toLowerCase().includes(q),
+        app.contact_email.toLowerCase().includes(q) ||
+        (app.ref_code?.toLowerCase().includes(q) ?? false),
     );
   }
   if (bdFilter) {
