@@ -41,7 +41,7 @@ export async function POST() {
 
     return NextResponse.json({ referral_code: code });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[generate-referral]", err);
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
 }

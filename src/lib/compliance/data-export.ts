@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export type DataExportPackage = {
   exportedAt: string;
+  authUser: Record<string, unknown> | null;
   supplier: Record<string, unknown> | null;
   buildings: Record<string, unknown>[];
   buildingOnboardingData: Record<string, unknown>[];
@@ -13,6 +14,7 @@ export type DataExportPackage = {
   applications: Record<string, unknown>[];
   fieldAuditLogs: Record<string, unknown>[];
   extractionJobs: Record<string, unknown>[];
+  storageFiles: Record<string, string[]>;
 };
 
 /**
@@ -25,6 +27,30 @@ export async function exportSupplierData(
   contactEmail: string,
 ): Promise<DataExportPackage> {
   const admin = createAdminClient();
+
+  // Fetch auth user data (BUG-NEW-04 fix)
+  let authUser: Record<string, unknown> | null = null;
+  const { data: supplierForUid } = await admin
+    .from("suppliers")
+    .select("user_id")
+    .eq("id", supplierId)
+    .single();
+
+  if (supplierForUid) {
+    const { data: authData } = await admin.auth.admin.getUserById(
+      (supplierForUid as { user_id: string }).user_id,
+    );
+    if (authData?.user) {
+      const u = authData.user;
+      authUser = {
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        last_sign_in_at: u.last_sign_in_at,
+        email_confirmed_at: u.email_confirmed_at,
+      };
+    }
+  }
 
   // Fetch supplier profile
   const { data: supplier } = await admin
@@ -94,8 +120,19 @@ export async function exportSupplierData(
     extractionJobs = (data ?? []) as Record<string, unknown>[];
   }
 
+  // Fetch storage file inventory (BUG-NEW-05 fix)
+  const storageFiles: Record<string, string[]> = {};
+  const storageBuckets = ["signed-contracts", "uploaded-contracts"];
+  for (const bucket of storageBuckets) {
+    const { data: files } = await admin.storage.from(bucket).list(supplierId);
+    if (files && files.length > 0) {
+      storageFiles[bucket] = files.map((f) => `${supplierId}/${f.name}`);
+    }
+  }
+
   return {
     exportedAt: new Date().toISOString(),
+    authUser,
     supplier: (supplier as Record<string, unknown>) ?? null,
     buildings: (buildings ?? []) as Record<string, unknown>[],
     buildingOnboardingData,
@@ -103,5 +140,6 @@ export async function exportSupplierData(
     applications: (applications ?? []) as Record<string, unknown>[],
     fieldAuditLogs,
     extractionJobs,
+    storageFiles,
   };
 }

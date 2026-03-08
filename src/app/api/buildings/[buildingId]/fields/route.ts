@@ -97,17 +97,24 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Defense-in-depth: verify building exists and RLS grants access
-    const { data: buildingOwner, error: ownerErr } = await supabase
+    // Defense-in-depth: verify building exists, RLS grants access, and not published
+    const { data: buildingCheck, error: ownerErr } = await supabase
       .from("buildings")
-      .select("id")
+      .select("id, onboarding_status")
       .eq("id", buildingId)
       .single();
 
-    if (ownerErr || !buildingOwner) {
+    if (ownerErr || !buildingCheck) {
       return NextResponse.json(
         { error: "Building not found or access denied" },
         { status: 404 },
+      );
+    }
+
+    if (buildingCheck.onboarding_status === "published") {
+      return NextResponse.json(
+        { error: "Cannot edit fields on a published building" },
+        { status: 400 },
       );
     }
 

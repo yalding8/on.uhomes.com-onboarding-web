@@ -193,9 +193,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       ...(reason ? { reason } : {}),
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown server error";
     console.error("[admin/buildings/status]", error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
 }

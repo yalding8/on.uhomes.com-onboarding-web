@@ -8,6 +8,7 @@ const VALID_CONTRACT_TYPES = [
 ] as const;
 
 export async function POST(request: Request) {
+  let claimedApplicationId: string | null = null;
   try {
     // 1. Authorization: verify admin role (H-03 fix)
     const authResult = await verifyAdminRole();
@@ -52,6 +53,7 @@ export async function POST(request: Request) {
       );
     }
 
+    claimedApplicationId = claimed.id as string;
     const application = claimed;
 
     // 3. Check if a supplier already exists for this email
@@ -191,6 +193,19 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("[approve-supplier]", error);
+    // BUG-NEW-08 fix: reset CONVERTING → PENDING on unexpected crash
+    if (claimedApplicationId) {
+      try {
+        const rollbackClient = createAdminClient();
+        await rollbackClient
+          .from("applications")
+          .update({ status: "PENDING" })
+          .eq("id", claimedApplicationId)
+          .eq("status", "CONVERTING");
+      } catch (rollbackErr) {
+        console.error("[approve-supplier] rollback failed", rollbackErr);
+      }
+    }
     return NextResponse.json(
       { error: "An unexpected error occurred" },
       { status: 500 },

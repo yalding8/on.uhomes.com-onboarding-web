@@ -145,8 +145,7 @@ export async function POST(request: Request) {
       { status: 200 },
     );
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Server error occurred";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[apply]", error);
+    return NextResponse.json({ error: "An unexpected error occurred" }, { status: 500 });
   }
 }

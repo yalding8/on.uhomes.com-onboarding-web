@@ -21,13 +21,26 @@ export async function proxy(request: NextRequest) {
       RATE_LIMIT_ENABLED &&
       (pathname.startsWith("/api/") || pathname.startsWith("/login"))
     ) {
-      const result = await checkRateLimit(request);
-      if (!result.allowed) {
-        return tooManyRequestsResponse(result);
+      // BUG-NEW-12 fix: isolate rate limit errors so auth still runs
+      try {
+        const result = await checkRateLimit(request);
+        if (!result.allowed) {
+          return tooManyRequestsResponse(result);
+        }
+        const response = await updateSession(request);
+        return attachRateLimitHeaders(response, result);
+      } catch (rateLimitError) {
+        Sentry.captureException(rateLimitError, {
+          tags: { module: "rate-limit" },
+          extra: { path: pathname },
+        });
+        console.error(
+          "[proxy] rate-limit error, proceeding with auth",
+          rateLimitError,
+        );
+        // Rate limiter failed — still run auth middleware (fail-open for availability)
+        return await updateSession(request);
       }
-      // Continue to auth middleware; attach headers to final response
-      const response = await updateSession(request);
-      return attachRateLimitHeaders(response, result);
     }
 
     // Non-API routes: skip rate limiting, proceed to auth

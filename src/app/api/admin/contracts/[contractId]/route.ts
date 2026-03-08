@@ -135,33 +135,51 @@ export async function PUT(request: Request, context: RouteContext) {
       );
     }
 
-    // 6. Update contract_fields
-    const { data: updated, error: updateError } = await supabaseAdmin
+    // 6. Update contract_fields with DB-level optimistic lock (BUG-NEW-07 fix)
+    const updateQuery = supabaseAdmin
       .from("contracts")
       .update({ contract_fields: fields })
       .eq("id", contractId)
-      .select("updated_at")
-      .single();
+      .eq("status", "DRAFT");
+
+    // Add DB-level updated_at guard when client provides it
+    if (body.updated_at) {
+      updateQuery.eq("updated_at", body.updated_at);
+    }
+
+    const { data: updated, error: updateError } =
+      await updateQuery.select("updated_at");
 
     if (updateError) {
+      console.error("[contract-save]", updateError);
+      return NextResponse.json(
+        { error: "Failed to save contract fields" },
+        { status: 500 },
+      );
+    }
+
+    // 0 rows = race condition or status changed
+    if (!updated || updated.length === 0) {
       return NextResponse.json(
         {
-          error: "Failed to save contract fields",
-          details: updateError.message,
+          error:
+            "Contract was modified by another user or status changed. Please refresh.",
         },
-        { status: 500 },
+        { status: 409 },
       );
     }
 
     return NextResponse.json({
       success: true,
       message: "Contract fields saved",
-      updated_at: updated?.updated_at,
+      updated_at: updated[0]?.updated_at,
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[contract-save]", error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }
 
@@ -213,19 +231,26 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 5. Update status to PENDING_REVIEW
-    const { error: updateError } = await supabaseAdmin
+    // 5. Atomic status update with WHERE guard (BUG-NEW-11 fix)
+    const { data: statusUpdated, error: updateError } = await supabaseAdmin
       .from("contracts")
       .update({ status: "PENDING_REVIEW" })
-      .eq("id", contractId);
+      .eq("id", contractId)
+      .eq("status", "DRAFT")
+      .select("id");
 
     if (updateError) {
+      console.error("[contract-push-review]", updateError);
       return NextResponse.json(
-        {
-          error: "Failed to update contract status",
-          details: updateError.message,
-        },
+        { error: "Failed to update contract status" },
         { status: 500 },
+      );
+    }
+
+    if (!statusUpdated || statusUpdated.length === 0) {
+      return NextResponse.json(
+        { error: "Contract status has already changed. Please refresh." },
+        { status: 409 },
       );
     }
 
@@ -235,8 +260,10 @@ export async function POST(request: Request, context: RouteContext) {
       status: "PENDING_REVIEW",
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[contract-push-review]", error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }
