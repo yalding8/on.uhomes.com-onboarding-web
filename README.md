@@ -156,16 +156,21 @@ cd worker && npx tsx tests/benchmarks/verify-pipeline.ts --with-llm https://exam
 
 ### Worker 环境变量
 
-| 变量名称                    | 说明                                   |
-| :-------------------------- | :------------------------------------- |
-| `PORT`                      | 服务端口（默认 3000）                  |
-| `SUPABASE_SERVICE_ROLE_KEY` | 与主应用相同，用于回调认证             |
-| `DEEPSEEK_API_KEY`          | DeepSeek API Key                       |
-| `QWEN_API_KEY`              | 通义千问 API Key（可选，作为备用 LLM） |
-| `KIMI_API_KEY`              | Kimi (Moonshot) API Key（可选）        |
-| `MINIMAX_API_KEY`           | MiniMax API Key（可选）                |
-| `SENTRY_DSN`                | Sentry DSN（可选，未设置则跳过监控）   |
-| `JOB_TIMEOUT_MS`            | 单任务超时时间（默认 300000 = 5 分钟） |
+| 变量名称                    | 说明                                         |
+| :-------------------------- | :------------------------------------------- |
+| `PORT`                      | 服务端口（默认 3000）                        |
+| `SUPABASE_SERVICE_ROLE_KEY` | 与主应用相同，用于回调认证                   |
+| `ANTHROPIC_API_KEY`         | Anthropic API Key（首选 LLM，Claude Sonnet） |
+| `DEEPSEEK_API_KEY`          | DeepSeek API Key（备选 LLM）                 |
+| `QWEN_API_KEY`              | 通义千问 API Key（备选 LLM）                 |
+| `KIMI_API_KEY`              | Kimi (Moonshot) API Key（可选）              |
+| `MINIMAX_API_KEY`           | MiniMax API Key（可选）                      |
+| `SENTRY_DSN`                | Sentry DSN（可选，未设置则跳过监控）         |
+| `PROXY_ENABLED`             | 代理开关（`true`/`false`，默认 `false`）     |
+| `PROXY_URL`                 | 代理服务器地址（如 `http://host:port`）      |
+| `PROXY_USERNAME`            | 代理用户名（可选）                           |
+| `PROXY_PASSWORD`            | 代理密码（可选）                             |
+| `JOB_TIMEOUT_MS`            | 单任务超时时间（默认 300000 = 5 分钟）       |
 
 ### 本地运行
 

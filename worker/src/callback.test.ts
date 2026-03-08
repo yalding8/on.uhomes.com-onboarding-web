@@ -59,17 +59,28 @@ describe("sendCallback", () => {
   });
 
   it("should log error after all retries exhausted", async () => {
+    vi.useFakeTimers();
     const mockFetch = vi.fn().mockRejectedValue(new Error("Always fails"));
     vi.stubGlobal("fetch", mockFetch);
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await sendCallback("https://example.com/callback", mockPayload);
+    const promise = sendCallback("https://example.com/callback", mockPayload);
 
-    expect(mockFetch).toHaveBeenCalledTimes(2); // initial + 1 retry
+    // Advance through all retry delays
+    for (let i = 0; i < 5; i++) {
+      await vi.advanceTimersByTimeAsync(10_000);
+    }
+
+    await promise;
+
+    // 4 total attempts: initial + 3 retries
+    expect(mockFetch).toHaveBeenCalledTimes(4);
     expect(consoleSpy).toHaveBeenCalled();
-  });
+    vi.useRealTimers();
+  }, 15_000);
 
   it("should retry on non-ok HTTP response", async () => {
+    vi.useFakeTimers();
     const mockFetch = vi
       .fn()
       .mockResolvedValueOnce({
@@ -81,8 +92,16 @@ describe("sendCallback", () => {
     vi.stubGlobal("fetch", mockFetch);
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    await sendCallback("https://example.com/callback", mockPayload);
+    const promise = sendCallback("https://example.com/callback", mockPayload);
+
+    // Advance through retry delay
+    for (let i = 0; i < 3; i++) {
+      await vi.advanceTimersByTimeAsync(5_000);
+    }
+
+    await promise;
 
     expect(mockFetch).toHaveBeenCalledTimes(2);
-  });
+    vi.useRealTimers();
+  }, 15_000);
 });

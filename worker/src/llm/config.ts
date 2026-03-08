@@ -1,8 +1,8 @@
 /**
  * LLM Provider 配置
  *
- * 主力：Qwen（通义千问）、DeepSeek
- * 备选：Kimi（Moonshot）、MiniMax
+ * 首选：Claude Sonnet 4（Anthropic）
+ * 备选：Qwen / DeepSeek / Kimi / MiniMax
  *
  * 增强: 主 provider 失败时自动 fallback 到备选
  */
@@ -17,6 +17,12 @@ interface ProviderConfig {
 }
 
 const PROVIDERS: readonly ProviderConfig[] = [
+  {
+    name: "claude-sonnet",
+    baseUrl: "https://api.anthropic.com/v1",
+    model: "claude-sonnet-4-20250514",
+    envKey: "ANTHROPIC_API_KEY",
+  },
   {
     name: "qwen",
     baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
