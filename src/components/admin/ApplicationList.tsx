@@ -6,7 +6,7 @@
  * Orchestrates: KPI stats, search/filter, table, drawer, approve dialog.
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import type { ApplicationRow, BdOption } from "@/app/admin/applications/page";
@@ -82,10 +82,20 @@ export function ApplicationList({
 }: ApplicationListProps) {
   const router = useRouter();
   const [activeFilter, setActiveFilter] = useState<StatusFilter>("PENDING");
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [bdFilter, setBdFilter] = useState<string | null>(null);
   const [selectedApp, setSelectedApp] = useState<ApplicationRow | null>(null);
   const [drawerApp, setDrawerApp] = useState<ApplicationRow | null>(null);
+
+  // Debounce search input by 300ms
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
+  useEffect(() => {
+    debounceRef.current = setTimeout(() => setSearch(searchInput), 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [searchInput]);
 
   const counts = useMemo(() => getStatusCounts(applications), [applications]);
   const filtered = useMemo(
@@ -174,13 +184,13 @@ export function ApplicationList({
             <input
               type="text"
               placeholder="Search company or email..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="ps-8 pe-8 py-1.5 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 w-56 transition-colors"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="ps-8 pe-8 py-1.5 text-sm border border-[var(--color-border)] rounded-lg bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/30 w-full sm:w-56 transition-colors"
             />
-            {search && (
+            {searchInput && (
               <button
-                onClick={() => setSearch("")}
+                onClick={() => setSearchInput("")}
                 className="absolute end-2 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
               >
                 <X className="h-3.5 w-3.5" />
@@ -219,6 +229,7 @@ export function ApplicationList({
           {(search || activeFilter !== "ALL") && (
             <button
               onClick={() => {
+                setSearchInput("");
                 setSearch("");
                 setActiveFilter("ALL");
                 setBdFilter(null);

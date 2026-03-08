@@ -18,7 +18,7 @@ interface StatsData {
 
 function StatsSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {[0, 1, 2].map((i) => (
         <div
           key={i}
@@ -102,7 +102,7 @@ export function ApplicationStats({ isAdmin }: { isAdmin: boolean }) {
       : "No applications this week";
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <StatCard
         icon={<ClipboardList className="h-4 w-4 text-[var(--color-primary)]" />}
         label="Pending"
