@@ -105,10 +105,16 @@ export default async function ApplicationsPage() {
   if (!me) redirect("/admin/suppliers");
 
   const isAdmin = checkAdmin(me.contact_email);
-  const [applications, bdUsers] = await Promise.all([
-    getApplications(me.id, isAdmin),
-    getBdUsers(),
-  ]);
+  let applications: ApplicationRow[] = [];
+  let bdUsers: BdOption[] = [];
+  try {
+    [applications, bdUsers] = await Promise.all([
+      getApplications(me.id, isAdmin),
+      getBdUsers(),
+    ]);
+  } catch (err) {
+    console.error("[applications page]", err);
+  }
 
   return (
     <div>
