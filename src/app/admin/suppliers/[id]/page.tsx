@@ -180,7 +180,10 @@ export default async function SupplierDetailPage({
 
         {/* RIGHT COLUMN */}
         <div className="space-y-6">
-          <BuildingProgressCard buildings={enrichedBuildings} />
+          <BuildingProgressCard
+            buildings={enrichedBuildings}
+            supplierId={supplier.id}
+          />
           <SupplierNotes supplierId={supplier.id} canEdit={true} />
         </div>
       </div>
