@@ -54,7 +54,12 @@ export async function runJob(request: ExtractionRequest): Promise<void> {
 
     try {
       const result = await Promise.race([
-        extract(request.source, request.sourceUrl, controller.signal),
+        extract(
+          request.source,
+          request.sourceUrl,
+          controller.signal,
+          request.domainHints,
+        ),
         timeoutPromise,
       ]);
       fields = result.fields;

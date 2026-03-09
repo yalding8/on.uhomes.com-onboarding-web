@@ -12,6 +12,16 @@ export type ExtractionSource =
 
 export type Confidence = "high" | "medium" | "low";
 
+/** 域名级经验提示 — 来自 extraction_logs 历史记录 */
+export interface DomainHints {
+  siteType: string;
+  siteFramework: string;
+  cloudflareLevel: string;
+  strategyUsed: string;
+  avgCoverageRatio: number;
+  crawlCount: number;
+}
+
 export interface ExtractionRequest {
   jobId: string;
   source: ExtractionSource;
@@ -19,6 +29,7 @@ export interface ExtractionRequest {
   supplierId: string;
   sourceUrl: string;
   callbackUrl: string;
+  domainHints?: DomainHints;
 }
 
 export interface ExtractionFieldValue {

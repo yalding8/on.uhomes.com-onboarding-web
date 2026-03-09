@@ -6,6 +6,7 @@ import type {
   ExtractionSource,
   ExtractedFields,
   ExtractionMeta,
+  DomainHints,
 } from "../types.js";
 import { extractFromContractPdf } from "./contract-pdf.js";
 import { extractFromWebsite } from "./website-crawl.js";
@@ -19,12 +20,13 @@ export async function extract(
   source: ExtractionSource,
   sourceUrl: string,
   signal: AbortSignal,
+  domainHints?: DomainHints,
 ): Promise<ExtractionResult> {
   switch (source) {
     case "contract_pdf":
       return extractFromContractPdf(sourceUrl, signal);
     case "website_crawl":
-      return extractFromWebsite(sourceUrl, signal);
+      return extractFromWebsite(sourceUrl, signal, domainHints);
     case "google_sheets":
       throw new Error(
         "Google Sheets extraction not yet implemented. Please use contract PDF or website extraction.",

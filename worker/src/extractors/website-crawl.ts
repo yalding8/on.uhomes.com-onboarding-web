@@ -28,7 +28,12 @@ import { validateWithLlm } from "../validators/llm-validator.js";
 import { mergeFieldsInto, mergeByConfidence } from "./field-merge.js";
 import { captureError } from "../sentry.js";
 import type { ExtractionResult } from "./index.js";
-import type { ExtractedFields } from "../types.js";
+import type { ExtractedFields, DomainHints } from "../types.js";
+import type {
+  SiteType,
+  SiteFramework,
+  CloudflareLevel,
+} from "../crawl/site-probe.js";
 
 /** 跳过 LLM 的最低 JSON-LD 覆盖率阈值 */
 const SKIP_LLM_COVERAGE = 0.8;
@@ -36,20 +41,37 @@ const SKIP_LLM_COVERAGE = 0.8;
 /** 子页面间请求间隔（ms） */
 const SUB_PAGE_DELAY_MS = 2_000;
 
+/** 域名经验可信度阈值 — 至少 2 次成功爬取才跳过 probe */
+const HINTS_MIN_CRAWLS = 2;
+
 export async function extractFromWebsite(
   sourceUrl: string,
   signal: AbortSignal,
+  domainHints?: DomainHints,
 ): Promise<ExtractionResult> {
   const timings = { probe: 0, scrape: 0, llm: 0 };
   const totalStart = Date.now();
 
-  // 1. 快速预检
-  const probeStart = Date.now();
-  const siteProfile = await probeSite(sourceUrl, signal);
-  timings.probe = Date.now() - probeStart;
+  // 1. 快速预检（有可信域名经验时跳过，直接复用历史 profile）
+  let siteProfile: SiteProfile;
+  let usedHints = false;
+
+  if (domainHints && domainHints.crawlCount >= HINTS_MIN_CRAWLS) {
+    console.error(
+      `[website-crawl] Using domain hints (${domainHints.crawlCount} prior crawls, strategy=${domainHints.strategyUsed})`,
+    );
+    siteProfile = buildProfileFromHints(domainHints);
+    usedHints = true;
+  } else {
+    const probeStart = Date.now();
+    siteProfile = await probeSite(sourceUrl, signal);
+    timings.probe = Date.now() - probeStart;
+  }
 
   // 2. 策略路由 — 按站点类型 + CF 级别选择策略
-  const strategy = selectStrategy(siteProfile);
+  const strategy = usedHints
+    ? (domainHints!.strategyUsed as CrawlStrategy)
+    : selectStrategy(siteProfile);
   if (strategy === "skip") {
     throw new Error(
       `Site protected by Cloudflare ${siteProfile.cloudflareLevel}, requires manual/API partnership`,
@@ -186,6 +208,22 @@ export async function extractFromWebsite(
 }
 
 type CrawlStrategy = "lightweight" | "standard" | "stealth" | "skip";
+
+/** 从域名经验提示构建 SiteProfile（跳过实际 probe） */
+function buildProfileFromHints(hints: DomainHints): SiteProfile {
+  return {
+    type: (hints.siteType || "unknown") as SiteType,
+    framework: (hints.siteFramework || "unknown") as SiteFramework,
+    cloudflareLevel: (hints.cloudflareLevel || "none") as CloudflareLevel,
+    cloudflareProtected: hints.cloudflareLevel !== "none",
+    hasJsonLd: false, // Conservative — will be determined during scrape
+    hasOpenGraph: false,
+    estimatedComplexity: "moderate",
+    httpStatus: 200,
+    redirectUrl: null,
+    contentType: "text/html",
+  };
+}
 
 /** 策略路由 — 按站点类型 + Cloudflare 级别分流 */
 function selectStrategy(profile: SiteProfile): CrawlStrategy {
