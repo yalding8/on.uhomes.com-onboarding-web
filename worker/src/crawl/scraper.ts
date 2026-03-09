@@ -17,6 +17,8 @@ export interface ScrapedContent {
   jsonLd: Record<string, unknown>[];
   /** OpenGraph 元数据 */
   openGraph: Record<string, string>;
+  /** 导航栏链接（用于多页面发现） */
+  navLinks: Array<{ href: string; text: string }>;
 }
 
 interface ScrapeOptions {
@@ -157,7 +159,23 @@ export async function scrapePage(
         if (property && content) openGraph[property] = content;
       }
 
-      return { title, bodyText, imageUrls: allImages, jsonLd, openGraph };
+      // 导航栏链接（用于多页面发现）
+      const navElements = document.querySelectorAll("nav a[href]");
+      const navLinks = Array.from(navElements)
+        .map((a) => ({
+          href: a.getAttribute("href") || "",
+          text: (a.textContent || "").trim(),
+        }))
+        .filter((l) => l.href && l.text);
+
+      return {
+        title,
+        bodyText,
+        imageUrls: allImages,
+        jsonLd,
+        openGraph,
+        navLinks,
+      };
     });
 
     // Markdown 转换（在浏览器上下文中执行）

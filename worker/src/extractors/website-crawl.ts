@@ -1,19 +1,24 @@
 /**
- * 网页爬取提取器 — 策略路由 + 分层提取
+ * 网页爬取提取器 — 策略路由 + 多页面爬取 + 分层提取
  *
  * 流程:
- *  1. 快速预检 → 生成 SiteProfile
- *  2. 策略路由 → 按站点类型选择爬取策略
- *  3. Playwright 爬取 → 提取文本/图片/JSON-LD/OpenGraph
- *  4. 分层提取:
+ *  1. 快速预检 → 生成 SiteProfile（含 Cloudflare 检测）
+ *  2. 策略路由 → 按站点类型 + CF 级别选择爬取策略
+ *  3. 首页爬取 → 提取文本/图片/JSON-LD/OG/导航链接
+ *  4. 多页面发现 → 从导航链接中提取高价值子页面
+ *  5. 子页面爬取 → 每个子页面独立提取
+ *  6. 分层提取 + 多页面合并:
  *     a. JSON-LD 直接映射（跳过 LLM，速度快、置信度高）
  *     b. OpenGraph 补充
  *     c. LLM 提取仅针对缺失字段
- *  5. 提取后校验 → 修复/降级/移除不合理字段
+ *  7. 提取后校验 → 修复/降级/移除不合理字段
  */
 
 import { probeSite } from "../crawl/site-probe.js";
+import type { SiteProfile } from "../crawl/site-probe.js";
 import { scrapePage } from "../crawl/scraper.js";
+import type { ScrapedContent } from "../crawl/scraper.js";
+import { discoverSubPages } from "../crawl/multi-page.js";
 import { chatCompletion } from "../llm/client.js";
 import { getAllProviders } from "../llm/config.js";
 import { mapLlmOutput } from "../llm/field-mapper.js";
@@ -24,13 +29,17 @@ import {
 import { mapStructuredData } from "./structured-data-mapper.js";
 import { mapOpenGraphData } from "./og-mapper.js";
 import { validateFields } from "../validators/field-validator.js";
+import { captureError } from "../sentry.js";
 import type { ExtractionResult } from "./index.js";
-import type { ExtractedFields } from "../types.js";
+import type { ExtractedFields, ExtractionFieldValue } from "../types.js";
 
 const MAX_TEXT_LENGTH = 60_000;
 
 /** 跳过 LLM 的最低 JSON-LD 覆盖率阈值 */
 const SKIP_LLM_COVERAGE = 0.8;
+
+/** 子页面间请求间隔（ms） */
+const SUB_PAGE_DELAY_MS = 2_000;
 
 export async function extractFromWebsite(
   sourceUrl: string,
@@ -39,52 +48,174 @@ export async function extractFromWebsite(
   // 1. 快速预检
   const siteProfile = await probeSite(sourceUrl, signal);
 
-  // 2. Playwright 爬取（按站点类型调整策略）
+  // 2. 策略路由 — 根据 Cloudflare 级别决定是否跳过
+  const strategy = selectStrategy(siteProfile);
+  if (strategy === "skip") {
+    throw new Error(
+      `Site protected by Cloudflare ${siteProfile.cloudflareLevel}, requires manual/API partnership`,
+    );
+  }
+
+  // 3. 首页爬取
   const scraped = await scrapePage(sourceUrl, { siteProfile, signal });
 
   if (!scraped.bodyText.trim() && scraped.jsonLd.length === 0) {
     throw new Error("Website contains no extractable content");
   }
 
-  // 3. 分层提取
-  let mergedFields: ExtractedFields = {};
+  // 4. 多页面发现 + 子页面爬取
+  const subPageFields = await crawlSubPages(
+    sourceUrl,
+    scraped.navLinks,
+    siteProfile,
+    signal,
+  );
 
-  // 3a. JSON-LD 直接映射
-  if (scraped.jsonLd.length > 0) {
-    const structuredResult = mapStructuredData(scraped.jsonLd);
-    mergedFields = { ...mergedFields, ...structuredResult.fields };
+  // 5. 分层提取（首页）
+  let mergedFields = extractLayered(scraped);
 
-    // 如果覆盖率足够高，跳过 LLM
-    if (structuredResult.coverageRatio >= SKIP_LLM_COVERAGE) {
-      const ogFields = mapOpenGraphData(scraped.openGraph);
-      mergedFields = { ...mergedFields, ...ogFields };
-      const validated = validateFields(mergedFields);
-      logIssues(validated.issues, sourceUrl);
-      return { fields: validated.fields };
-    }
+  // 6. LLM 提取（首页，如需要）
+  const needsLlm = !hasHighCoverage(scraped);
+  if (needsLlm) {
+    const llmFields = await extractWithLlm(scraped, mergedFields, signal);
+    mergeFieldsInto(mergedFields, llmFields);
   }
 
-  // 3b. OpenGraph 补充（不覆盖已有字段）
-  const ogFields = mapOpenGraphData(scraped.openGraph);
-  for (const [key, value] of Object.entries(ogFields)) {
-    if (!mergedFields[key]) {
-      mergedFields[key] = value;
-    }
+  // 7. 合并子页面字段（高置信度优先）
+  for (const subFields of subPageFields) {
+    mergeByConfidence(mergedFields, subFields);
   }
 
-  // 3c. LLM 提取（仅补充缺失字段）
-  const llmFields = await extractWithLlm(scraped, mergedFields, signal);
-  for (const [key, value] of Object.entries(llmFields)) {
-    if (!mergedFields[key]) {
-      mergedFields[key] = value;
-    }
-  }
-
-  // 4. 提取后校验
+  // 8. 提取后校验
   const validated = validateFields(mergedFields);
   logIssues(validated.issues, sourceUrl);
 
   return { fields: validated.fields };
+}
+
+type CrawlStrategy = "standard" | "skip";
+
+/** 策略路由 — 按 Cloudflare 级别分流 */
+function selectStrategy(profile: SiteProfile): CrawlStrategy {
+  if (
+    profile.cloudflareLevel === "enterprise" ||
+    profile.cloudflareLevel === "business"
+  ) {
+    return "skip";
+  }
+  return "standard";
+}
+
+/** 分层提取（JSON-LD + OpenGraph），不含 LLM */
+function extractLayered(scraped: ScrapedContent): ExtractedFields {
+  let fields: ExtractedFields = {};
+
+  // JSON-LD 直接映射
+  if (scraped.jsonLd.length > 0) {
+    const structuredResult = mapStructuredData(scraped.jsonLd);
+    fields = { ...fields, ...structuredResult.fields };
+  }
+
+  // OpenGraph 补充（不覆盖已有字段）
+  const ogFields = mapOpenGraphData(scraped.openGraph);
+  mergeFieldsInto(fields, ogFields);
+
+  return fields;
+}
+
+/** 检查 JSON-LD 覆盖率是否足够高（可跳过 LLM） */
+function hasHighCoverage(scraped: ScrapedContent): boolean {
+  if (scraped.jsonLd.length === 0) return false;
+  const structuredResult = mapStructuredData(scraped.jsonLd);
+  return structuredResult.coverageRatio >= SKIP_LLM_COVERAGE;
+}
+
+/** 爬取子页面并提取字段 */
+async function crawlSubPages(
+  baseUrl: string,
+  navLinks: Array<{ href: string; text: string }>,
+  siteProfile: SiteProfile,
+  signal: AbortSignal,
+): Promise<ExtractedFields[]> {
+  const subPages = discoverSubPages(baseUrl, navLinks);
+  if (subPages.length === 0) return [];
+
+  console.error(
+    `[website-crawl] Discovered ${subPages.length} sub-pages: ${subPages.map((p) => p.label).join(", ")}`,
+  );
+
+  const results: ExtractedFields[] = [];
+
+  for (const subPage of subPages) {
+    if (signal.aborted) break;
+
+    try {
+      // Rate limiting: 延迟 2s
+      await new Promise((r) => setTimeout(r, SUB_PAGE_DELAY_MS));
+
+      const subScraped = await scrapePage(subPage.url, {
+        siteProfile,
+        signal,
+      });
+
+      // 子页面分层提取
+      const subFields = extractLayered(subScraped);
+
+      // 子页面 LLM 提取（如有内容）
+      if (subScraped.bodyText.trim().length > 100) {
+        const llmFields = await extractWithLlm(subScraped, subFields, signal);
+        mergeFieldsInto(subFields, llmFields);
+      }
+
+      results.push(subFields);
+    } catch (err) {
+      captureError(err, { subPageUrl: subPage.url, label: subPage.label });
+      console.error(
+        `[website-crawl] Sub-page ${subPage.label} failed:`,
+        (err as Error).message,
+      );
+    }
+  }
+
+  return results;
+}
+
+/** 将 source 中的字段合并到 target（不覆盖已有字段） */
+function mergeFieldsInto(
+  target: ExtractedFields,
+  source: ExtractedFields,
+): void {
+  for (const [key, value] of Object.entries(source)) {
+    if (!target[key]) {
+      target[key] = value;
+    }
+  }
+}
+
+/** 按置信度合并 — 对同一字段保留置信度更高的值 */
+function mergeByConfidence(
+  target: ExtractedFields,
+  source: ExtractedFields,
+): void {
+  const confidenceRank: Record<string, number> = {
+    high: 3,
+    medium: 2,
+    low: 1,
+  };
+
+  for (const [key, value] of Object.entries(source)) {
+    const existing = target[key] as ExtractionFieldValue | undefined;
+    if (!existing) {
+      target[key] = value;
+      continue;
+    }
+
+    const existingRank = confidenceRank[existing.confidence] ?? 0;
+    const newRank = confidenceRank[value.confidence] ?? 0;
+    if (newRank > existingRank) {
+      target[key] = value;
+    }
+  }
 }
 
 /** LLM 提取 — 带 provider fallback */
