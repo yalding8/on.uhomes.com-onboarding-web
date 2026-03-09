@@ -42,6 +42,9 @@ interface ExtractionMeta {
   confidenceMedium?: number;
   confidenceLow?: number;
   validationIssues?: number;
+  llmValidationQuality?: string;
+  llmValidationAdjustments?: number;
+  llmValidationRemovals?: number;
   probeDurationMs?: number;
   scrapeDurationMs?: number;
   llmDurationMs?: number;
@@ -244,6 +247,9 @@ export async function POST(request: Request) {
         confidence_medium_count: meta.confidenceMedium ?? 0,
         confidence_low_count: meta.confidenceLow ?? 0,
         validation_issues_count: meta.validationIssues ?? 0,
+        llm_validation_quality: meta.llmValidationQuality ?? null,
+        llm_validation_adjustments: meta.llmValidationAdjustments ?? 0,
+        llm_validation_removals: meta.llmValidationRemovals ?? 0,
         probe_duration_ms: meta.probeDurationMs ?? null,
         scrape_duration_ms: meta.scrapeDurationMs ?? null,
         llm_duration_ms: meta.llmDurationMs ?? null,

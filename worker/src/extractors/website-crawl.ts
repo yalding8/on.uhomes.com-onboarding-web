@@ -24,9 +24,11 @@ import { extractWithLlm } from "./llm-extractor.js";
 import { mapStructuredData } from "./structured-data-mapper.js";
 import { mapOpenGraphData } from "./og-mapper.js";
 import { validateFields } from "../validators/field-validator.js";
+import { validateWithLlm } from "../validators/llm-validator.js";
+import { mergeFieldsInto, mergeByConfidence } from "./field-merge.js";
 import { captureError } from "../sentry.js";
 import type { ExtractionResult } from "./index.js";
-import type { ExtractedFields, ExtractionFieldValue } from "../types.js";
+import type { ExtractedFields } from "../types.js";
 
 /** 跳过 LLM 的最低 JSON-LD 覆盖率阈值 */
 const SKIP_LLM_COVERAGE = 0.8;
@@ -104,13 +106,40 @@ export async function extractFromWebsite(
     mergeByConfidence(mergedFields, subFields);
   }
 
-  // 8. 提取后校验
+  // 8. 提取后校验（规则引擎）
   const validated = validateFields(mergedFields);
   logIssues(validated.issues, sourceUrl);
 
+  // 8b. LLM 自校验 — 交叉验证提取结果的合理性
+  let llmValidationQuality: "high" | "medium" | "low" | "skipped" = "skipped";
+  let llmValidationAdjustments = 0;
+  let llmValidationRemovals = 0;
+  const validatedFields = validated.fields;
+
+  try {
+    const textForValidation = scraped.markdown || scraped.bodyText;
+    const llmValidation = await validateWithLlm(
+      validatedFields,
+      scraped.title,
+      textForValidation,
+      signal,
+    );
+    llmValidationQuality = llmValidation.overallQuality;
+    llmValidationAdjustments = llmValidation.adjustments;
+    llmValidationRemovals = llmValidation.removals;
+    // Use LLM-validated fields for final output
+    Object.assign(validatedFields, llmValidation.fields);
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") throw err;
+    console.error(
+      "[website-crawl] LLM validation failed (non-blocking):",
+      (err as Error).message,
+    );
+  }
+
   // 9. 构建提取元数据 — 为自适应进化积累经验
   const confidenceDist = { high: 0, medium: 0, low: 0 };
-  for (const field of Object.values(validated.fields)) {
+  for (const field of Object.values(validatedFields)) {
     const c = field.confidence as keyof typeof confidenceDist;
     if (c in confidenceDist) confidenceDist[c]++;
   }
@@ -127,7 +156,7 @@ export async function extractFromWebsite(
     : 0;
 
   return {
-    fields: validated.fields,
+    fields: validatedFields,
     meta: {
       sourceUrl,
       urlDomain: domain,
@@ -145,6 +174,9 @@ export async function extractFromWebsite(
       confidenceMedium: confidenceDist.medium,
       confidenceLow: confidenceDist.low,
       validationIssues: validated.issues.length,
+      llmValidationQuality,
+      llmValidationAdjustments,
+      llmValidationRemovals,
       probeDurationMs: timings.probe,
       scrapeDurationMs: timings.scrape,
       llmDurationMs: timings.llm,
@@ -258,44 +290,6 @@ async function crawlSubPages(
   }
 
   return results;
-}
-
-/** 将 source 中的字段合并到 target（不覆盖已有字段） */
-function mergeFieldsInto(
-  target: ExtractedFields,
-  source: ExtractedFields,
-): void {
-  for (const [key, value] of Object.entries(source)) {
-    if (!target[key]) {
-      target[key] = value;
-    }
-  }
-}
-
-/** 按置信度合并 — 对同一字段保留置信度更高的值 */
-function mergeByConfidence(
-  target: ExtractedFields,
-  source: ExtractedFields,
-): void {
-  const confidenceRank: Record<string, number> = {
-    high: 3,
-    medium: 2,
-    low: 1,
-  };
-
-  for (const [key, value] of Object.entries(source)) {
-    const existing = target[key] as ExtractionFieldValue | undefined;
-    if (!existing) {
-      target[key] = value;
-      continue;
-    }
-
-    const existingRank = confidenceRank[existing.confidence] ?? 0;
-    const newRank = confidenceRank[value.confidence] ?? 0;
-    if (newRank > existingRank) {
-      target[key] = value;
-    }
-  }
 }
 
 function logIssues(

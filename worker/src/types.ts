@@ -46,6 +46,9 @@ export interface ExtractionMeta {
   confidenceMedium: number;
   confidenceLow: number;
   validationIssues: number;
+  llmValidationQuality: string;
+  llmValidationAdjustments: number;
+  llmValidationRemovals: number;
   probeDurationMs: number;
   scrapeDurationMs: number;
   llmDurationMs: number;
