@@ -11,6 +11,11 @@ import { handleRequest } from "./router.js";
 import { getActiveJobCount } from "./job-tracker.js";
 import { shutdownBrowser } from "./crawl/browser.js";
 import { initSentry, flushSentry } from "./sentry.js";
+import {
+  isQueueEnabled,
+  startWorker,
+  shutdownQueue,
+} from "./queue/extraction-queue.js";
 
 // Sentry 必须在其他模块之前初始化
 initSentry();
@@ -37,6 +42,9 @@ async function gracefulShutdown(signal: string): Promise<void> {
     );
   }
 
+  // 关闭 BullMQ 队列
+  await shutdownQueue().catch(() => {});
+
   // 关闭 Playwright 浏览器
   await shutdownBrowser().catch(() => {});
 
@@ -52,6 +60,12 @@ process.on("SIGTERM", () => {
 process.on("SIGINT", () => {
   gracefulShutdown("SIGINT");
 });
+
+// 启动 BullMQ Worker（如 Redis 可用）
+if (isQueueEnabled()) {
+  startWorker();
+  console.error("[worker] BullMQ queue worker started");
+}
 
 server.listen(config.port, () => {
   console.error(`[worker] Extraction Worker listening on port ${config.port}`);

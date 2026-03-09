@@ -18,22 +18,15 @@ import { probeSite } from "../crawl/site-probe.js";
 import type { SiteProfile } from "../crawl/site-probe.js";
 import { scrapePage } from "../crawl/scraper.js";
 import type { ScrapedContent } from "../crawl/scraper.js";
+import { scrapeWithCheerio } from "../crawl/cheerio-scraper.js";
 import { discoverSubPages } from "../crawl/multi-page.js";
-import { chatCompletion } from "../llm/client.js";
-import { getAllProviders } from "../llm/config.js";
-import { mapLlmOutput } from "../llm/field-mapper.js";
-import {
-  WEBSITE_EXTRACTION_SYSTEM_PROMPT,
-  buildWebsiteUserPrompt,
-} from "../llm/prompts/website-fields.js";
+import { extractWithLlm } from "./llm-extractor.js";
 import { mapStructuredData } from "./structured-data-mapper.js";
 import { mapOpenGraphData } from "./og-mapper.js";
 import { validateFields } from "../validators/field-validator.js";
 import { captureError } from "../sentry.js";
 import type { ExtractionResult } from "./index.js";
 import type { ExtractedFields, ExtractionFieldValue } from "../types.js";
-
-const MAX_TEXT_LENGTH = 60_000;
 
 /** 跳过 LLM 的最低 JSON-LD 覆盖率阈值 */
 const SKIP_LLM_COVERAGE = 0.8;
@@ -48,7 +41,7 @@ export async function extractFromWebsite(
   // 1. 快速预检
   const siteProfile = await probeSite(sourceUrl, signal);
 
-  // 2. 策略路由 — 根据 Cloudflare 级别决定是否跳过
+  // 2. 策略路由 — 按站点类型 + CF 级别选择策略
   const strategy = selectStrategy(siteProfile);
   if (strategy === "skip") {
     throw new Error(
@@ -56,13 +49,21 @@ export async function extractFromWebsite(
     );
   }
 
-  // 3. 首页爬取（CF 站点启用 stealth）
-  const useStealth = needsStealth(strategy);
-  const scraped = await scrapePage(sourceUrl, {
-    siteProfile,
-    signal,
-    useStealth,
-  });
+  // 3. 首页爬取 — lightweight 用 cheerio，其余用 Playwright
+  let scraped: ScrapedContent;
+  if (strategy === "lightweight") {
+    console.error(
+      `[website-crawl] Using cheerio lightweight extraction for ${sourceUrl}`,
+    );
+    scraped = await scrapeWithCheerio(sourceUrl, signal);
+  } else {
+    const useStealth = needsStealth(strategy);
+    scraped = await scrapePage(sourceUrl, {
+      siteProfile,
+      signal,
+      useStealth,
+    });
+  }
 
   if (!scraped.bodyText.trim() && scraped.jsonLd.length === 0) {
     throw new Error("Website contains no extractable content");
@@ -74,7 +75,7 @@ export async function extractFromWebsite(
     scraped.navLinks,
     siteProfile,
     signal,
-    useStealth,
+    strategy,
   );
 
   // 5. 分层提取（首页）
@@ -99,9 +100,9 @@ export async function extractFromWebsite(
   return { fields: validated.fields };
 }
 
-type CrawlStrategy = "standard" | "stealth" | "skip";
+type CrawlStrategy = "lightweight" | "standard" | "stealth" | "skip";
 
-/** 策略路由 — 按 Cloudflare 级别分流 */
+/** 策略路由 — 按站点类型 + Cloudflare 级别分流 */
 function selectStrategy(profile: SiteProfile): CrawlStrategy {
   if (
     profile.cloudflareLevel === "enterprise" ||
@@ -111,6 +112,10 @@ function selectStrategy(profile: SiteProfile): CrawlStrategy {
   }
   if (profile.cloudflareProtected) {
     return "stealth";
+  }
+  // 静态站点无 CF 保护 → cheerio 轻量提取
+  if (profile.type === "static") {
+    return "lightweight";
   }
   return "standard";
 }
@@ -150,7 +155,7 @@ async function crawlSubPages(
   navLinks: Array<{ href: string; text: string }>,
   siteProfile: SiteProfile,
   signal: AbortSignal,
-  useStealth: boolean,
+  strategy: CrawlStrategy,
 ): Promise<ExtractedFields[]> {
   const subPages = discoverSubPages(baseUrl, navLinks);
   if (subPages.length === 0) return [];
@@ -168,11 +173,17 @@ async function crawlSubPages(
       // Rate limiting: 延迟 2s
       await new Promise((r) => setTimeout(r, SUB_PAGE_DELAY_MS));
 
-      const subScraped = await scrapePage(subPage.url, {
-        siteProfile,
-        signal,
-        useStealth,
-      });
+      let subScraped: ScrapedContent;
+      if (strategy === "lightweight") {
+        subScraped = await scrapeWithCheerio(subPage.url, signal);
+      } else {
+        const useStealth = needsStealth(strategy);
+        subScraped = await scrapePage(subPage.url, {
+          siteProfile,
+          signal,
+          useStealth,
+        });
+      }
 
       // 子页面分层提取
       const subFields = extractLayered(subScraped);
@@ -232,61 +243,6 @@ function mergeByConfidence(
       target[key] = value;
     }
   }
-}
-
-/** LLM 提取 — 带 provider fallback */
-async function extractWithLlm(
-  scraped: {
-    title: string;
-    bodyText: string;
-    markdown: string;
-    imageUrls: string[];
-    jsonLd: Record<string, unknown>[];
-  },
-  existingFields: ExtractedFields,
-  signal: AbortSignal,
-): Promise<ExtractedFields> {
-  const providers = getAllProviders();
-
-  // 优先用 Markdown，回退用 bodyText
-  const textContent = scraped.markdown || scraped.bodyText;
-  const truncatedText =
-    textContent.length > MAX_TEXT_LENGTH
-      ? textContent.slice(0, MAX_TEXT_LENGTH) + "\n\n[... text truncated ...]"
-      : textContent;
-
-  const userPrompt = buildWebsiteUserPrompt(
-    scraped.title,
-    truncatedText,
-    scraped.imageUrls,
-    scraped.jsonLd,
-    existingFields,
-  );
-
-  let lastError: Error | null = null;
-
-  for (const provider of providers) {
-    try {
-      const raw = await chatCompletion(
-        provider,
-        [
-          { role: "system", content: WEBSITE_EXTRACTION_SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-        { jsonMode: true, maxTokens: 4096, temperature: 0.1, signal },
-      );
-      return mapLlmOutput(raw);
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      if (lastError.name === "AbortError") throw lastError;
-      console.error(
-        `[website-crawl] Provider ${provider.name} failed:`,
-        lastError.message,
-      );
-    }
-  }
-
-  throw lastError ?? new Error("All LLM providers failed");
 }
 
 function logIssues(
