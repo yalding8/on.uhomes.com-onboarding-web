@@ -11,6 +11,9 @@
  *   # 测试单个 URL（含 LLM）
  *   npx tsx tests/benchmarks/verify-pipeline.ts --with-llm https://example.com
  *
+ *   # 仅测试指定分类
+ *   npx tsx tests/benchmarks/verify-pipeline.ts --category static
+ *
  * 环境变量 (--with-llm 时至少配一个):
  *   QWEN_API_KEY / DEEPSEEK_API_KEY / KIMI_API_KEY / MINIMAX_API_KEY
  */
@@ -21,6 +24,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { probeSite } from "../../src/crawl/site-probe.js";
 import { scrapePage } from "../../src/crawl/scraper.js";
+import { scrapeWithCheerio } from "../../src/crawl/cheerio-scraper.js";
 import { mapStructuredData } from "../../src/extractors/structured-data-mapper.js";
 import { mapOpenGraphData } from "../../src/extractors/og-mapper.js";
 import { chatCompletion } from "../../src/llm/client.js";
@@ -32,21 +36,31 @@ import {
 } from "../../src/llm/prompts/website-fields.js";
 import { validateFields } from "../../src/validators/field-validator.js";
 import { shutdownBrowser } from "../../src/crawl/browser.js";
+import type { SiteProfile } from "../../src/crawl/site-probe.js";
 import type { ExtractedFields } from "../../src/types.js";
+
+/* ── Types ─────────────────────────────────────── */
+
+type CrawlStrategy = "lightweight" | "standard" | "stealth" | "skip";
 
 interface SiteFixture {
   id: string;
   category: string;
   url: string;
   description: string;
+  expectedStrategy: CrawlStrategy;
   expectedSiteType: string;
 }
 
 interface PipelineResult {
   siteId: string;
   url: string;
+  category: string;
   success: boolean;
   error?: string;
+  actualStrategy: CrawlStrategy;
+  expectedStrategy: CrawlStrategy;
+  strategyMatch: boolean;
   timings: {
     probeMs: number;
     scrapeMs: number;
@@ -60,6 +74,7 @@ interface PipelineResult {
     complexity: string;
     hasJsonLd: boolean;
     hasOpenGraph: boolean;
+    cfLevel: string;
   };
   extraction: {
     jsonLdFieldCount: number;
@@ -71,24 +86,50 @@ interface PipelineResult {
     llmNeeded: boolean;
     llmUsed: boolean;
     validationIssues: number;
+    confidenceDist: { high: number; medium: number; low: number };
   };
   fields: ExtractedFields;
 }
 
+/* ── Constants ─────────────────────────────────── */
+
 const SKIP_LLM_COVERAGE = 0.8;
 const MAX_TEXT_LENGTH = 60_000;
 
+/* ── Strategy routing (mirrors website-crawl.ts) ── */
+
+function selectStrategy(profile: SiteProfile): CrawlStrategy {
+  if (
+    profile.cloudflareLevel === "enterprise" ||
+    profile.cloudflareLevel === "business"
+  ) {
+    return "skip";
+  }
+  if (profile.cloudflareProtected) {
+    return "stealth";
+  }
+  if (profile.type === "static") {
+    return "lightweight";
+  }
+  return "standard";
+}
+
+/* ── Single-site test ─────────────────────────── */
+
 async function testSingleUrl(
-  url: string,
-  siteId: string,
+  site: SiteFixture,
   withLlm: boolean,
 ): Promise<PipelineResult> {
   const totalStart = Date.now();
 
   const result: PipelineResult = {
-    siteId,
-    url,
+    siteId: site.id,
+    url: site.url,
+    category: site.category,
     success: false,
+    actualStrategy: "standard",
+    expectedStrategy: site.expectedStrategy,
+    strategyMatch: false,
     timings: {
       probeMs: 0,
       scrapeMs: 0,
@@ -102,6 +143,7 @@ async function testSingleUrl(
       complexity: "moderate",
       hasJsonLd: false,
       hasOpenGraph: false,
+      cfLevel: "none",
     },
     extraction: {
       jsonLdFieldCount: 0,
@@ -113,6 +155,7 @@ async function testSingleUrl(
       llmNeeded: true,
       llmUsed: false,
       validationIssues: 0,
+      confidenceDist: { high: 0, medium: 0, low: 0 },
     },
     fields: {},
   };
@@ -120,7 +163,7 @@ async function testSingleUrl(
   try {
     // 1. Site Probe
     const probeStart = Date.now();
-    const profile = await probeSite(url);
+    const profile = await probeSite(site.url);
     result.timings.probeMs = Date.now() - probeStart;
     result.siteProfile = {
       type: profile.type,
@@ -128,14 +171,33 @@ async function testSingleUrl(
       complexity: profile.estimatedComplexity,
       hasJsonLd: profile.hasJsonLd,
       hasOpenGraph: profile.hasOpenGraph,
+      cfLevel: profile.cloudflareLevel,
     };
 
-    // 2. Scrape
+    // 2. Strategy routing
+    const strategy = selectStrategy(profile);
+    result.actualStrategy = strategy;
+    result.strategyMatch = strategy === site.expectedStrategy;
+
+    // Skip sites that should be skipped
+    if (strategy === "skip") {
+      result.success = true;
+      result.timings.totalMs = Date.now() - totalStart;
+      return result;
+    }
+
+    // 3. Scrape — route to cheerio or Playwright
     const scrapeStart = Date.now();
-    const scraped = await scrapePage(url, { siteProfile: profile });
+    const scraped =
+      strategy === "lightweight"
+        ? await scrapeWithCheerio(site.url)
+        : await scrapePage(site.url, {
+            siteProfile: profile,
+            useStealth: strategy === "stealth",
+          });
     result.timings.scrapeMs = Date.now() - scrapeStart;
 
-    // 3. Structured Data Mapping
+    // 4. Structured Data Mapping
     const mapStart = Date.now();
     let mergedFields: ExtractedFields = {};
 
@@ -148,7 +210,7 @@ async function testSingleUrl(
         structured.coverageRatio < SKIP_LLM_COVERAGE;
     }
 
-    // 4. OpenGraph
+    // 5. OpenGraph
     const ogFields = mapOpenGraphData(scraped.openGraph);
     let ogAdded = 0;
     for (const [key, value] of Object.entries(ogFields)) {
@@ -160,7 +222,7 @@ async function testSingleUrl(
     result.extraction.ogFieldCount = ogAdded;
     result.timings.structuredMapMs = Date.now() - mapStart;
 
-    // 5. LLM extraction (if enabled and needed)
+    // 6. LLM extraction (if enabled and needed)
     if (withLlm && result.extraction.llmNeeded) {
       const llmStart = Date.now();
       try {
@@ -192,11 +254,7 @@ async function testSingleUrl(
                 },
                 { role: "user", content: userPrompt },
               ],
-              {
-                jsonMode: true,
-                maxTokens: 4096,
-                temperature: 0.1,
-              },
+              { jsonMode: true, maxTokens: 4096, temperature: 0.1 },
             );
             llmFields = mapLlmOutput(raw);
             result.extraction.llmProvider = provider.name;
@@ -209,7 +267,6 @@ async function testSingleUrl(
           }
         }
 
-        // Merge LLM fields (don't overwrite existing)
         let llmAdded = 0;
         for (const [key, value] of Object.entries(llmFields)) {
           if (!mergedFields[key]) {
@@ -220,16 +277,28 @@ async function testSingleUrl(
         result.extraction.llmFieldCount = llmAdded;
         result.extraction.llmUsed = true;
       } catch (err) {
-        console.error(`  [LLM] All providers failed:`, (err as Error).message);
+        console.error(
+          `  [LLM] All providers failed:`,
+          (err as Error).message,
+        );
       }
       result.timings.llmMs = Date.now() - llmStart;
     }
 
-    // 6. Validate
+    // 7. Validate
     const validated = validateFields(mergedFields);
     result.extraction.validationIssues = validated.issues.length;
     result.fields = validated.fields;
     result.extraction.totalFieldCount = Object.keys(validated.fields).length;
+
+    // 8. Confidence distribution
+    const dist = { high: 0, medium: 0, low: 0 };
+    for (const field of Object.values(validated.fields)) {
+      const c = field.confidence as keyof typeof dist;
+      if (c in dist) dist[c]++;
+    }
+    result.extraction.confidenceDist = dist;
+
     result.success = true;
   } catch (err) {
     result.error = (err as Error).message;
@@ -239,20 +308,34 @@ async function testSingleUrl(
   return result;
 }
 
+/* ── Output: per-site detail ──────────────────── */
+
 function printResult(r: PipelineResult): void {
-  const divider = "─".repeat(60);
+  const divider = "-".repeat(60);
   console.log(`\n${divider}`);
   console.log(`  ${r.siteId} | ${r.url}`);
   console.log(divider);
 
   if (!r.success) {
-    console.log(`  STATUS: FAILED — ${r.error}`);
+    console.log(`  STATUS: FAILED -- ${r.error}`);
     return;
   }
 
+  if (r.actualStrategy === "skip") {
+    const match = r.strategyMatch ? "OK" : "MISMATCH";
+    console.log(
+      `  STATUS: SKIPPED (CF ${r.siteProfile.cfLevel}) [strategy ${match}]`,
+    );
+    return;
+  }
+
+  const strategyIcon = r.strategyMatch ? "OK" : "MISMATCH";
   console.log(`  STATUS: OK`);
   console.log(
-    `  Site:   ${r.siteProfile.type} | ${r.siteProfile.framework} | ${r.siteProfile.complexity}`,
+    `  Strategy: ${r.actualStrategy} (expected: ${r.expectedStrategy}) [${strategyIcon}]`,
+  );
+  console.log(
+    `  Site:   ${r.siteProfile.type} | ${r.siteProfile.framework} | ${r.siteProfile.complexity} | CF=${r.siteProfile.cfLevel}`,
   );
   console.log(
     `  Detect: JSON-LD=${r.siteProfile.hasJsonLd} OG=${r.siteProfile.hasOpenGraph}`,
@@ -261,97 +344,177 @@ function printResult(r: PipelineResult): void {
     `  Fields: JSON-LD=${r.extraction.jsonLdFieldCount} OG=${r.extraction.ogFieldCount} LLM=${r.extraction.llmFieldCount} Total=${r.extraction.totalFieldCount}`,
   );
   console.log(
+    `  Confidence: H=${r.extraction.confidenceDist.high} M=${r.extraction.confidenceDist.medium} L=${r.extraction.confidenceDist.low}`,
+  );
+  console.log(
     `  Coverage: ${(r.extraction.coverageRatio * 100).toFixed(0)}% | LLM needed: ${r.extraction.llmNeeded} | LLM used: ${r.extraction.llmUsed}${r.extraction.llmUsed ? ` (${r.extraction.llmProvider})` : ""}`,
   );
   console.log(`  Issues: ${r.extraction.validationIssues}`);
   console.log(
     `  Timing: probe=${r.timings.probeMs}ms scrape=${r.timings.scrapeMs}ms map=${r.timings.structuredMapMs}ms llm=${r.timings.llmMs}ms total=${r.timings.totalMs}ms`,
   );
+}
 
-  // Print extracted fields
-  console.log(`  ── Extracted Fields ──`);
-  const sorted = Object.entries(r.fields).sort(
-    ([, a], [, b]) =>
-      confidenceOrder(a.confidence) - confidenceOrder(b.confidence),
-  );
-  for (const [key, field] of sorted) {
-    const val =
-      typeof field.value === "string" && field.value.length > 60
-        ? field.value.slice(0, 60) + "..."
-        : Array.isArray(field.value)
-          ? `[${field.value.length} items]`
-          : field.value;
-    const icon =
-      field.confidence === "high"
-        ? "H"
-        : field.confidence === "medium"
-          ? "M"
-          : "L";
-    console.log(`    [${icon}] ${key}: ${val}`);
+/* ── Output: comparison table ─────────────────── */
+
+function printComparisonTable(results: PipelineResult[]): void {
+  console.log("\n" + "=".repeat(120));
+  console.log("  COMPARISON TABLE");
+  console.log("=".repeat(120));
+
+  // Header
+  const cols = [
+    pad("Site", 24),
+    pad("Category", 12),
+    pad("Strategy", 18),
+    pad("Match", 6),
+    pad("Time(s)", 8),
+    pad("Fields", 7),
+    pad("H/M/L", 10),
+    pad("Issues", 7),
+  ];
+  console.log("  " + cols.join(" | "));
+  console.log("  " + "-".repeat(cols.join(" | ").length));
+
+  for (const r of results) {
+    const strategy =
+      r.actualStrategy === r.expectedStrategy
+        ? r.actualStrategy
+        : `${r.actualStrategy}(!=${r.expectedStrategy})`;
+
+    const row = [
+      pad(r.siteId, 24),
+      pad(r.category, 12),
+      pad(strategy, 18),
+      pad(r.strategyMatch ? "Y" : "N", 6),
+      pad(r.success ? (r.timings.totalMs / 1000).toFixed(1) : "ERR", 8),
+      pad(
+        r.actualStrategy === "skip"
+          ? "-"
+          : String(r.extraction.totalFieldCount),
+        7,
+      ),
+      pad(
+        r.actualStrategy === "skip"
+          ? "-"
+          : `${r.extraction.confidenceDist.high}/${r.extraction.confidenceDist.medium}/${r.extraction.confidenceDist.low}`,
+        10,
+      ),
+      pad(
+        r.actualStrategy === "skip"
+          ? "-"
+          : String(r.extraction.validationIssues),
+        7,
+      ),
+    ];
+    console.log("  " + row.join(" | "));
   }
 }
 
-function confidenceOrder(c: string): number {
-  return c === "high" ? 0 : c === "medium" ? 1 : 2;
+function pad(s: string, width: number): string {
+  return s.length >= width ? s.slice(0, width) : s + " ".repeat(width - s.length);
 }
 
-function printSummary(results: PipelineResult[]): void {
-  console.log("\n" + "=".repeat(60));
-  console.log("  SUMMARY");
-  console.log("=".repeat(60));
+/* ── Output: strategy summary ─────────────────── */
 
-  const ok = results.filter((r) => r.success);
-  const failed = results.filter((r) => !r.success);
+function printStrategySummary(results: PipelineResult[]): void {
+  console.log("\n" + "=".repeat(80));
+  console.log("  STRATEGY SUMMARY");
+  console.log("=".repeat(80));
 
-  console.log(
-    `  Total: ${results.length} | OK: ${ok.length} | Failed: ${failed.length}`,
-  );
+  const byStrategy = new Map<string, PipelineResult[]>();
+  for (const r of results) {
+    const key = r.actualStrategy;
+    if (!byStrategy.has(key)) byStrategy.set(key, []);
+    byStrategy.get(key)!.push(r);
+  }
 
-  if (ok.length > 0) {
-    const avgFields =
-      ok.reduce((sum, r) => sum + r.extraction.totalFieldCount, 0) / ok.length;
+  for (const [strategy, items] of byStrategy) {
+    const ok = items.filter((r) => r.success);
     const avgTime =
-      ok.reduce((sum, r) => sum + r.timings.totalMs, 0) / ok.length;
-    const skippedLlm = ok.filter((r) => !r.extraction.llmNeeded).length;
-    const usedLlm = ok.filter((r) => r.extraction.llmUsed).length;
+      ok.length > 0
+        ? ok.reduce((s, r) => s + r.timings.totalMs, 0) / ok.length
+        : 0;
+    const avgFields =
+      ok.filter((r) => r.actualStrategy !== "skip").length > 0
+        ? ok
+            .filter((r) => r.actualStrategy !== "skip")
+            .reduce((s, r) => s + r.extraction.totalFieldCount, 0) /
+          ok.filter((r) => r.actualStrategy !== "skip").length
+        : 0;
+    const mismatches = items.filter((r) => !r.strategyMatch);
 
-    console.log(`  Avg fields: ${avgFields.toFixed(1)}`);
-    console.log(`  Avg time: ${(avgTime / 1000).toFixed(1)}s`);
+    console.log(`\n  [${strategy.toUpperCase()}] ${items.length} site(s)`);
+    console.log(`    OK: ${ok.length} | Failed: ${items.length - ok.length}`);
     console.log(
-      `  LLM skippable: ${skippedLlm}/${ok.length} (${((skippedLlm / ok.length) * 100).toFixed(0)}%)`,
+      `    Avg time: ${(avgTime / 1000).toFixed(1)}s | Avg fields: ${avgFields.toFixed(1)}`,
     );
-    console.log(`  LLM actually used: ${usedLlm}/${ok.length}`);
-
-    // Per site type breakdown
-    const byType = new Map<string, PipelineResult[]>();
-    for (const r of ok) {
-      const type = r.siteProfile.type;
-      if (!byType.has(type)) byType.set(type, []);
-      byType.get(type)!.push(r);
-    }
-    console.log(`  ── By Site Type ──`);
-    for (const [type, items] of byType) {
-      const avg =
-        items.reduce((s, r) => s + r.extraction.totalFieldCount, 0) /
-        items.length;
+    if (mismatches.length > 0) {
       console.log(
-        `    ${type}: ${items.length} sites, avg ${avg.toFixed(1)} fields`,
+        `    Strategy MISMATCHES: ${mismatches.map((r) => `${r.siteId}(expected=${r.expectedStrategy})`).join(", ")}`,
       );
     }
   }
 
+  // Overall strategy accuracy
+  const totalMatches = results.filter((r) => r.strategyMatch).length;
+  console.log(
+    `\n  Strategy accuracy: ${totalMatches}/${results.length} (${((totalMatches / results.length) * 100).toFixed(0)}%)`,
+  );
+}
+
+/* ── Output: overall summary ──────────────────── */
+
+function printSummary(results: PipelineResult[]): void {
+  console.log("\n" + "=".repeat(80));
+  console.log("  OVERALL SUMMARY");
+  console.log("=".repeat(80));
+
+  const ok = results.filter((r) => r.success);
+  const failed = results.filter((r) => !r.success);
+  const scraped = ok.filter((r) => r.actualStrategy !== "skip");
+
+  console.log(
+    `  Total: ${results.length} | OK: ${ok.length} | Failed: ${failed.length} | Skipped: ${ok.length - scraped.length}`,
+  );
+
+  if (scraped.length > 0) {
+    const avgFields =
+      scraped.reduce((s, r) => s + r.extraction.totalFieldCount, 0) /
+      scraped.length;
+    const avgTime =
+      scraped.reduce((s, r) => s + r.timings.totalMs, 0) / scraped.length;
+    const skippedLlm = scraped.filter((r) => !r.extraction.llmNeeded).length;
+    const usedLlm = scraped.filter((r) => r.extraction.llmUsed).length;
+
+    console.log(`  Avg fields (scraped): ${avgFields.toFixed(1)}`);
+    console.log(`  Avg time (scraped): ${(avgTime / 1000).toFixed(1)}s`);
+    console.log(
+      `  LLM skippable: ${skippedLlm}/${scraped.length} (${((skippedLlm / scraped.length) * 100).toFixed(0)}%)`,
+    );
+    console.log(`  LLM actually used: ${usedLlm}/${scraped.length}`);
+  }
+
   if (failed.length > 0) {
-    console.log(`  ── Failures ──`);
+    console.log(`  -- Failures --`);
     for (const r of failed) {
       console.log(`    ${r.siteId}: ${r.error}`);
     }
   }
 }
 
+/* ── Main ─────────────────────────────────────── */
+
 async function main() {
   const args = process.argv.slice(2);
   const withLlm = args.includes("--with-llm");
-  const customUrl = args.find((a) => !a.startsWith("--"));
+  const categoryFilter = args
+    .find((a) => a.startsWith("--category=") || a.startsWith("--category "))
+    ?.split("=")[1];
+  const categoryIdx = args.indexOf("--category");
+  const category =
+    categoryFilter ?? (categoryIdx >= 0 ? args[categoryIdx + 1] : undefined);
+  const customUrl = args.find((a) => !a.startsWith("--") && a.includes("://"));
 
   let sites: SiteFixture[];
 
@@ -359,9 +522,10 @@ async function main() {
     sites = [
       {
         id: "custom",
-        category: "unknown",
+        category: "custom",
         url: customUrl,
         description: "Custom URL",
+        expectedStrategy: "standard",
         expectedSiteType: "unknown",
       },
     ];
@@ -370,6 +534,13 @@ async function main() {
       with: { type: "json" },
     });
     sites = fixtureData.default.sites as SiteFixture[];
+    if (category) {
+      sites = sites.filter((s) => s.category === category);
+      if (sites.length === 0) {
+        console.error(`No sites match category "${category}"`);
+        process.exit(1);
+      }
+    }
   }
 
   console.log(
@@ -377,25 +548,30 @@ async function main() {
   );
   if (withLlm) {
     console.log(
-      `Mode: FULL PIPELINE (site probe → scrape → JSON-LD → OG → LLM → validate)`,
+      `Mode: FULL PIPELINE (probe -> strategy -> scrape -> JSON-LD -> OG -> LLM -> validate)`,
     );
   } else {
     console.log(
-      `Mode: STRUCTURED ONLY (site probe → scrape → JSON-LD → OG → validate)`,
+      `Mode: STRUCTURED ONLY (probe -> strategy -> scrape -> JSON-LD -> OG -> validate)`,
     );
     console.log(`  Tip: use --with-llm to enable LLM extraction`);
+  }
+  if (category) {
+    console.log(`  Filter: category=${category}`);
   }
   console.log();
 
   const results: PipelineResult[] = [];
 
   for (const site of sites) {
-    console.log(`Testing: ${site.id} (${site.url})...`);
-    const r = await testSingleUrl(site.url, site.id, withLlm);
+    console.log(`Testing: ${site.id} [${site.category}] (${site.url})...`);
+    const r = await testSingleUrl(site, withLlm);
     results.push(r);
     printResult(r);
   }
 
+  printComparisonTable(results);
+  printStrategySummary(results);
   printSummary(results);
 
   // Save results to JSON file
@@ -404,16 +580,21 @@ async function main() {
   const resultsDir = join(__dirname, "results");
   mkdirSync(resultsDir, { recursive: true });
 
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const timestamp = new Date()
+    .toISOString()
+    .replace(/[:.]/g, "-")
+    .slice(0, 19);
   const mode = withLlm ? "full" : "structured";
   const outputPath = join(resultsDir, `${timestamp}_${mode}.json`);
 
   const output = {
     timestamp: new Date().toISOString(),
     mode: withLlm ? "full_pipeline" : "structured_only",
+    categoryFilter: category ?? "all",
+    strategyAccuracy:
+      results.filter((r) => r.strategyMatch).length + "/" + results.length,
     sites: results.map((r) => ({
       ...r,
-      // Serialize field values for readability
       fields: Object.fromEntries(
         Object.entries(r.fields).map(([k, v]) => [
           k,
@@ -425,25 +606,37 @@ async function main() {
       total: results.length,
       ok: results.filter((r) => r.success).length,
       failed: results.filter((r) => !r.success).length,
+      skipped: results.filter(
+        (r) => r.success && r.actualStrategy === "skip",
+      ).length,
+      strategyMatches: results.filter((r) => r.strategyMatch).length,
       avgFields:
-        results.filter((r) => r.success).length > 0
+        results.filter(
+          (r) => r.success && r.actualStrategy !== "skip",
+        ).length > 0
           ? results
-              .filter((r) => r.success)
+              .filter((r) => r.success && r.actualStrategy !== "skip")
               .reduce((s, r) => s + r.extraction.totalFieldCount, 0) /
-            results.filter((r) => r.success).length
+            results.filter(
+              (r) => r.success && r.actualStrategy !== "skip",
+            ).length
           : 0,
       avgTimeMs:
-        results.filter((r) => r.success).length > 0
+        results.filter(
+          (r) => r.success && r.actualStrategy !== "skip",
+        ).length > 0
           ? results
-              .filter((r) => r.success)
+              .filter((r) => r.success && r.actualStrategy !== "skip")
               .reduce((s, r) => s + r.timings.totalMs, 0) /
-            results.filter((r) => r.success).length
+            results.filter(
+              (r) => r.success && r.actualStrategy !== "skip",
+            ).length
           : 0,
     },
   };
 
   writeFileSync(outputPath, JSON.stringify(output, null, 2), "utf-8");
-  console.log(`\n📄 Results saved to: ${outputPath}`);
+  console.log(`\nResults saved to: ${outputPath}`);
 
   // Cleanup
   await shutdownBrowser();

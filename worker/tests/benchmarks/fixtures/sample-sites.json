@@ -1,26 +1,69 @@
 {
-  "description": "基准测试 fixture — 真实供应商公寓网站 URL",
+  "description": "基准测试 fixture — 公寓商自有官网（非平台），按实际探测结果标注预期策略（2026-03-09 验证）",
   "sites": [
     {
-      "id": "estelle-new-haven",
-      "category": "unknown",
-      "url": "https://www.estellenewhaven.com/",
-      "description": "Estelle New Haven — 美国公寓",
-      "expectedSiteType": "unknown"
+      "id": "the-collective-london",
+      "category": "static",
+      "url": "https://www.thecollective.com/",
+      "description": "The Collective — 英国共居品牌自有官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
     },
     {
-      "id": "arthaus-telegraph",
-      "category": "unknown",
-      "url": "https://www.arthaustelegraph.mov/",
-      "description": "Arthaus Telegraph — 美国公寓",
-      "expectedSiteType": "unknown"
+      "id": "campus-living-villages",
+      "category": "static",
+      "url": "https://www.campuslivingvillages.com/",
+      "description": "Campus Living Villages — 澳洲学生公寓商官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "iq-student",
+      "category": "static",
+      "url": "https://www.iqstudentaccommodation.com/",
+      "description": "iQ Student Accommodation — 英国公寓商官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "unite-students",
+      "category": "static",
+      "url": "https://www.unitestudents.com/",
+      "description": "Unite Students — 英国最大学生公寓商官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "collegiate-ac",
+      "category": "wordpress",
+      "url": "https://www.collegiate-ac.com/",
+      "description": "Collegiate — 英国学生公寓商 WordPress 官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "estelle-new-haven",
+      "category": "spa",
+      "url": "https://www.estellenewhaven.com/",
+      "description": "Estelle New Haven — 美国公寓商 React SPA 官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "spa"
     },
     {
       "id": "housing4u-ca",
-      "category": "unknown",
+      "category": "spa",
       "url": "https://housing4u.ca",
-      "description": "Housing4U — 加拿大公寓",
-      "expectedSiteType": "unknown"
+      "description": "Housing4U — 加拿大公寓商 React SPA 官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "spa"
+    },
+    {
+      "id": "casita-living",
+      "category": "cf-free",
+      "url": "https://casitaliving.com/",
+      "description": "Casita Living — 英国公寓商官网（CF Free 保护）",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "static"
     }
   ]
 }
