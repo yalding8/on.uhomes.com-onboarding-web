@@ -50,12 +50,15 @@ export async function runJob(request: ExtractionRequest): Promise<void> {
     let fields: ExtractedFields;
     let status: "success" | "partial";
 
+    let meta: CallbackPayload["meta"];
+
     try {
       const result = await Promise.race([
         extract(request.source, request.sourceUrl, controller.signal),
         timeoutPromise,
       ]);
       fields = result.fields;
+      meta = result.meta as CallbackPayload["meta"];
       status = Object.keys(fields).length > 0 ? "success" : "partial";
     } catch (err) {
       const message =
@@ -83,13 +86,14 @@ export async function runJob(request: ExtractionRequest): Promise<void> {
       return;
     }
 
-    // 成功回调
+    // 成功回调（附带元数据，供 extraction_logs 积累经验）
     await sendCallback(request.callbackUrl, {
       jobId: request.jobId,
       buildingId: request.buildingId,
       source: request.source,
       extractedFields: fields,
       status,
+      meta,
     });
   } catch (err) {
     captureError(err, { jobId: request.jobId, phase: "fatal" });

@@ -38,8 +38,13 @@ export async function extractFromWebsite(
   sourceUrl: string,
   signal: AbortSignal,
 ): Promise<ExtractionResult> {
+  const timings = { probe: 0, scrape: 0, llm: 0 };
+  const totalStart = Date.now();
+
   // 1. 快速预检
+  const probeStart = Date.now();
   const siteProfile = await probeSite(sourceUrl, signal);
+  timings.probe = Date.now() - probeStart;
 
   // 2. 策略路由 — 按站点类型 + CF 级别选择策略
   const strategy = selectStrategy(siteProfile);
@@ -50,6 +55,7 @@ export async function extractFromWebsite(
   }
 
   // 3. 首页爬取 — lightweight 用 cheerio，其余用 Playwright
+  const scrapeStart = Date.now();
   let scraped: ScrapedContent;
   if (strategy === "lightweight") {
     console.error(
@@ -64,6 +70,7 @@ export async function extractFromWebsite(
       useStealth,
     });
   }
+  timings.scrape = Date.now() - scrapeStart;
 
   if (!scraped.bodyText.trim() && scraped.jsonLd.length === 0) {
     throw new Error("Website contains no extractable content");
@@ -82,10 +89,14 @@ export async function extractFromWebsite(
   let mergedFields = extractLayered(scraped);
 
   // 6. LLM 提取（首页，如需要）
-  const needsLlm = !hasHighCoverage(scraped);
-  if (needsLlm) {
+  const llmSkipped = hasHighCoverage(scraped);
+  let llmProvider: string | null = null;
+  if (!llmSkipped) {
+    const llmStart = Date.now();
     const llmFields = await extractWithLlm(scraped, mergedFields, signal);
+    timings.llm = Date.now() - llmStart;
     mergeFieldsInto(mergedFields, llmFields);
+    llmProvider = "deepseek"; // TODO: extract actual provider from llm-extractor
   }
 
   // 7. 合并子页面字段（高置信度优先）
@@ -97,7 +108,49 @@ export async function extractFromWebsite(
   const validated = validateFields(mergedFields);
   logIssues(validated.issues, sourceUrl);
 
-  return { fields: validated.fields };
+  // 9. 构建提取元数据 — 为自适应进化积累经验
+  const confidenceDist = { high: 0, medium: 0, low: 0 };
+  for (const field of Object.values(validated.fields)) {
+    const c = field.confidence as keyof typeof confidenceDist;
+    if (c in confidenceDist) confidenceDist[c]++;
+  }
+
+  let domain = "";
+  try {
+    domain = new URL(sourceUrl).hostname;
+  } catch {
+    domain = sourceUrl;
+  }
+
+  const coverageRatio = scraped.jsonLd.length > 0
+    ? mapStructuredData(scraped.jsonLd).coverageRatio
+    : 0;
+
+  return {
+    fields: validated.fields,
+    meta: {
+      sourceUrl,
+      urlDomain: domain,
+      siteType: siteProfile.type,
+      siteFramework: siteProfile.framework,
+      siteComplexity: siteProfile.estimatedComplexity,
+      strategyUsed: strategy,
+      hasJsonLd: siteProfile.hasJsonLd,
+      hasOpenGraph: siteProfile.hasOpenGraph,
+      cloudflareLevel: siteProfile.cloudflareLevel,
+      llmSkipped,
+      llmProvider,
+      fieldCoverageRatio: coverageRatio,
+      confidenceHigh: confidenceDist.high,
+      confidenceMedium: confidenceDist.medium,
+      confidenceLow: confidenceDist.low,
+      validationIssues: validated.issues.length,
+      probeDurationMs: timings.probe,
+      scrapeDurationMs: timings.scrape,
+      llmDurationMs: timings.llm,
+      totalDurationMs: Date.now() - totalStart,
+    },
+  };
 }
 
 type CrawlStrategy = "lightweight" | "standard" | "stealth" | "skip";

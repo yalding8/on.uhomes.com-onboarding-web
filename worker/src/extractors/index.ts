@@ -2,12 +2,17 @@
  * 提取器分发 — 按 source 类型路由到对应提取器
  */
 
-import type { ExtractionSource, ExtractedFields } from "../types.js";
+import type {
+  ExtractionSource,
+  ExtractedFields,
+  ExtractionMeta,
+} from "../types.js";
 import { extractFromContractPdf } from "./contract-pdf.js";
 import { extractFromWebsite } from "./website-crawl.js";
 
 export interface ExtractionResult {
   fields: ExtractedFields;
+  meta?: Partial<ExtractionMeta>;
 }
 
 export async function extract(
