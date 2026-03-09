@@ -24,7 +24,7 @@
 | P1-UX           | UI/UX 全面审计：Persona 走查 + 设计规范对齐 + ESLint 零警告                                | ✅ 完成   |
 | P2-AI           | 自适应提取管线：site-probe → 分层提取 → LLM fallback → 字段校验 + 基准测试                 | ✅ 完成   |
 | P1-i18n-modules | 国际化模块：GDPR 合规（账户删除/数据导出）、amenity catalog、楼宇图片、BD 领地、供应商徽章 | ✅ 完成   |
-| P2-AI-Bench     | Benchmark 增强：8 站点策略断言 + cheerio/stealth 路径验证 + 对比表格 + 爬取范围规则         | ✅ 完成   |
+| P2-AI-Bench     | Benchmark 增强：8 站点策略断言 + cheerio/stealth 路径验证 + 对比表格 + 爬取范围规则        | ✅ 完成   |
 | P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
 
 **当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Benchmark 验证均已完成（613 测试用例）。下一阶段：P1-Pub 内部预览与发布 → 小范围生产测试。
@@ -140,26 +140,26 @@ npm run dev
 
 #### 策略路由验证（Structured Only，不含 LLM）
 
-| 站点 | 分类 | 策略 | 匹配 | 耗时 | 字段 | 置信度 H/M/L |
-| :--- | :--- | :--- | :--- | :--- | :--- | :----------- |
-| The Collective | static | lightweight | Y | 3.1s | 0 | 0/0/0 |
-| Campus Living Villages | static | lightweight | Y | 6.4s | 4 | 0/3/1 |
-| iQ Student | static | lightweight | Y | 2.3s | 0 | 0/0/0 |
-| Unite Students | static | lightweight | Y | 2.3s | 0 | 0/0/0 |
-| Collegiate | wordpress | standard | Y | 10.8s | 4 | 0/3/1 |
-| Estelle New Haven | spa | standard | Y | 9.6s | 4 | 0/3/1 |
-| Housing4U | spa | standard | Y | 11.0s | 0 | 0/0/0 |
-| Casita Living | cf-free | stealth | Y | 21.6s | 4 | 0/3/1 |
+| 站点                   | 分类      | 策略        | 匹配 | 耗时  | 字段 | 置信度 H/M/L |
+| :--------------------- | :-------- | :---------- | :--- | :---- | :--- | :----------- |
+| The Collective         | static    | lightweight | Y    | 3.1s  | 0    | 0/0/0        |
+| Campus Living Villages | static    | lightweight | Y    | 6.4s  | 4    | 0/3/1        |
+| iQ Student             | static    | lightweight | Y    | 2.3s  | 0    | 0/0/0        |
+| Unite Students         | static    | lightweight | Y    | 2.3s  | 0    | 0/0/0        |
+| Collegiate             | wordpress | standard    | Y    | 10.8s | 4    | 0/3/1        |
+| Estelle New Haven      | spa       | standard    | Y    | 9.6s  | 4    | 0/3/1        |
+| Housing4U              | spa       | standard    | Y    | 11.0s | 0    | 0/0/0        |
+| Casita Living          | cf-free   | stealth     | Y    | 21.6s | 4    | 0/3/1        |
 
 **策略准确率：8/8 (100%)**
 
 #### 按策略性能对比
 
-| 策略 | 站点数 | 平均耗时 | 平均字段 | 说明 |
-| :--- | :----- | :------- | :------- | :--- |
-| lightweight (cheerio) | 4 | **3.5s** | 1.0 | HTTP + cheerio，无需浏览器，最快 |
-| standard (Playwright) | 3 | **10.5s** | 2.7 | SPA/WordPress 需 JS 渲染 |
-| stealth (反检测) | 1 | **21.6s** | 4.0 | CF 保护站点，耗时最长 |
+| 策略                  | 站点数 | 平均耗时  | 平均字段 | 说明                             |
+| :-------------------- | :----- | :-------- | :------- | :------------------------------- |
+| lightweight (cheerio) | 4      | **3.5s**  | 1.0      | HTTP + cheerio，无需浏览器，最快 |
+| standard (Playwright) | 3      | **10.5s** | 2.7      | SPA/WordPress 需 JS 渲染         |
+| stealth (反检测)      | 1      | **21.6s** | 4.0      | CF 保护站点，耗时最长            |
 
 #### 结论与发现
 
@@ -170,12 +170,12 @@ npm run dev
 
 #### 历史对比（2026-03-03 → 2026-03-09）
 
-| 指标 | 旧版（3 站点） | 新版（8 站点） | 变化 |
-| :--- | :------------- | :------------- | :--- |
-| 测试站点数 | 3（含 1 超时） | 8（全部成功） | +167% |
-| 策略路径覆盖 | 仅 standard | lightweight + standard + stealth | 3 种全覆盖 |
-| 策略准确率 | 未验证 | 100% | 新增断言 |
-| 输出格式 | 逐站详情 | 对比表格 + 策略汇总 + 置信度分布 | 可读性提升 |
+| 指标         | 旧版（3 站点） | 新版（8 站点）                   | 变化       |
+| :----------- | :------------- | :------------------------------- | :--------- |
+| 测试站点数   | 3（含 1 超时） | 8（全部成功）                    | +167%      |
+| 策略路径覆盖 | 仅 standard    | lightweight + standard + stealth | 3 种全覆盖 |
+| 策略准确率   | 未验证         | 100%                             | 新增断言   |
+| 输出格式     | 逐站详情       | 对比表格 + 策略汇总 + 置信度分布 | 可读性提升 |
 
 ```bash
 # 运行管线验证（仅结构化数据，不调用 LLM）

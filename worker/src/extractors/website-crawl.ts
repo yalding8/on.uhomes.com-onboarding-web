@@ -173,9 +173,10 @@ export async function extractFromWebsite(
     domain = sourceUrl;
   }
 
-  const coverageRatio = scraped.jsonLd.length > 0
-    ? mapStructuredData(scraped.jsonLd).coverageRatio
-    : 0;
+  const coverageRatio =
+    scraped.jsonLd.length > 0
+      ? mapStructuredData(scraped.jsonLd).coverageRatio
+      : 0;
 
   return {
     fields: validatedFields,

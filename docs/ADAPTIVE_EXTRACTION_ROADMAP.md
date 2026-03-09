@@ -60,24 +60,24 @@
 
 ## 学术参考
 
-| 论文 | 年份 | 核心思想 | 适用阶段 |
-| :--- | :--- | :------- | :------- |
-| AutoScraper (EMNLP 2024) | 2024 | 渐进式理解 + 爬虫合成 | Phase 3 |
-| SeeAct / GPT-4V (ICML 2024) | 2024 | 视觉+DOM 双通道理解 | Phase 4 |
-| PARSE (arXiv 2025) | 2025 | JSON Schema 自优化 + 反射校验 | Phase 4 |
-| WebRL (清华 2024) | 2024 | 自进化课程 RL，从失败中学习 | Phase 4+ |
-| ChatExtract (Nature 2024) | 2024 | 提取-追问-验证三段式 | Phase 1 |
-| SelfRefinement4ExtractGPT | 2024 | LLM 自修正循环 | Phase 1-2 |
+| 论文                        | 年份 | 核心思想                      | 适用阶段  |
+| :-------------------------- | :--- | :---------------------------- | :-------- |
+| AutoScraper (EMNLP 2024)    | 2024 | 渐进式理解 + 爬虫合成         | Phase 3   |
+| SeeAct / GPT-4V (ICML 2024) | 2024 | 视觉+DOM 双通道理解           | Phase 4   |
+| PARSE (arXiv 2025)          | 2025 | JSON Schema 自优化 + 反射校验 | Phase 4   |
+| WebRL (清华 2024)           | 2024 | 自进化课程 RL，从失败中学习   | Phase 4+  |
+| ChatExtract (Nature 2024)   | 2024 | 提取-追问-验证三段式          | Phase 1   |
+| SelfRefinement4ExtractGPT   | 2024 | LLM 自修正循环                | Phase 1-2 |
 
 ## 开源项目参考
 
-| 项目 | Stars | 核心价值 | 适用阶段 |
-| :--- | :---- | :------- | :------- |
-| Scrapling | 25k+ | 自适应元素定位，应对网站改版 | Phase 3 |
-| Crawl4AI | 20k+ | 自适应爬取 + LLM 抽取 | Phase 2-3 |
-| ScrapeGraphAI | 20k+ | 图流水线多步抽取 | Phase 3 |
-| Firecrawl | 70k+ | 工业级 API，JS 渲染强 | 基础设施参考 |
-| AutoScraper | 5k+ | 给示例即学，快速适配新站点 | Phase 2 |
+| 项目          | Stars | 核心价值                     | 适用阶段     |
+| :------------ | :---- | :--------------------------- | :----------- |
+| Scrapling     | 25k+  | 自适应元素定位，应对网站改版 | Phase 3      |
+| Crawl4AI      | 20k+  | 自适应爬取 + LLM 抽取        | Phase 2-3    |
+| ScrapeGraphAI | 20k+  | 图流水线多步抽取             | Phase 3      |
+| Firecrawl     | 70k+  | 工业级 API，JS 渲染强        | 基础设施参考 |
+| AutoScraper   | 5k+   | 给示例即学，快速适配新站点   | Phase 2      |
 
 ## 设计原则
 

@@ -277,10 +277,7 @@ async function testSingleUrl(
         result.extraction.llmFieldCount = llmAdded;
         result.extraction.llmUsed = true;
       } catch (err) {
-        console.error(
-          `  [LLM] All providers failed:`,
-          (err as Error).message,
-        );
+        console.error(`  [LLM] All providers failed:`, (err as Error).message);
       }
       result.timings.llmMs = Date.now() - llmStart;
     }
@@ -412,7 +409,9 @@ function printComparisonTable(results: PipelineResult[]): void {
 }
 
 function pad(s: string, width: number): string {
-  return s.length >= width ? s.slice(0, width) : s + " ".repeat(width - s.length);
+  return s.length >= width
+    ? s.slice(0, width)
+    : s + " ".repeat(width - s.length);
 }
 
 /* ── Output: strategy summary ─────────────────── */
@@ -580,10 +579,7 @@ async function main() {
   const resultsDir = join(__dirname, "results");
   mkdirSync(resultsDir, { recursive: true });
 
-  const timestamp = new Date()
-    .toISOString()
-    .replace(/[:.]/g, "-")
-    .slice(0, 19);
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
   const mode = withLlm ? "full" : "structured";
   const outputPath = join(resultsDir, `${timestamp}_${mode}.json`);
 
@@ -606,31 +602,26 @@ async function main() {
       total: results.length,
       ok: results.filter((r) => r.success).length,
       failed: results.filter((r) => !r.success).length,
-      skipped: results.filter(
-        (r) => r.success && r.actualStrategy === "skip",
-      ).length,
+      skipped: results.filter((r) => r.success && r.actualStrategy === "skip")
+        .length,
       strategyMatches: results.filter((r) => r.strategyMatch).length,
       avgFields:
-        results.filter(
-          (r) => r.success && r.actualStrategy !== "skip",
-        ).length > 0
+        results.filter((r) => r.success && r.actualStrategy !== "skip").length >
+        0
           ? results
               .filter((r) => r.success && r.actualStrategy !== "skip")
               .reduce((s, r) => s + r.extraction.totalFieldCount, 0) /
-            results.filter(
-              (r) => r.success && r.actualStrategy !== "skip",
-            ).length
+            results.filter((r) => r.success && r.actualStrategy !== "skip")
+              .length
           : 0,
       avgTimeMs:
-        results.filter(
-          (r) => r.success && r.actualStrategy !== "skip",
-        ).length > 0
+        results.filter((r) => r.success && r.actualStrategy !== "skip").length >
+        0
           ? results
               .filter((r) => r.success && r.actualStrategy !== "skip")
               .reduce((s, r) => s + r.timings.totalMs, 0) /
-            results.filter(
-              (r) => r.success && r.actualStrategy !== "skip",
-            ).length
+            results.filter((r) => r.success && r.actualStrategy !== "skip")
+              .length
           : 0,
     },
   };

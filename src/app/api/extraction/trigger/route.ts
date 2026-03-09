@@ -71,9 +71,7 @@ async function lookupDomainHints(
 
   const { data } = await admin
     .from("extraction_logs")
-    .select(
-      "site_type, site_framework, strategy_used, field_coverage_ratio",
-    )
+    .select("site_type, site_framework, strategy_used, field_coverage_ratio")
     .eq("url_domain", domain)
     .order("created_at", { ascending: false })
     .limit(5);
@@ -85,7 +83,8 @@ async function lookupDomainHints(
     data.reduce(
       (sum, row) =>
         sum +
-        ((row as Record<string, unknown>).field_coverage_ratio as number ?? 0),
+        (((row as Record<string, unknown>).field_coverage_ratio as number) ??
+          0),
       0,
     ) / data.length;
 
