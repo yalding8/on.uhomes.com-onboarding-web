@@ -2,24 +2,31 @@
  * 提取器分发 — 按 source 类型路由到对应提取器
  */
 
-import type { ExtractionSource, ExtractedFields } from "../types.js";
+import type {
+  ExtractionSource,
+  ExtractedFields,
+  ExtractionMeta,
+  DomainHints,
+} from "../types.js";
 import { extractFromContractPdf } from "./contract-pdf.js";
 import { extractFromWebsite } from "./website-crawl.js";
 
 export interface ExtractionResult {
   fields: ExtractedFields;
+  meta?: Partial<ExtractionMeta>;
 }
 
 export async function extract(
   source: ExtractionSource,
   sourceUrl: string,
   signal: AbortSignal,
+  domainHints?: DomainHints,
 ): Promise<ExtractionResult> {
   switch (source) {
     case "contract_pdf":
       return extractFromContractPdf(sourceUrl, signal);
     case "website_crawl":
-      return extractFromWebsite(sourceUrl, signal);
+      return extractFromWebsite(sourceUrl, signal, domainHints);
     case "google_sheets":
       throw new Error(
         "Google Sheets extraction not yet implemented. Please use contract PDF or website extraction.",
