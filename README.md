@@ -26,9 +26,14 @@
 | P1-i18n-modules | 国际化模块：GDPR 合规（账户删除/数据导出）、amenity catalog、楼宇图片、BD 领地、供应商徽章 | ✅ 完成   |
 | P2-AI-Bench     | Benchmark 增强：8 站点策略断言 + cheerio/stealth 路径验证 + 对比表格 + 爬取范围规则        | ✅ 完成   |
 | P2-AI-Adaptive  | 自适应进化 Phase 1：LLM 自校验 + 域名经验复用 + 提取遥测 + 分析查询                        | ✅ 完成   |
+| P2-Apps         | Applications 模块重设计：BD 工作台（KPI、搜索防抖、Drawer、认领、备注）                    | ✅ 完成   |
+| P2-Suppliers    | Suppliers 模块重设计：5 阶段 Pipeline 视图、Timeline 7 节点、Next Action、Building 评分卡  | ✅ 完成   |
+| P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                      | ✅ 完成   |
+| P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                              | ✅ 完成   |
 | P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
+| P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                            | 🚧 开发中 |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Benchmark 验证 + 自适应进化 Phase 1 均已完成（613 测试用例）。下一阶段：P1-Pub 内部预览与发布 → 小范围生产测试。
+**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页均已完成（617 测试用例，39 个测试文件）。下一阶段：手动验收测试 → P1-Pub 内部预览与发布 → Uhomes OAuth 集成。
 
 ## 基础设施与选型
 
@@ -345,21 +350,22 @@ USING (
 
 ## 核心页面路由
 
-| 路径 (`src/app/`)                    | 功能描述                                                            | 访问权限         |
-| :----------------------------------- | :------------------------------------------------------------------ | :--------------- |
-| `/`                                  | 供应商招募 Landing Page + 申请表单                                  | 公开             |
-| `/login`                             | 邮箱 OTP 两步登录                                                   | 公开             |
-| `/dashboard`                         | 供应商控制台：合同签署（PENDING_CONTRACT）/ Building 列表（SIGNED） | 需登录           |
-| `/onboarding/[buildingId]`           | Building Onboarding 编辑页面：字段编辑、评分、Gap Report            | 需登录（SIGNED） |
-| `/admin`                             | BD 管理后台入口（重定向到申请列表）                                 | BD 角色          |
-| `/admin/applications`                | 供应商申请列表：筛选、审批                                          | BD 角色          |
-| `/admin/suppliers`                   | 供应商管理列表：状态筛选、楼宇计数                                  | BD 角色          |
-| `/admin/suppliers/[id]`              | 供应商详情：基本信息、关联楼宇、合同信息                            | BD 角色          |
-| `/admin/contracts/[contractId]/edit` | 合同编辑页面：字段编辑、PDF 上传、AI 提取                           | BD 角色          |
-| `/admin/invite`                      | 手动邀请供应商表单                                                  | BD 角色          |
-| `/privacy`                           | 隐私政策页面                                                        | 公开             |
-| `/terms`                             | 服务条款页面                                                        | 公开             |
-| `/auth/confirm`                      | Supabase Auth 邮件回调处理                                          | 系统内部         |
+| 路径 (`src/app/`)                              | 功能描述                                                            | 访问权限         |
+| :--------------------------------------------- | :------------------------------------------------------------------ | :--------------- |
+| `/`                                            | 供应商招募 Landing Page + 申请表单                                  | 公开             |
+| `/login`                                       | 邮箱 OTP 两步登录                                                   | 公开             |
+| `/dashboard`                                   | 供应商控制台：合同签署（PENDING_CONTRACT）/ Building 列表（SIGNED） | 需登录           |
+| `/onboarding/[buildingId]`                     | Building Onboarding 编辑页面：字段编辑、评分、Gap Report            | 需登录（SIGNED） |
+| `/admin`                                       | BD 管理后台入口（重定向到申请列表）                                 | BD 角色          |
+| `/admin/applications`                          | BD 工作台：KPI 卡片 + 搜索 + 状态筛选 + Drawer 详情 + 认领/备注     | BD 角色          |
+| `/admin/suppliers`                             | 供应商 Pipeline：5 阶段看板 + KPI + 搜索 + Drawer + Next Action     | BD 角色          |
+| `/admin/suppliers/[id]`                        | 供应商详情：Timeline 7 节点 + 合同 + Building 卡片 + 备注           | BD 角色          |
+| `/admin/suppliers/[id]/buildings/[buildingId]` | Building 详情：字段级提取视图 + 来源/置信度 + 提取任务状态          | BD 角色          |
+| `/admin/contracts/[contractId]/edit`           | 合同编辑页面：字段编辑、PDF 上传、AI 提取                           | BD 角色          |
+| `/admin/invite`                                | 手动邀请供应商表单                                                  | BD 角色          |
+| `/privacy`                                     | 隐私政策页面                                                        | 公开             |
+| `/terms`                                       | 服务条款页面                                                        | 公开             |
+| `/auth/confirm`                                | Supabase Auth 邮件回调处理                                          | 系统内部         |
 
 > 新增或删除路由后，必须同步更新本表。
 
@@ -433,6 +439,8 @@ curl -X POST http://localhost:3000/api/apply \
 | `bd_territories`           | BD 负责区域分配（国家/城市覆盖）                |
 | `supplier_badges`          | 供应商信任徽章（verified_identity 等）          |
 | `consent_records`          | GDPR 合规：用户同意记录（cookies/隐私/条款）    |
+| `application_notes`        | 申请跟进备注（BD 协作沟通记录）                 |
+| `supplier_notes`           | 供应商跟进备注（BD 协作沟通记录）               |
 
 ## 项目结构
 
@@ -475,29 +483,40 @@ curl -X POST http://localhost:3000/api/apply \
 - `docs/USER_GUIDE.md` — **三角色操作指南（Admin / BD / Supplier）**
 - `docs/TEST_SUPPLIERS_FEEDBACK.md` — 20 供应商测试反馈与 Bug 修复记录
 - `docs/代码质量审核报告.md` — 代码质量审核报告
+- `docs/PRD_APPLICATIONS_REDESIGN.md` — Applications 模块重设计 PRD
+- `docs/PRD_SUPPLIERS_REDESIGN.md` — Suppliers 模块重设计 PRD
+- `docs/ADAPTIVE_EXTRACTION_ROADMAP.md` — 自适应提取管线路线图
+- `docs/APARTMENT_SCRAPING_FEASIBILITY.md` — 公寓网站爬取可行性分析
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
 
 ---
 
-## 阶段性总结与审计（2026-03-03 更新）
+## 阶段性总结与审计（2026-03-09 更新）
 
-### P1 阶段完成度
+### P1 + P2 阶段完成度
 
-P1 阶段全部核心功能已完成并部署至生产环境，覆盖供应商全生命周期：
+全部核心功能已完成并部署至生产环境，覆盖供应商全生命周期 + BD 管理效率工具：
 
 ```
-供应商申请 → BD 审批 → 合同编辑 → 供应商审阅 → DocuSign 签署 → 房源编辑 → 评分与发布
+供应商申请 → BD 认领/分配 → 审批 → 合同编辑 → 供应商审阅 → DocuSign 签署 → 自适应提取 → 房源编辑 → 评分与发布
 ```
+
+### P2 新增功能（2026-03-08 ~ 03-09）
+
+- **Applications BD 工作台**（PR #16）：3 张 KPI 卡片、搜索防抖 300ms、状态 Tab 筛选、BD 认领（原子竞争安全）、Drawer 详情面板、跟进备注系统
+- **Suppliers Pipeline 视图**（PR #17）：5 阶段看板（NEW → CONTRACT_IN_PROGRESS → AWAITING_SIGNATURE → SIGNED → LIVE）、Timeline 7 节点、Next Action 提示、Building 评分卡（分数渐变色）
+- **Building 字段级详情页**（PR #18）：字段来源标记（contract_pdf/website_crawl/manual）、置信度标签、ExtractionJobsCard
+- **Adaptive Extraction Phase 1**（PR #18）：LLM 自校验、域名经验复用、提取遥测 20+ 维度、7 条分析 SQL
 
 ### 代码库健康度
 
 | 维度              | 指标                                        |
 | :---------------- | :------------------------------------------ |
-| 页面 + API 路由   | 37 个（15 页面 + 22 API）                   |
-| UI 组件           | 45 个（6 个功能模块）                       |
+| 页面 + API 路由   | 40 个（16 页面 + 24 API）                   |
+| UI 组件           | 52 个（8 个功能模块）                       |
 | 核心库模块        | 8 个子目录、30+ 个模块文件                  |
-| 单元测试          | 36 个文件、578 个测试用例                   |
-| 数据库表          | 15 个核心表、18 个迁移文件                  |
+| 单元测试          | 39 个文件、617 个测试用例                   |
+| 数据库表          | 17 个核心表、19 个迁移文件                  |
 | ESLint 警告       | 0（src/ + scripts/ + tests/）               |
 | TypeScript 错误   | 0                                           |
 | 文件行数超限      | 0（全部 ≤ 300 行）                          |
