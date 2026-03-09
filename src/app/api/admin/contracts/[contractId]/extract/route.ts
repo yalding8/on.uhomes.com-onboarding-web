@@ -83,9 +83,9 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 4. 提取 PDF 文本 (dynamic import to avoid pdf-parse test file side-effect)
+    // 4. 提取 PDF 文本 (use subpath import to skip pdf-parse debug wrapper)
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    const pdfParse = (await import("pdf-parse")).default;
+    const pdfParse = (await import("pdf-parse/lib/pdf-parse")).default;
     const pdfData = await pdfParse(buffer);
     const text = pdfData.text;
 

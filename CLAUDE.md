@@ -65,7 +65,15 @@
 
 ---
 
-## 6. 修改前的必要检查
+## 6. 爬取目标范围（Worker 模块）
+
+- **仅抓取公寓商自有官网**：目标是全球（以 US/UK/AU/CA 为主）的公寓管理公司/开发商自己运营的网站。
+- **禁止抓取平台类网站**：Zillow、Apartments.com、AmberStudent、Student.com 等聚合平台与 uhomes.com 属于同类竞品，不是合作伙伴，绝不抓取。判断标准：如果一个网站聚合了多家公寓商的房源信息，就是平台，不抓。
+- **Benchmark fixture 选取原则**：`worker/tests/benchmarks/fixtures/sample-sites.json` 中只放公寓商自有官网 URL，不放任何平台站点。
+
+---
+
+## 7. 修改前的必要检查
 
 在修改任何现有文件前，先确认：
 
@@ -74,7 +82,7 @@
 3. 修改是否影响路由或环境变量？如有，需同步更新 `README.md`。
 4. **代码中引用了新的数据库列时，必须确认该列已在 Supabase 中存在**。如果是新增列，必须同步提供 migration SQL 并记录到 `memory/manual-actions.md` 待执行（教训：`supplier_type`、`assigned_bd_id` 列在代码中引用但数据库未同步，导致线上 500）。
 
-## 7. 提交前必须通过的本地检查
+## 8. 提交前必须通过的本地检查
 
 每次 commit 前，**必须**在本地依次通过以下检查，否则 CI 会失败并触发自动回滚：
 
@@ -89,7 +97,7 @@ bash scripts/check-file-lines.sh  # 文件行数检查（≤ 300 行）
 > CI 门禁（Main Branch Guard）运行顺序：Prettier → ESLint → tsc → 行数检查 → Vitest → Build。
 > 任意一步失败，后续步骤全部跳过，且会尝试自动 revert。
 
-## 8. Git 推送与多仓库同步
+## 9. Git 推送与多仓库同步
 
 本项目同时托管在 **GitHub**（主仓库）和 **GitLab**（内部镜像）。每次执行 `git push` 到 GitHub 后，**必须同步推送到 GitLab**。
 
@@ -131,11 +139,11 @@ git push gitlab --tags
 
 > **注意**：两个 push 操作都需要用户确认后才可执行。
 
-## 9. 开发流程规则 (Gated Development Process)
+## 10. 开发流程规则 (Gated Development Process)
 
 > 参考文档：[[国际化专家设计方案-评审-测试-开发全流程]]
 
-### 9.1 轨道分级
+### 10.1 轨道分级
 
 每个任务启动前，先判断轨道：
 
@@ -145,7 +153,7 @@ git push gitlab --tags
 | **Standard** | 现有功能增强、UI 调整、重构                         | 简化 3 阶段流程 |
 | **Hotfix**   | Bug 修复、文案/配置调整                             | 快速通道        |
 
-### 9.2 Major Track — 完整流程（6 阶段）
+### 10.2 Major Track — 完整流程（6 阶段）
 
 ```
 方案设计 → 方案评审 (≥8/10) → 测试用例先行 → 编码实现 → 全量测试 → 上线评审
@@ -158,7 +166,7 @@ git push gitlab --tags
 5. **全量测试**：新增测试 + 回归测试全部通过
 6. **上线评审**：对照上线清单逐项确认 + **Smoke Test 必须在真实环境走完整业务流程**（不能只靠 mock 级测试）
 
-### 9.3 方案评审清单（Major Track 适用）
+### 10.3 方案评审清单（Major Track 适用）
 
 - [ ] 方案覆盖了国际化场景（至少考虑 US/UK/AU/CA/EU 五个市场）
 - [ ] 数据模型变更有向后兼容策略（JSONB 字段需 schema_version）
@@ -169,7 +177,7 @@ git push gitlab --tags
 - [ ] 新增页面有空状态 + 加载状态 + 错误状态设计
 - [ ] 方案文档已更新到 `docs/` 目录
 
-### 9.4 Standard Track — 简化流程（3 阶段）
+### 10.4 Standard Track — 简化流程（3 阶段）
 
 ```
 简要方案描述 → 编写核心测试 + 编码 → 自审上线清单
@@ -179,7 +187,7 @@ git push gitlab --tags
 2. 编写核心路径测试用例，同步编码实现
 3. 对照上线清单自审，确认无遗漏
 
-### 9.5 Hotfix Track — 快速通道
+### 10.5 Hotfix Track — 快速通道
 
 ```
 直接修复 → 补充/更新测试 → 提交
@@ -188,7 +196,7 @@ git push gitlab --tags
 - 修复后必须确保现有测试全部通过
 - 如果 fix 涉及之前未覆盖的场景，补充对应测试用例
 
-### 9.6 上线清单（所有轨道通用）
+### 10.6 上线清单（所有轨道通用）
 
 - [ ] `npx vitest run` 全部通过
 - [ ] `npx tsc --noEmit` 无错误

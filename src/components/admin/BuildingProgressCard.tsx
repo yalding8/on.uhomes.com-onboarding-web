@@ -5,6 +5,7 @@
  * Shows score progress bars sorted by lowest score first.
  */
 
+import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -20,6 +21,7 @@ interface BuildingInfo {
 
 interface BuildingProgressCardProps {
   buildings: BuildingInfo[];
+  supplierId: string;
 }
 
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
@@ -70,7 +72,10 @@ function scoreToHue(score: number): number {
   return 30 + ((clamped - 50) / 50) * 90;
 }
 
-export function BuildingProgressCard({ buildings }: BuildingProgressCardProps) {
+export function BuildingProgressCard({
+  buildings,
+  supplierId,
+}: BuildingProgressCardProps) {
   if (buildings.length === 0) {
     return (
       <div className="py-8 text-center">
@@ -95,9 +100,10 @@ export function BuildingProgressCard({ buildings }: BuildingProgressCardProps) {
         const style = getStatusStyle(b.onboarding_status);
 
         return (
-          <div
+          <Link
             key={b.id}
-            className="rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] p-4 transition-shadow hover:shadow-md"
+            href={`/admin/suppliers/${supplierId}/buildings/${b.id}`}
+            className="block rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-primary)] p-4 transition-all duration-200 hover:shadow-md hover:-translate-y-0.5"
           >
             {/* Header row */}
             <div className="flex items-start justify-between gap-3 mb-3">
@@ -161,7 +167,7 @@ export function BuildingProgressCard({ buildings }: BuildingProgressCardProps) {
                 <span>Updated {formatRelativeTime(b.updated_at)}</span>
               )}
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>

@@ -21,6 +21,13 @@ export type SiteFramework =
 
 export type SiteComplexity = "simple" | "moderate" | "complex";
 
+export type CloudflareLevel =
+  | "none"
+  | "free"
+  | "pro"
+  | "business"
+  | "enterprise";
+
 export interface SiteProfile {
   type: SiteType;
   hasJsonLd: boolean;
@@ -30,6 +37,8 @@ export interface SiteProfile {
   httpStatus: number;
   redirectUrl: string | null;
   contentType: string;
+  cloudflareProtected: boolean;
+  cloudflareLevel: CloudflareLevel;
 }
 
 const PROBE_TIMEOUT_MS = 8_000;
@@ -77,6 +86,8 @@ export async function probeSite(
     httpStatus: 0,
     redirectUrl: null,
     contentType: "",
+    cloudflareProtected: false,
+    cloudflareLevel: "none",
   };
 
   try {
@@ -97,6 +108,9 @@ export async function probeSite(
     if (res.url !== url) {
       profile.redirectUrl = res.url;
     }
+
+    // Cloudflare 检测
+    detectCloudflare(res.headers, profile);
 
     if (res.status >= 400) {
       profile.estimatedComplexity = "complex";
@@ -167,6 +181,31 @@ function isWordPress(lower: string): boolean {
 
 function isPlatformTemplate(lower: string): boolean {
   return PLATFORM_MARKERS.some((m) => lower.includes(m));
+}
+
+/** Cloudflare 保护检测 — 通过响应头判断 */
+function detectCloudflare(headers: Headers, profile: SiteProfile): void {
+  const cfRay = headers.get("cf-ray");
+  const server = headers.get("server")?.toLowerCase() ?? "";
+  const cfMitigated = headers.get("cf-mitigated");
+
+  const isCloudflare = !!cfRay || server === "cloudflare";
+
+  profile.cloudflareProtected = isCloudflare;
+
+  if (!isCloudflare) {
+    profile.cloudflareLevel = "none";
+    return;
+  }
+
+  // cf-mitigated 表示主动挑战（至少 Pro 级别）
+  if (cfMitigated) {
+    profile.cloudflareLevel = "pro";
+    return;
+  }
+
+  // 有 CF 标记但无主动防护 → Free 级别
+  profile.cloudflareLevel = "free";
 }
 
 /** SPA 判定：空壳 HTML（正文文本极少）+ JS 框架标记 */

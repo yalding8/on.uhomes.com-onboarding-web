@@ -1,13 +1,19 @@
 /**
  * HTTP 路由处理
  *
- * GET  /health  — 健康检查
- * POST /extract — 接收提取任务（立即返回 202，后台异步处理）
+ * GET  /health        — 健康检查（含队列状态）
+ * POST /extract       — 接收提取任务（直接执行，兼容旧模式）
+ * POST /extract/queue — 接收提取任务（通过 BullMQ 队列）
  */
 
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { verifyBearerToken } from "./auth.js";
 import { runJob } from "./job-runner.js";
+import {
+  addExtractionJob,
+  getQueueStats,
+  isQueueEnabled,
+} from "./queue/extraction-queue.js";
 import type { ExtractionRequest } from "./types.js";
 
 function json(
@@ -40,7 +46,19 @@ export async function handleRequest(
 
   // GET /health
   if (method === "GET" && url.pathname === "/health") {
-    json(res, 200, { status: "ok", timestamp: new Date().toISOString() });
+    const health: Record<string, unknown> = {
+      status: "ok",
+      timestamp: new Date().toISOString(),
+      queueEnabled: isQueueEnabled(),
+    };
+    if (isQueueEnabled()) {
+      try {
+        health.queue = await getQueueStats();
+      } catch {
+        health.queue = { error: "unavailable" };
+      }
+    }
+    json(res, 200, health);
     return;
   }
 
@@ -76,14 +94,29 @@ export async function handleRequest(
       return;
     }
 
-    // 立即返回 202，后台异步执行
+    // 队列模式：优先走 BullMQ；无 Redis 时回退直接执行
+    if (isQueueEnabled()) {
+      try {
+        const queueJobId = await addExtractionJob(payload);
+        json(res, 202, {
+          message: "Job queued",
+          jobId: payload.jobId,
+          queueJobId,
+          source: payload.source,
+        });
+        return;
+      } catch (err) {
+        console.error("[router] Queue unavailable, falling back:", err);
+      }
+    }
+
+    // 直接执行（无队列或队列不可用时）
     json(res, 202, {
       message: "Job accepted",
       jobId: payload.jobId,
       source: payload.source,
     });
 
-    // 后台执行提取（不 await）
     runJob(payload).catch((err: unknown) => {
       console.error("[router] Unhandled job error", err);
     });

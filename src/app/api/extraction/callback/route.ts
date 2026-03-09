@@ -24,6 +24,33 @@ import {
   mergeOnboardingDataWithRetry,
 } from "@/lib/extraction/job-helpers";
 
+/** Worker 回调中的提取元数据（用于 extraction_logs 积累经验） */
+interface ExtractionMeta {
+  sourceUrl?: string;
+  urlDomain?: string;
+  siteType?: string;
+  siteFramework?: string;
+  siteComplexity?: string;
+  strategyUsed?: string;
+  hasJsonLd?: boolean;
+  hasOpenGraph?: boolean;
+  cloudflareLevel?: string;
+  llmSkipped?: boolean;
+  llmProvider?: string | null;
+  fieldCoverageRatio?: number;
+  confidenceHigh?: number;
+  confidenceMedium?: number;
+  confidenceLow?: number;
+  validationIssues?: number;
+  llmValidationQuality?: string;
+  llmValidationAdjustments?: number;
+  llmValidationRemovals?: number;
+  probeDurationMs?: number;
+  scrapeDurationMs?: number;
+  llmDurationMs?: number;
+  totalDurationMs?: number;
+}
+
 interface CallbackPayload {
   buildingId: string;
   source: DataSource;
@@ -31,6 +58,7 @@ interface CallbackPayload {
   status: "success" | "partial" | "failed";
   errorMessage?: string;
   jobId?: string;
+  meta?: ExtractionMeta;
 }
 
 export async function POST(request: Request) {
@@ -40,8 +68,15 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json()) as CallbackPayload;
-    const { buildingId, source, extractedFields, status, errorMessage, jobId } =
-      body;
+    const {
+      buildingId,
+      source,
+      extractedFields,
+      status,
+      errorMessage,
+      jobId,
+      meta,
+    } = body;
 
     if (!buildingId || !source || !status) {
       return NextResponse.json(
@@ -190,6 +225,42 @@ export async function POST(request: Request) {
         "[extraction/callback] Failed to update building status",
         statusUpdateError,
       );
+    }
+
+    // ── 7. 写入 extraction_logs（积累经验，为自适应进化铺路） ──
+    if (meta) {
+      const logEntry = {
+        extraction_job_id: jobId ?? null,
+        building_id: buildingId,
+        source_url: meta.sourceUrl ?? "",
+        url_domain: meta.urlDomain ?? "",
+        site_type: meta.siteType ?? null,
+        site_framework: meta.siteFramework ?? null,
+        site_complexity: meta.siteComplexity ?? null,
+        strategy_used: meta.strategyUsed ?? source,
+        has_json_ld: meta.hasJsonLd ?? false,
+        has_open_graph: meta.hasOpenGraph ?? false,
+        llm_skipped: meta.llmSkipped ?? false,
+        llm_provider: meta.llmProvider ?? null,
+        field_coverage_ratio: meta.fieldCoverageRatio ?? 0,
+        confidence_high_count: meta.confidenceHigh ?? 0,
+        confidence_medium_count: meta.confidenceMedium ?? 0,
+        confidence_low_count: meta.confidenceLow ?? 0,
+        validation_issues_count: meta.validationIssues ?? 0,
+        llm_validation_quality: meta.llmValidationQuality ?? null,
+        llm_validation_adjustments: meta.llmValidationAdjustments ?? 0,
+        llm_validation_removals: meta.llmValidationRemovals ?? 0,
+        probe_duration_ms: meta.probeDurationMs ?? null,
+        scrape_duration_ms: meta.scrapeDurationMs ?? null,
+        llm_duration_ms: meta.llmDurationMs ?? null,
+        total_duration_ms: meta.totalDurationMs ?? null,
+      };
+      const { error: logErr } = await admin
+        .from("extraction_logs")
+        .insert(logEntry as never);
+      if (logErr) {
+        console.error("[extraction/callback] Failed to write log", logErr);
+      }
     }
 
     return NextResponse.json({

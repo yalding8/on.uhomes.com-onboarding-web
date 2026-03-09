@@ -6,6 +6,7 @@
  */
 
 import { getConfig } from "./config.js";
+import { captureError } from "./sentry.js";
 import type { CallbackPayload } from "./types.js";
 
 const MAX_RETRIES = 3;
@@ -52,6 +53,11 @@ export async function sendCallback(
     }
   }
 
+  captureError(lastError, {
+    jobId: payload.jobId,
+    callbackUrl,
+    phase: "callback_exhausted",
+  });
   console.error(
     `[callback] All ${MAX_RETRIES + 1} attempts exhausted for job ${payload.jobId}`,
     lastError,

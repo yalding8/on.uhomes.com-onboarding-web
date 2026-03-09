@@ -4,13 +4,15 @@
  * When the supplier (routing_order=1) signs:
  * 1. Record supplier_signed_at in provider_metadata
  * 2. Update supplier.status → SIGNED
- * 3. Trigger data extraction for supplier's buildings
+ * 3. Download current PDF from DocuSign → store to Supabase Storage
+ * 4. Trigger data extraction for supplier's buildings
  *
  * Does NOT change contract.status (stays SENT until envelope-completed).
  */
 
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { downloadSignedDocument } from "@/lib/docusign/client";
 
 interface DocuSignRecipient {
   routingOrder?: string;
@@ -57,6 +59,29 @@ export async function handleRecipientCompleted(
     return NextResponse.json({ message: "Already processed" });
   }
 
+  // Download current PDF from DocuSign and store to Supabase Storage
+  let contractPdfUrl = "";
+  try {
+    const pdfBuffer = await downloadSignedDocument(envelopeId);
+    const storagePath = `${contract.supplier_id}/${contract.id}.pdf`;
+    const { error: uploadErr } = await adminClient.storage
+      .from("signed-contracts")
+      .upload(storagePath, pdfBuffer, {
+        contentType: "application/pdf",
+        upsert: true,
+      });
+
+    if (uploadErr) {
+      console.error("[docusign] PDF upload failed", uploadErr);
+    } else {
+      contractPdfUrl = adminClient.storage
+        .from("signed-contracts")
+        .getPublicUrl(storagePath).data.publicUrl;
+    }
+  } catch (err) {
+    console.error("[docusign] PDF download failed", err);
+  }
+
   // Record supplier_signed_at
   await adminClient
     .from("contracts")
@@ -85,7 +110,16 @@ export async function handleRecipientCompleted(
       .select("id")
       .eq("supplier_id", contract.supplier_id);
 
-    if (buildings && buildings.length > 0) {
+    // Get supplier website_url for website_crawl source
+    const { data: supplier } = await adminClient
+      .from("suppliers")
+      .select("website_url")
+      .eq("id", contract.supplier_id)
+      .single();
+
+    const websiteUrl = (supplier?.website_url as string) ?? undefined;
+
+    if (buildings && buildings.length > 0 && contractPdfUrl) {
       const baseUrl =
         process.env.NEXT_PUBLIC_BASE_URL ?? "https://on.pylospay.com";
       const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
@@ -97,11 +131,20 @@ export async function handleRecipientCompleted(
             "Content-Type": "application/json",
             Authorization: `Bearer ${serviceKey}`,
           },
-          body: JSON.stringify({ building_id: building.id }),
+          body: JSON.stringify({
+            buildingId: building.id,
+            supplierId: contract.supplier_id,
+            contractPdfUrl,
+            websiteUrl,
+          }),
         }).catch((err) =>
           console.error("[docusign] extraction trigger failed", err),
         );
       }
+    } else if (!contractPdfUrl) {
+      console.error(
+        "[docusign] no contract PDF URL, skipping extraction trigger",
+      );
     }
   } catch (err) {
     console.error("[docusign] extraction trigger error", err);

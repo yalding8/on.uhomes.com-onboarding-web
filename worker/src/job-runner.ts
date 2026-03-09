@@ -12,6 +12,7 @@ import { getConfig } from "./config.js";
 import { sendCallback } from "./callback.js";
 import { trackJobStart, trackJobEnd } from "./job-tracker.js";
 import { extract } from "./extractors/index.js";
+import { captureError } from "./sentry.js";
 import type {
   ExtractionRequest,
   ExtractedFields,
@@ -49,17 +50,33 @@ export async function runJob(request: ExtractionRequest): Promise<void> {
     let fields: ExtractedFields;
     let status: "success" | "partial";
 
+    let meta: CallbackPayload["meta"];
+
     try {
       const result = await Promise.race([
-        extract(request.source, request.sourceUrl, controller.signal),
+        extract(
+          request.source,
+          request.sourceUrl,
+          controller.signal,
+          request.domainHints,
+        ),
         timeoutPromise,
       ]);
       fields = result.fields;
+      meta = result.meta as CallbackPayload["meta"];
       status = Object.keys(fields).length > 0 ? "success" : "partial";
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unknown extraction error";
       const isTimeout = message.includes("timed out");
+
+      if (!isTimeout) {
+        captureError(err, {
+          jobId: request.jobId,
+          source: request.source,
+          sourceUrl: request.sourceUrl,
+        });
+      }
 
       const payload: CallbackPayload = {
         jobId: request.jobId,
@@ -74,15 +91,17 @@ export async function runJob(request: ExtractionRequest): Promise<void> {
       return;
     }
 
-    // 成功回调
+    // 成功回调（附带元数据，供 extraction_logs 积累经验）
     await sendCallback(request.callbackUrl, {
       jobId: request.jobId,
       buildingId: request.buildingId,
       source: request.source,
       extractedFields: fields,
       status,
+      meta,
     });
   } catch (err) {
+    captureError(err, { jobId: request.jobId, phase: "fatal" });
     console.error(`[job-runner] Fatal error for job ${request.jobId}:`, err);
   } finally {
     trackJobEnd();
