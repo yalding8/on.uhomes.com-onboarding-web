@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -16,22 +16,22 @@ export function SupplierNotes() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(true);
 
-  const fetchNotes = useCallback(async () => {
-    try {
-      const res = await fetch("/api/suppliers/notes");
-      if (!res.ok) return;
-      const data = (await res.json()) as { notes: Note[] };
-      setNotes(data.notes);
-    } catch {
-      // Silently fail — non-critical UI
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchNotes();
-  }, [fetchNotes]);
+    let cancelled = false;
+    fetch("/api/suppliers/notes")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { notes: Note[] } | null) => {
+        if (cancelled || !data) return;
+        setNotes(data.notes);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (loading) return null;
   if (notes.length === 0) return null;

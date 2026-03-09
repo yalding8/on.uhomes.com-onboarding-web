@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Bell } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils/relative-time";
 
@@ -20,24 +20,24 @@ export function NotificationBell() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications");
-      if (!res.ok) return;
-      const data = (await res.json()) as {
-        notifications: Notification[];
-        unreadCount: number;
-      };
-      setNotifications(data.notifications);
-      setUnreadCount(data.unreadCount);
-    } catch {
-      // Non-critical — silently fail
-    }
-  }, []);
-
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    let cancelled = false;
+    fetch("/api/notifications")
+      .then((res) => (res.ok ? res.json() : null))
+      .then(
+        (
+          data: { notifications: Notification[]; unreadCount: number } | null,
+        ) => {
+          if (cancelled || !data) return;
+          setNotifications(data.notifications);
+          setUnreadCount(data.unreadCount);
+        },
+      )
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Close panel on outside click
   useEffect(() => {
