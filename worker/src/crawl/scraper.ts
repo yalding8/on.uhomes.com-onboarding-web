@@ -6,6 +6,8 @@
 
 import { getBrowser, acquirePageSlot, releasePageSlot } from "./browser.js";
 import { htmlToMarkdownBrowserScript } from "./html-to-markdown.js";
+import { createStealthContext } from "./stealth.js";
+import { getProxy } from "../proxy/manager.js";
 import type { SiteProfile } from "./site-probe.js";
 
 export interface ScrapedContent {
@@ -24,6 +26,8 @@ export interface ScrapedContent {
 interface ScrapeOptions {
   siteProfile?: SiteProfile;
   signal?: AbortSignal;
+  /** 启用 stealth 上下文（隐藏 webdriver + 代理 + 反追踪） */
+  useStealth?: boolean;
 }
 
 /** 根据站点类型决定等待策略的超时参数 */
@@ -47,12 +51,24 @@ export async function scrapePage(
   url: string,
   options: ScrapeOptions = {},
 ): Promise<ScrapedContent> {
-  const { siteProfile, signal } = options;
+  const { siteProfile, signal, useStealth = false } = options;
   await acquirePageSlot();
 
   const browser = await getBrowser();
-  const page = await browser.newPage();
   const timeouts = getTimeouts(siteProfile);
+
+  // Stealth 模式：创建带反检测的上下文 + 代理
+  let stealthContext: import("playwright").BrowserContext | null = null;
+  let page: import("playwright").Page;
+
+  if (useStealth) {
+    const domain = new URL(url).hostname;
+    const proxyConfig = getProxy(domain) ?? undefined;
+    stealthContext = await createStealthContext(browser, proxyConfig);
+    page = await stealthContext.newPage();
+  } else {
+    page = await browser.newPage();
+  }
 
   try {
     if (signal) {
@@ -189,6 +205,9 @@ export async function scrapePage(
     return { ...content, markdown };
   } finally {
     await page.close().catch(() => {});
+    if (stealthContext) {
+      await stealthContext.close().catch(() => {});
+    }
     releasePageSlot();
   }
 }

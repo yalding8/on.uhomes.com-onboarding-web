@@ -56,8 +56,13 @@ export async function extractFromWebsite(
     );
   }
 
-  // 3. 首页爬取
-  const scraped = await scrapePage(sourceUrl, { siteProfile, signal });
+  // 3. 首页爬取（CF 站点启用 stealth）
+  const useStealth = needsStealth(strategy);
+  const scraped = await scrapePage(sourceUrl, {
+    siteProfile,
+    signal,
+    useStealth,
+  });
 
   if (!scraped.bodyText.trim() && scraped.jsonLd.length === 0) {
     throw new Error("Website contains no extractable content");
@@ -69,6 +74,7 @@ export async function extractFromWebsite(
     scraped.navLinks,
     siteProfile,
     signal,
+    useStealth,
   );
 
   // 5. 分层提取（首页）
@@ -93,7 +99,7 @@ export async function extractFromWebsite(
   return { fields: validated.fields };
 }
 
-type CrawlStrategy = "standard" | "skip";
+type CrawlStrategy = "standard" | "stealth" | "skip";
 
 /** 策略路由 — 按 Cloudflare 级别分流 */
 function selectStrategy(profile: SiteProfile): CrawlStrategy {
@@ -103,7 +109,15 @@ function selectStrategy(profile: SiteProfile): CrawlStrategy {
   ) {
     return "skip";
   }
+  if (profile.cloudflareProtected) {
+    return "stealth";
+  }
   return "standard";
+}
+
+/** 是否需要 stealth 模式 */
+function needsStealth(strategy: CrawlStrategy): boolean {
+  return strategy === "stealth";
 }
 
 /** 分层提取（JSON-LD + OpenGraph），不含 LLM */
@@ -136,6 +150,7 @@ async function crawlSubPages(
   navLinks: Array<{ href: string; text: string }>,
   siteProfile: SiteProfile,
   signal: AbortSignal,
+  useStealth: boolean,
 ): Promise<ExtractedFields[]> {
   const subPages = discoverSubPages(baseUrl, navLinks);
   if (subPages.length === 0) return [];
@@ -156,6 +171,7 @@ async function crawlSubPages(
       const subScraped = await scrapePage(subPage.url, {
         siteProfile,
         signal,
+        useStealth,
       });
 
       // 子页面分层提取
