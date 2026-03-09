@@ -3,6 +3,9 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
+  turbopack: {
+    root: __dirname,
+  },
 };
 
 export default withSentryConfig(nextConfig, {
