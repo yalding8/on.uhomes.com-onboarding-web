@@ -11,9 +11,6 @@
  */
 
 import { NextResponse } from "next/server";
-// Import the inner module directly to avoid pdf-parse's debug-mode wrapper
-// which tries to read a test PDF file during Next.js build.
-import pdfParse from "pdf-parse/lib/pdf-parse";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { extractContractFields } from "@/lib/llm/extract-contract";
@@ -86,9 +83,9 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 4. 提取 PDF 文本 (dynamic import to avoid pdf-parse test file side-effect)
+    // 4. 提取 PDF 文本 (use subpath import to skip pdf-parse debug wrapper)
     const buffer = Buffer.from(await fileData.arrayBuffer());
-    const pdfParse = (await import("pdf-parse")).default;
+    const pdfParse = (await import("pdf-parse/lib/pdf-parse")).default;
     const pdfData = await pdfParse(buffer);
     const text = pdfData.text;
 
