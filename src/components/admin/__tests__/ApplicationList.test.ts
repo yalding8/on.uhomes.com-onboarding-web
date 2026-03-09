@@ -14,6 +14,7 @@ const STATUSES: AppStatus[] = ["PENDING", "CONVERTED", "REJECTED"];
 
 interface MockApp {
   id: string;
+  ref_code: string | null;
   company_name: string;
   supplier_type: string | null;
   contact_email: string;
@@ -24,11 +25,13 @@ interface MockApp {
   status: AppStatus;
   created_at: string;
   assigned_bd_id: string | null;
+  referral_code: string | null;
 }
 
 function makeApp(overrides: Partial<MockApp> = {}): MockApp {
   return {
     id: crypto.randomUUID(),
+    ref_code: null,
     company_name: "Test Co",
     supplier_type: null,
     contact_email: "test@example.com",
@@ -39,6 +42,7 @@ function makeApp(overrides: Partial<MockApp> = {}): MockApp {
     status: "PENDING",
     created_at: new Date().toISOString(),
     assigned_bd_id: null,
+    referral_code: null,
     ...overrides,
   };
 }
@@ -54,30 +58,30 @@ describe("filterApplications", () => {
   ];
 
   it("ALL 筛选返回全部记录", () => {
-    expect(filterApplications(apps, "ALL")).toHaveLength(4);
+    expect(filterApplications(apps, "ALL", "", null)).toHaveLength(4);
   });
 
   it("PENDING 筛选只返回待处理记录", () => {
-    const result = filterApplications(apps, "PENDING");
+    const result = filterApplications(apps, "PENDING", "", null);
     expect(result).toHaveLength(2);
     expect(result.every((a) => a.status === "PENDING")).toBe(true);
   });
 
   it("CONVERTED 筛选只返回已转化记录", () => {
-    const result = filterApplications(apps, "CONVERTED");
+    const result = filterApplications(apps, "CONVERTED", "", null);
     expect(result).toHaveLength(1);
     expect(result[0].status).toBe("CONVERTED");
   });
 
   it("REJECTED 筛选只返回已拒绝记录", () => {
-    const result = filterApplications(apps, "REJECTED");
+    const result = filterApplications(apps, "REJECTED", "", null);
     expect(result).toHaveLength(1);
     expect(result[0].status).toBe("REJECTED");
   });
 
   it("空数组筛选返回空数组", () => {
-    expect(filterApplications([], "PENDING")).toHaveLength(0);
-    expect(filterApplications([], "ALL")).toHaveLength(0);
+    expect(filterApplications([], "PENDING", "", null)).toHaveLength(0);
+    expect(filterApplications([], "ALL", "", null)).toHaveLength(0);
   });
 });
 
@@ -138,6 +142,9 @@ const arbApp = fc
     status: arbStatus,
     created_at: safeIsoDate,
     assigned_bd_id: fc.option(fc.uuid(), { nil: null }),
+    referral_code: fc.option(fc.string({ minLength: 1, maxLength: 10 }), {
+      nil: null,
+    }),
   })
   .map((r) => r as MockApp);
 
@@ -154,7 +161,7 @@ describe("Property 3: 申请列表筛选正确性", () => {
   fcIt.prop([arbApps, arbStatus], { numRuns: 100 })(
     "筛选结果中所有记录的 status 与筛选条件匹配",
     (apps, status) => {
-      const result = filterApplications(apps, status);
+      const result = filterApplications(apps, status, "", null);
       expect(result.every((a) => a.status === status)).toBe(true);
     },
   );
@@ -162,14 +169,14 @@ describe("Property 3: 申请列表筛选正确性", () => {
   fcIt.prop([arbApps, arbStatus], { numRuns: 100 })(
     "筛选不遗漏任何匹配记录",
     (apps, status) => {
-      const result = filterApplications(apps, status);
+      const result = filterApplications(apps, status, "", null);
       const expected = apps.filter((a) => a.status === status);
       expect(result).toHaveLength(expected.length);
     },
   );
 
   fcIt.prop([arbApps], { numRuns: 100 })("ALL 筛选返回全部记录", (apps) => {
-    const result = filterApplications(apps, "ALL");
+    const result = filterApplications(apps, "ALL", "", null);
     expect(result).toHaveLength(apps.length);
   });
 

@@ -69,6 +69,7 @@ function renderStatusContent(
       status={status}
       fields={fields}
       documentUrl={documentUrl}
+      contractId="test-contract-001"
       isLoading={false}
       onAction={noop}
     />,
@@ -168,14 +169,11 @@ describe("StatusContent 单元测试", () => {
     ).toBeInTheDocument();
   });
 
-  it("SIGNED 状态有 documentUrl 时渲染下载链接", () => {
+  it("SIGNED 状态有 documentUrl 时渲染下载按钮", () => {
     renderStatusContent("SIGNED", null, "https://example.com/doc.pdf");
-    const link = screen.getByText("Download Signed Contract (PDF)");
-    expect(link).toBeInTheDocument();
-    expect(link.closest("a")).toHaveAttribute(
-      "href",
-      "https://example.com/doc.pdf",
-    );
+    const button = screen.getByText("Download Signed Contract (PDF)");
+    expect(button).toBeInTheDocument();
+    expect(button.tagName).toBe("BUTTON");
   });
 
   it("SIGNED 状态无 documentUrl 时不渲染下载链接", () => {
@@ -196,6 +194,7 @@ describe("StatusContent 单元测试", () => {
         status="PENDING_REVIEW"
         fields={sampleFields}
         documentUrl={null}
+        contractId="test-contract-001"
         isLoading={true}
         onAction={noop}
       />,

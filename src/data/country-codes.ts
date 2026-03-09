@@ -8,6 +8,12 @@ export interface CountryCode {
 /** ~50 commonly used country/region codes, sorted alphabetically by name */
 export const COUNTRY_CODES: CountryCode[] = [
   {
+    code: "AR",
+    name: "Argentina",
+    dialCode: "+54",
+    flag: "\u{1F1E6}\u{1F1F7}",
+  },
+  {
     code: "AU",
     name: "Australia",
     dialCode: "+61",

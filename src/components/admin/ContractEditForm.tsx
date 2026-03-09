@@ -22,6 +22,7 @@ export interface ContractEditFormProps {
   supplierInfo: { company_name: string; city: string | null };
   contractStatus: ContractStatus;
   uploadedDocumentUrl: string | null;
+  initialUpdatedAt: string;
 }
 
 const STATUS_LABELS: Record<ContractStatus, string> = {
@@ -39,6 +40,7 @@ export function ContractEditForm({
   supplierInfo,
   contractStatus,
   uploadedDocumentUrl,
+  initialUpdatedAt,
 }: ContractEditFormProps) {
   const prefilled = useMemo<Partial<ContractFields>>(() => {
     // Initialize all known field keys to "" so that missing keys in a
@@ -65,6 +67,7 @@ export function ContractEditForm({
   const [fields, setFields] = useState<Partial<ContractFields>>(prefilled);
   const [status, setStatus] = useState<ContractStatus>(contractStatus);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [updatedAt, setUpdatedAt] = useState(initialUpdatedAt);
   const [saving, setSaving] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [message, setMessage] = useState<{
@@ -111,7 +114,7 @@ export function ContractEditForm({
       const res = await fetch(`/api/admin/contracts/${contractId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fields }),
+        body: JSON.stringify({ fields, updated_at: updatedAt }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -119,13 +122,14 @@ export function ContractEditForm({
         setMessage({ type: "error", text: data.error ?? "Save failed" });
         return;
       }
+      if (data.updated_at) setUpdatedAt(data.updated_at);
       setMessage({ type: "success", text: "Contract fields saved" });
     } catch {
       setMessage({ type: "error", text: "Network error, please try again" });
     } finally {
       setSaving(false);
     }
-  }, [contractId, fields]);
+  }, [contractId, fields, updatedAt]);
 
   const handlePushForReview = useCallback(async () => {
     setPushing(true);
@@ -135,7 +139,7 @@ export function ContractEditForm({
       const saveRes = await fetch(`/api/admin/contracts/${contractId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fields }),
+        body: JSON.stringify({ fields, updated_at: updatedAt }),
       });
       if (!saveRes.ok) {
         const saveData = await saveRes.json();
@@ -143,6 +147,8 @@ export function ContractEditForm({
         setMessage({ type: "error", text: saveData.error ?? "Save failed" });
         return;
       }
+      const saveData = await saveRes.json();
+      if (saveData.updated_at) setUpdatedAt(saveData.updated_at);
       const res = await fetch(`/api/admin/contracts/${contractId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -163,7 +169,7 @@ export function ContractEditForm({
     } finally {
       setPushing(false);
     }
-  }, [contractId, fields]);
+  }, [contractId, fields, updatedAt]);
 
   return (
     <div className="rounded-lg border border-[var(--color-border)] p-4 md:p-6">

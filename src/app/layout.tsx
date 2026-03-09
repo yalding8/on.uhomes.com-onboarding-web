@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CookieConsentBanner } from "@/components/compliance/CookieConsentBanner";
@@ -19,18 +20,21 @@ export const metadata: Metadata = {
     "Join the world's leading student housing ecosystem. Onboard your properties in minutes and connect with qualified international renters across 200+ countries.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const hdrs = await headers();
+  const countryCode = hdrs.get("x-vercel-ip-country") ?? undefined;
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
-        <CookieConsentBanner />
+        <CookieConsentBanner countryCode={countryCode} />
       </body>
     </html>
   );

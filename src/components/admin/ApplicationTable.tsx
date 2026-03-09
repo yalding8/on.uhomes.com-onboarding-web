@@ -1,29 +1,39 @@
 "use client";
 
 /**
- * 申请列表渲染组件 — Client Component
+ * Application table — 5-column design with visual status hierarchy.
  *
- * 桌面端紧凑表格（6 列 + 可展开详情行）和移动端卡片。
+ * Desktop: compact table with left border color coding.
+ * Mobile: card layout.
  */
 
-import { useState, Fragment } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { Clock, CheckCircle2, XCircle, AlertTriangle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { CopyText } from "./CopyText";
 import type { ApplicationRow, BdOption } from "@/app/admin/applications/page";
-import { ApplicationBdSelect } from "./ApplicationBdSelect";
-import { ApplicationExpandedRow } from "./ApplicationExpandedRow";
+import { formatRelativeTime } from "@/lib/utils/relative-time";
 
 interface ApplicationTableProps {
   applications: ApplicationRow[];
   onApprove: (application: ApplicationRow) => void;
+  onRowClick: (application: ApplicationRow) => void;
   bdUsers: BdOption[];
+  isAdmin: boolean;
+  currentBdId: string;
 }
+
+/** Supplier type abbreviation map */
+const TYPE_SHORT: Record<string, string> = {
+  "Purpose Built Student Accommodation Provider": "PBSA",
+  "Property Management Company": "PMC",
+  "Lettings Agent/Broker": "Agent",
+  "Hotel Provider": "Hotel",
+  "New homes developer": "Developer",
+  Sublessor: "Sublessor",
+  "Individual landlord": "Landlord",
+  "Built to Rent Accommodation Provider": "BTR",
+  "Co-living Provider": "Co-living",
+};
 
 const STATUS_CONFIG: Record<
   ApplicationRow["status"],
@@ -32,6 +42,11 @@ const STATUS_CONFIG: Record<
   PENDING: {
     label: "Pending",
     icon: Clock,
+    className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
+  },
+  CONVERTING: {
+    label: "Converting",
+    icon: AlertTriangle,
     className: "bg-[var(--color-warning-light)] text-[var(--color-warning)]",
   },
   CONVERTED: {
@@ -47,7 +62,7 @@ const STATUS_CONFIG: Record<
 };
 
 function StatusBadge({ status }: { status: ApplicationRow["status"] }) {
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.PENDING;
   const Icon = config.icon;
   return (
     <span
@@ -59,195 +74,205 @@ function StatusBadge({ status }: { status: ApplicationRow["status"] }) {
   );
 }
 
-/** Format date in UTC with timezone label for global BD teams */
-function formatDateUTC(iso: string): string {
-  return (
-    new Date(iso).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      timeZone: "UTC",
-    }) +
-    " " +
-    new Date(iso).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-      timeZone: "UTC",
-    }) +
-    " UTC"
-  );
-}
-
-function ApproveButton({
-  application,
-  onApprove,
-}: {
-  application: ApplicationRow;
-  onApprove: (application: ApplicationRow) => void;
-}) {
-  const isPending = application.status === "PENDING";
-  return (
-    <button
-      type="button"
-      onClick={() => onApprove(application)}
-      disabled={!isPending}
-      className="px-3 py-1 rounded text-xs font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-    >
-      {isPending ? "Approve" : STATUS_CONFIG[application.status].label}
-    </button>
-  );
-}
-
-function location(app: ApplicationRow): string {
-  return app.country || "—";
-}
-
 function getBdLabel(bdId: string | null, bdUsers: BdOption[]): string {
-  if (!bdId) return "—";
+  if (!bdId) return "Unassigned";
   const bd = bdUsers.find((b) => b.id === bdId);
   return bd ? bd.company_name : "—";
+}
+
+function getRowBorderClass(app: ApplicationRow): string {
+  if (app.status !== "PENDING") return "border-s-2 border-s-transparent";
+  if (app.assigned_bd_id === null) {
+    return "border-s-2 border-s-[var(--color-warning)]";
+  }
+  return "border-s-2 border-s-[var(--color-primary)]";
+}
+
+function getRowOpacity(app: ApplicationRow): string {
+  if (app.status === "REJECTED") return "opacity-60";
+  return "";
 }
 
 export function ApplicationTable({
   applications,
   onApprove,
+  onRowClick,
   bdUsers,
+  isAdmin,
+  currentBdId,
 }: ApplicationTableProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const toggle = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
-  };
+  // Sort: PENDING oldest first (urgency), others newest first
+  const sorted = [...applications].sort((a, b) => {
+    if (a.status === "PENDING" && b.status === "PENDING") {
+      return (
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      );
+    }
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
 
   return (
     <>
-      {/* 桌面端表格 — >=768px */}
+      {/* Desktop table */}
       <div className="hidden md:block overflow-x-auto rounded-lg border border-[var(--color-border)]">
         <table className="w-full text-sm">
           <thead className="sticky top-0 z-10">
             <tr className="bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]">
-              <th className="text-start px-4 py-3 font-medium w-8" />
+              <th className="text-start px-4 py-3 font-medium w-20">Ref</th>
               <th className="text-start px-4 py-3 font-medium">Company</th>
-              <th className="text-start px-4 py-3 font-medium">Type</th>
-              <th className="text-start px-4 py-3 font-medium">Email</th>
+              <th className="text-start px-4 py-3 font-medium lg:table-cell hidden">
+                Type
+              </th>
               <th className="text-start px-4 py-3 font-medium">Country</th>
-              <th className="text-start px-4 py-3 font-medium">Assigned BD</th>
               <th className="text-start px-4 py-3 font-medium">Applied</th>
-              <th className="text-start px-4 py-3 font-medium">Status</th>
-              <th className="text-start px-4 py-3 font-medium">Action</th>
+              <th className="text-start px-4 py-3 font-medium w-24">Action</th>
             </tr>
           </thead>
           <tbody>
-            {applications.map((app) => {
-              const isExpanded = expandedId === app.id;
+            {sorted.map((app) => {
+              const isPending = app.status === "PENDING";
+              const isUnassigned = app.assigned_bd_id === null;
+              const bdLabel = getBdLabel(app.assigned_bd_id, bdUsers);
+              const canApprove =
+                isPending && (isAdmin || app.assigned_bd_id === currentBdId);
+
               return (
-                <Fragment key={app.id}>
-                  <tr
-                    className="border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer"
-                    onClick={() => toggle(app.id)}
-                  >
-                    <td className="px-4 py-3 text-[var(--color-text-muted)]">
-                      {isExpanded ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
+                <tr
+                  key={app.id}
+                  className={`border-t border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getRowBorderClass(app)} ${getRowOpacity(app)}`}
+                  onClick={() => onRowClick(app)}
+                >
+                  <td className="px-4 py-3 text-xs text-[var(--color-text-muted)] font-mono">
+                    {app.ref_code ? <CopyText text={app.ref_code} /> : "—"}
+                  </td>
+                  {/* Company + BD sub-line */}
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {isPending && isUnassigned && (
+                        <AlertTriangle className="h-4 w-4 text-[var(--color-warning)] shrink-0" />
                       )}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-primary)] font-medium">
-                      {app.company_name}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs max-w-[160px] truncate">
-                      {app.supplier_type ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)] max-w-[200px] truncate">
-                      {app.contact_email}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                      {location(app)}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-secondary)]">
-                      {getBdLabel(app.assigned_bd_id, bdUsers)}
-                    </td>
-                    <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap text-xs">
-                      {formatDateUTC(app.created_at)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={app.status} />
-                    </td>
-                    <td
-                      className="px-4 py-3"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ApproveButton application={app} onApprove={onApprove} />
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <ApplicationExpandedRow
-                      app={app}
-                      bdUsers={bdUsers}
-                      colSpan={9}
-                    />
-                  )}
-                </Fragment>
+                      {isPending && !isUnassigned && (
+                        <Clock className="h-4 w-4 text-[var(--color-primary)] shrink-0" />
+                      )}
+                      {!isPending && <StatusBadge status={app.status} />}
+                      <div className="min-w-0">
+                        <p className="font-medium text-[var(--color-text-primary)] truncate">
+                          <CopyText text={app.company_name} />
+                        </p>
+                        <p
+                          className={`text-xs truncate ${
+                            isUnassigned && isPending
+                              ? "text-[var(--color-warning)] font-medium"
+                              : "text-[var(--color-text-muted)]"
+                          }`}
+                        >
+                          {isPending
+                            ? isUnassigned
+                              ? "Unassigned"
+                              : bdLabel
+                            : bdLabel}
+                        </p>
+                      </div>
+                    </div>
+                  </td>
+                  {/* Type (hidden on md, shown on lg) */}
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)] text-xs lg:table-cell hidden">
+                    {app.supplier_type
+                      ? (TYPE_SHORT[app.supplier_type] ?? app.supplier_type)
+                      : "—"}
+                  </td>
+                  {/* Country */}
+                  <td className="px-4 py-3 text-[var(--color-text-secondary)]">
+                    {app.country ?? "—"}
+                  </td>
+                  {/* Relative time */}
+                  <td className="px-4 py-3 text-[var(--color-text-muted)] whitespace-nowrap text-xs">
+                    {app.status === "PENDING"
+                      ? formatRelativeTime(app.created_at)
+                      : "—"}
+                  </td>
+                  {/* Action */}
+                  <td
+                    className="px-4 py-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {canApprove && (
+                      <button
+                        type="button"
+                        onClick={() => onApprove(app)}
+                        className="px-3 py-1 rounded text-xs font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all"
+                      >
+                        Approve
+                      </button>
+                    )}
+                  </td>
+                </tr>
               );
             })}
           </tbody>
         </table>
       </div>
 
-      {/* 移动端卡片 — <768px */}
+      {/* Mobile cards */}
       <div className="md:hidden flex flex-col gap-3">
-        {applications.map((app) => (
-          <div
-            key={app.id}
-            className="rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <span className="font-medium text-[var(--color-text-primary)]">
-                {app.company_name}
-              </span>
-              <StatusBadge status={app.status} />
-            </div>
-            <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
-              {app.supplier_type && (
-                <p className="text-xs text-[var(--color-text-muted)]">
-                  {app.supplier_type}
-                </p>
-              )}
-              <p>{app.contact_email}</p>
-              {app.contact_phone && <p>{app.contact_phone}</p>}
-              <p>{location(app)}</p>
-              {app.website_url && (
-                <a
-                  href={app.website_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--color-primary)] hover:underline block truncate"
+        {sorted.map((app) => {
+          const isPending = app.status === "PENDING";
+          const isUnassigned = app.assigned_bd_id === null;
+          const bdLabel = getBdLabel(app.assigned_bd_id, bdUsers);
+          const canApprove =
+            isPending && (isAdmin || app.assigned_bd_id === currentBdId);
+
+          return (
+            <div
+              key={app.id}
+              onClick={() => onRowClick(app)}
+              className={`rounded-lg border border-[var(--color-border)] p-4 bg-[var(--color-bg-primary)] hover:bg-[var(--color-bg-secondary)] transition-colors cursor-pointer ${getRowBorderClass(app)} ${getRowOpacity(app)}`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-medium text-[var(--color-text-primary)] truncate">
+                  {app.company_name}
+                </span>
+                <StatusBadge status={app.status} />
+              </div>
+              <div className="text-sm text-[var(--color-text-secondary)] space-y-1">
+                {app.supplier_type && (
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    {TYPE_SHORT[app.supplier_type] ?? app.supplier_type}
+                  </p>
+                )}
+                <p>{app.country ?? "—"}</p>
+                <p
+                  className={`text-xs ${
+                    isUnassigned && isPending
+                      ? "text-[var(--color-warning)] font-medium"
+                      : "text-[var(--color-text-muted)]"
+                  }`}
                 >
-                  {app.website_url}
-                </a>
+                  {isUnassigned ? "Unassigned" : bdLabel}
+                </p>
+                {isPending && (
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    {formatRelativeTime(app.created_at)}
+                  </p>
+                )}
+              </div>
+              {canApprove && (
+                <div className="mt-3 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onApprove(app);
+                    }}
+                    className="px-3 py-1 rounded text-xs font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] active:scale-[0.98] transition-all"
+                  >
+                    Approve
+                  </button>
+                </div>
               )}
-              <p className="text-[var(--color-text-muted)] text-xs">
-                {formatDateUTC(app.created_at)}
-              </p>
             </div>
-            {/* BD Assignment */}
-            <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
-              <p className="text-xs text-[var(--color-text-muted)] mb-1.5">
-                Assigned BD
-              </p>
-              <ApplicationBdSelect
-                applicationId={app.id}
-                currentBdId={app.assigned_bd_id}
-                bdUsers={bdUsers}
-              />
-            </div>
-            <div className="mt-3 flex justify-end">
-              <ApproveButton application={app} onApprove={onApprove} />
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </>
   );

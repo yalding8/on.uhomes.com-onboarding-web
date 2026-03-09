@@ -17,7 +17,7 @@ import { SUPPLIER_TYPES } from "@/lib/constants/supplier-types";
 import {
   applicantSchema,
   type ApplicantFormValues,
-} from "@/components/form/applicant-schema";
+} from "@/components/form/application-schema";
 
 interface ApplicationFormProps {
   prefillEmail?: string | null;

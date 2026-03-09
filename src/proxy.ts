@@ -1,10 +1,11 @@
-import { type NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import {
   checkRateLimit,
   tooManyRequestsResponse,
   attachRateLimitHeaders,
 } from "@/lib/security/rate-limit";
+import * as Sentry from "@sentry/nextjs";
 
 /** Whether Upstash rate limiting is configured */
 const RATE_LIMIT_ENABLED =
@@ -12,24 +13,70 @@ const RATE_LIMIT_ENABLED =
   !!process.env.UPSTASH_REDIS_REST_TOKEN;
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  try {
+    const { pathname } = request.nextUrl;
 
-  // Rate limit API routes and login (skip static pages)
-  if (
-    RATE_LIMIT_ENABLED &&
-    (pathname.startsWith("/api/") || pathname.startsWith("/login"))
-  ) {
-    const result = await checkRateLimit(request);
-    if (!result.allowed) {
-      return tooManyRequestsResponse(result);
+    // Rate limit API routes and login (skip static pages)
+    if (
+      RATE_LIMIT_ENABLED &&
+      (pathname.startsWith("/api/") || pathname.startsWith("/login"))
+    ) {
+      // BUG-NEW-12 fix: isolate rate limit errors so auth still runs
+      try {
+        const result = await checkRateLimit(request);
+        if (!result.allowed) {
+          return tooManyRequestsResponse(result);
+        }
+        const response = await updateSession(request);
+        return attachRateLimitHeaders(response, result);
+      } catch (rateLimitError) {
+        Sentry.captureException(rateLimitError, {
+          tags: { module: "rate-limit" },
+          extra: { path: pathname },
+        });
+        console.error(
+          "[proxy] rate-limit error, proceeding with auth",
+          rateLimitError,
+        );
+        // Rate limiter failed — still run auth middleware (fail-open for availability)
+        return await updateSession(request);
+      }
     }
-    // Continue to auth middleware; attach headers to final response
-    const response = await updateSession(request);
-    return attachRateLimitHeaders(response, result);
-  }
 
-  // Non-API routes: skip rate limiting, proceed to auth
-  return await updateSession(request);
+    // Non-API routes: skip rate limiting, proceed to auth
+    return await updateSession(request);
+  } catch (error) {
+    Sentry.captureException(error, {
+      tags: { module: "proxy" },
+      extra: { path: request.nextUrl.pathname },
+    });
+    console.error("[proxy]", error);
+
+    // Fail-closed: deny access when auth cannot be verified.
+    // Exempt public routes and webhooks that handle their own auth.
+    const { pathname } = request.nextUrl;
+    const isPublicRoute =
+      pathname === "/" ||
+      pathname === "/login" ||
+      pathname.startsWith("/auth/") ||
+      pathname === "/api/apply" ||
+      pathname.startsWith("/api/webhooks/") ||
+      pathname === "/terms" ||
+      pathname === "/privacy";
+
+    if (isPublicRoute) {
+      return NextResponse.next({ request });
+    }
+
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 }
 
 export const config = {
@@ -41,6 +88,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * Feel free to modify this pattern to include more paths.
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|monitoring|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

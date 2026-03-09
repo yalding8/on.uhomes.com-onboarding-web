@@ -16,6 +16,7 @@ function makeApplication(
 ): ApplicationRow {
   return {
     id: "app-001",
+    ref_code: "APP-0001",
     company_name: "测试公司",
     supplier_type: null,
     contact_email: "test@example.com",
@@ -26,6 +27,7 @@ function makeApplication(
     status: "PENDING",
     created_at: new Date().toISOString(),
     assigned_bd_id: null,
+    referral_code: null,
     ...overrides,
   };
 }

@@ -2,6 +2,7 @@
  * Extraction Job Helpers — shared utilities for extraction API routes.
  */
 
+import { timingSafeEqual } from "crypto";
 import { createClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, getServiceRoleKey } from "@/lib/env";
 import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
@@ -28,7 +29,10 @@ export function verifyServiceKey(request: Request): boolean {
   const authHeader = request.headers.get("authorization");
   if (!authHeader) return false;
   const token = authHeader.replace("Bearer ", "");
-  return token === getServiceRoleKey();
+  const expected = Buffer.from(getServiceRoleKey(), "utf-8");
+  const actual = Buffer.from(token, "utf-8");
+  if (expected.length !== actual.length) return false;
+  return timingSafeEqual(expected, actual);
 }
 
 /**

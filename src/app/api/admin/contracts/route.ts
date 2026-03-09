@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     // Verify supplier exists and is in PENDING_CONTRACT status
     const { data: supplier, error: supplierError } = await supabaseAdmin
       .from("suppliers")
-      .select("id, status")
+      .select("id, status, bd_user_id")
       .eq("id", supplier_id)
       .single();
 
@@ -40,6 +40,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Supplier not found" },
         { status: 404 },
+      );
+    }
+
+    // H-04 fix: BD scoping — only assigned BD or admin can create contracts
+    if (!authResult.isAdmin && supplier.bd_user_id !== authResult.supplier.id) {
+      return NextResponse.json(
+        { error: "Forbidden: supplier is not assigned to you" },
+        { status: 403 },
       );
     }
 

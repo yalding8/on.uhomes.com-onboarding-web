@@ -25,6 +25,7 @@ type AppStatus = "PENDING" | "CONVERTED" | "REJECTED";
 
 interface MockApp {
   id: string;
+  ref_code: string | null;
   company_name: string;
   supplier_type: string | null;
   contact_email: string;
@@ -35,11 +36,13 @@ interface MockApp {
   status: AppStatus;
   created_at: string;
   assigned_bd_id: string | null;
+  referral_code: string | null;
 }
 
 function makeApp(overrides: Partial<MockApp> = {}): MockApp {
   return {
     id: crypto.randomUUID(),
+    ref_code: null,
     company_name: "Test Co",
     supplier_type: null,
     contact_email: "test@example.com",
@@ -50,6 +53,7 @@ function makeApp(overrides: Partial<MockApp> = {}): MockApp {
     status: "PENDING",
     created_at: new Date().toISOString(),
     assigned_bd_id: null,
+    referral_code: null,
     ...overrides,
   };
 }
@@ -63,7 +67,10 @@ describe("ApplicationTable", () => {
       <ApplicationTable
         applications={[app]}
         onApprove={onApprove}
+        onRowClick={vi.fn()}
         bdUsers={BD_USERS}
+        isAdmin={true}
+        currentBdId="bd-1"
       />,
     );
 
@@ -75,7 +82,7 @@ describe("ApplicationTable", () => {
     expect(onApprove).toHaveBeenCalledWith(app);
   });
 
-  it("CONVERTED 申请的审批按钮被禁用", () => {
+  it("CONVERTED 申请无审批按钮", () => {
     const onApprove = vi.fn();
     const app = makeApp({ status: "CONVERTED" });
 
@@ -83,16 +90,19 @@ describe("ApplicationTable", () => {
       <ApplicationTable
         applications={[app]}
         onApprove={onApprove}
+        onRowClick={vi.fn()}
         bdUsers={BD_USERS}
+        isAdmin={true}
+        currentBdId="bd-1"
       />,
     );
 
-    const buttons = screen.getAllByRole("button", { name: "Converted" });
-    expect(buttons.length).toBeGreaterThanOrEqual(1);
-    expect(buttons[0]).toBeDisabled();
+    expect(screen.queryAllByRole("button", { name: "Approve" })).toHaveLength(
+      0,
+    );
   });
 
-  it("REJECTED 申请的审批按钮被禁用", () => {
+  it("REJECTED 申请无审批按钮", () => {
     const onApprove = vi.fn();
     const app = makeApp({ status: "REJECTED" });
 
@@ -100,39 +110,39 @@ describe("ApplicationTable", () => {
       <ApplicationTable
         applications={[app]}
         onApprove={onApprove}
+        onRowClick={vi.fn()}
         bdUsers={BD_USERS}
+        isAdmin={true}
+        currentBdId="bd-1"
       />,
     );
 
-    const buttons = screen.getAllByRole("button", { name: "Rejected" });
-    expect(buttons.length).toBeGreaterThanOrEqual(1);
-    expect(buttons[0]).toBeDisabled();
+    expect(screen.queryAllByRole("button", { name: "Approve" })).toHaveLength(
+      0,
+    );
   });
 
-  it("渲染所有申请字段", () => {
+  it("渲染公司名和国家字段", () => {
     const onApprove = vi.fn();
     const app = makeApp({
       company_name: "Acme Inc",
       contact_email: "acme@test.com",
-      contact_phone: "+86 123",
-      city: "Shanghai",
       country: "China",
-      website_url: "https://acme.com",
     });
 
     render(
       <ApplicationTable
         applications={[app]}
         onApprove={onApprove}
+        onRowClick={vi.fn()}
         bdUsers={BD_USERS}
+        isAdmin={true}
+        currentBdId="bd-1"
       />,
     );
 
     expect(screen.getAllByText("Acme Inc").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("acme@test.com").length).toBeGreaterThanOrEqual(
-      1,
-    );
-    expect(screen.getAllByText("+86 123").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("China").length).toBeGreaterThanOrEqual(1);
   });
 
   it("空列表不渲染任何行", () => {
@@ -141,7 +151,10 @@ describe("ApplicationTable", () => {
       <ApplicationTable
         applications={[]}
         onApprove={onApprove}
+        onRowClick={vi.fn()}
         bdUsers={BD_USERS}
+        isAdmin={true}
+        currentBdId="bd-1"
       />,
     );
 

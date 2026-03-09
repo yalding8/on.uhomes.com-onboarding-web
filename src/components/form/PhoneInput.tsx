@@ -26,13 +26,23 @@ export function PhoneInput({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Parse value into selectedCode + phoneNumber
+  // H-06 fix: For ambiguous dial codes (+1 = US/CA), prefer US as default
   const parseValue = useCallback(
     (val: string): { code: CountryCode | null; phone: string } => {
       if (!val) return { code: null, phone: "" };
+      let match: CountryCode | null = null;
       for (const cc of COUNTRY_CODES) {
         if (val.startsWith(cc.dialCode + " ")) {
-          return { code: cc, phone: val.slice(cc.dialCode.length + 1) };
+          if (!match || cc.dialCode.length > match.dialCode.length) {
+            match = cc;
+          } else if (cc.dialCode === match.dialCode && cc.code === "US") {
+            // Prefer US over CA for ambiguous +1
+            match = cc;
+          }
         }
+      }
+      if (match) {
+        return { code: match, phone: val.slice(match.dialCode.length + 1) };
       }
       return { code: null, phone: val };
     },
@@ -118,7 +128,7 @@ export function PhoneInput({
   };
 
   const borderClass = error
-    ? "border-[var(--color-primary)]"
+    ? "border-[var(--color-warning)]"
     : "border-[var(--color-border)]";
 
   return (

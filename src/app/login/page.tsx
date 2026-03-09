@@ -90,9 +90,8 @@ export default function LoginPage() {
     }
 
     setStatus("success");
-    // Middleware will intercept the next reload/navigation and correctly route the user
-    // depending on their 3-state DB supplier association.
-    router.refresh();
+    // Navigate to root — middleware will redirect based on user role/status
+    router.replace("/");
   };
 
   return (

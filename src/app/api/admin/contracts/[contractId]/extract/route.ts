@@ -86,8 +86,9 @@ export async function POST(request: Request, context: RouteContext) {
       );
     }
 
-    // 4. 提取 PDF 文本
+    // 4. 提取 PDF 文本 (dynamic import to avoid pdf-parse test file side-effect)
     const buffer = Buffer.from(await fileData.arrayBuffer());
+    const pdfParse = (await import("pdf-parse")).default;
     const pdfData = await pdfParse(buffer);
     const text = pdfData.text;
 
@@ -108,7 +109,9 @@ export async function POST(request: Request, context: RouteContext) {
     });
   } catch (error) {
     console.error("[extract]", error);
-    const msg = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

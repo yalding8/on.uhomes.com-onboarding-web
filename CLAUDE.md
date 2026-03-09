@@ -39,6 +39,7 @@
 - **日志规范**：
   - 禁止在业务逻辑中使用 `console.log`（调试完毕后必须删除）。
   - 错误日志统一使用 `console.error`，仅限 `catch` 块内，格式：`console.error('[模块名]', error)`。
+  - **Supabase 操作的 error 分支必须带 `console.error`**，不能只返回通用错误而不记录具体原因（教训：`/api/apply` 的 insert 错误被吞掉，排查浪费大量时间）。
   - 后续如引入统一 logger（`src/lib/logger.ts`），全部迁移至该工具，届时此规则更新。
 
 ---
@@ -71,17 +72,20 @@
 1. 该文件是否已存在对应的测试文件（`__tests__/`）？如有，修改后需同步更新测试。
 2. 修改是否涉及数据库表结构？如有，需评估是否需要新增 Supabase migration。
 3. 修改是否影响路由或环境变量？如有，需同步更新 `README.md`。
+4. **代码中引用了新的数据库列时，必须确认该列已在 Supabase 中存在**。如果是新增列，必须同步提供 migration SQL 并记录到 `memory/manual-actions.md` 待执行（教训：`supplier_type`、`assigned_bd_id` 列在代码中引用但数据库未同步，导致线上 500）。
 
 ## 7. 提交前必须通过的本地检查
 
 每次 commit 前，**必须**在本地依次通过以下检查，否则 CI 会失败并触发自动回滚：
 
 ```bash
-npx prettier --write .   # 格式化所有文件
+npx prettier --write .   # 格式化所有文件（必须第一步执行，不是检查而是直接写入）
 npx tsc --noEmit         # TypeScript 类型检查
 bash scripts/check-file-lines.sh  # 文件行数检查（≤ 300 行）
 ```
 
+> **核心原则：格式化是写入操作，不是检查操作。** CI 用 `prettier --check` 验证，本地用 `prettier --write` 修正。顺序必须是「先格式化 → 再 add → 再 commit」，而非 commit 后靠 CI 发现。这是 CI 格式类失败的第一大根因——创建或修改了文件（尤其是 `.md`、新建文件）但没有跑 Prettier 就提交。
+>
 > CI 门禁（Main Branch Guard）运行顺序：Prettier → ESLint → tsc → 行数检查 → Vitest → Build。
 > 任意一步失败，后续步骤全部跳过，且会尝试自动 revert。
 
@@ -152,7 +156,7 @@ git push gitlab --tags
 3. **测试用例先行**：在编码前完成 Unit / Integration / E2E 测试用例设计
 4. **编码实现**：代码必须通过已设计的测试用例
 5. **全量测试**：新增测试 + 回归测试全部通过
-6. **上线评审**：对照上线清单逐项确认
+6. **上线评审**：对照上线清单逐项确认 + **Smoke Test 必须在真实环境走完整业务流程**（不能只靠 mock 级测试）
 
 ### 9.3 方案评审清单（Major Track 适用）
 
@@ -191,3 +195,8 @@ git push gitlab --tags
 - [ ] `npx next build` 构建成功
 - [ ] 新增路由/环境变量已同步 `README.md`
 - [ ] 数据库变更已有 migration 文件
+- [ ] **代码引用的所有数据库列在 Supabase 中已存在**（对照 migration 逐条核实）
+- [ ] **代码使用的所有状态值在数据库 CHECK 约束中已存在**（对照 `CHECK (status IN (...))` 逐条核实）
+- [ ] **涉及已有 API 端点的功能，必须验证该端点依赖的完整数据库 schema**（不能假设已有代码的 DB 依赖都已同步——教训：`approve-supplier` 依赖 `CONVERTING` 状态和 `supplier_type` 列，均未在 DB 中创建）
+- [ ] **Vercel 功能（Cron、Edge Config 等）符合当前计划限制**（Hobby: Cron 最低每天一次）
+- [ ] **push 后确认 Vercel Deployments 出现新部署**（防止 webhook 断裂无感知）

@@ -11,10 +11,13 @@ import {
   readConsent,
   type ConsentState,
 } from "@/lib/compliance/cookie-consent";
+import { resetAnalytics } from "@/lib/analytics/events";
 
 type BannerView = "banner" | "settings" | "hidden";
 
-export function CookieConsentBanner() {
+export function CookieConsentBanner({
+  countryCode,
+}: { countryCode?: string } = {}) {
   const [view, setView] = useState<BannerView>("hidden");
   const [consent, setConsent] = useState<ConsentState>({
     necessary: true,
@@ -28,7 +31,7 @@ export function CookieConsentBanner() {
     const id = requestAnimationFrame(() => {
       if (shouldShowBanner()) {
         setView("banner");
-        setConsent(getDefaultConsent());
+        setConsent(getDefaultConsent(countryCode));
       } else {
         const saved = readConsent();
         if (saved) setConsent(saved);
@@ -46,14 +49,18 @@ export function CookieConsentBanner() {
   };
 
   const handleRejectOptional = () => {
+    const prev = readConsent();
     const state = rejectOptional();
     setConsent(state);
     setView("hidden");
+    if (prev?.analytics) resetAnalytics();
   };
 
   const handleSaveSettings = () => {
+    const prev = readConsent();
     saveConsent(consent);
     setView("hidden");
+    if (prev?.analytics && !consent.analytics) resetAnalytics();
   };
 
   if (view === "settings") {

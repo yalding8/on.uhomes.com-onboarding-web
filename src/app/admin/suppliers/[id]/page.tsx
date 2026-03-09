@@ -1,199 +1,264 @@
 /**
- * 供应商详情页面 — Server Component
+ * Supplier detail page — Server Component
  *
- * 展示单个供应商的完整信息：基本信息、关联楼宇列表、合同信息。
- * Admin 可分配 BD，普通 BD 只能查看自己被分配的供应商。
- *
- * Requirements: 6.1, 6.2, 6.3, 6.4
+ * Two-column layout on desktop (>=1024px), single column on mobile.
+ * Left: timeline, contract, BD assignment. Right: building progress, notes.
  */
 
 import { notFound, redirect } from "next/navigation";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
-import { isAdmin as checkAdmin } from "@/lib/admin/permissions";
 import Link from "next/link";
-import { ChevronRight, CircleDot, Clock, CheckCircle2 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import type {
-  BuildingInfo,
-  ContractInfo,
-  SupplierDetail,
-} from "./supplier-detail-config";
-import { SUPPLIER_STATUS_CONFIG, formatDate } from "./supplier-detail-config";
+import { ArrowLeft, Download, FileText, Copy } from "lucide-react";
+import { CONTRACT_STATUS_LABELS, formatDate } from "./supplier-detail-config";
+import {
+  computePipelineStage,
+  getNextAction,
+  PIPELINE_STAGES,
+} from "@/lib/suppliers/pipeline";
 import { BdAssignSelect } from "@/components/admin/BdAssignSelect";
-import { BuildingsSection, ContractsSection } from "./sections";
-
-const STATUS_ICONS: Record<string, LucideIcon> = {
-  NEW: CircleDot,
-  PENDING_CONTRACT: Clock,
-  SIGNED: CheckCircle2,
-};
-
-interface BdUser {
-  id: string;
-  company_name: string;
-  contact_email: string;
-}
-
-async function getPageContext() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data: me } = await supabase
-    .from("suppliers")
-    .select("id, contact_email, role")
-    .eq("user_id", user.id)
-    .eq("role", "bd")
-    .single();
-  if (!me) return null;
-  return { bdSupplierId: me.id, isAdmin: checkAdmin(me.contact_email) };
-}
-
-async function getSupplierDetail(id: string, isAdmin: boolean) {
-  const supabaseAdmin = createAdminClient();
-  const { data: supplier, error: supplierError } = await supabaseAdmin
-    .from("suppliers")
-    .select(
-      "id, company_name, contact_email, role, status, created_at, bd_user_id",
-    )
-    .eq("id", id)
-    .single();
-  if (supplierError || !supplier) return null;
-
-  const [{ data: buildings }, { data: contracts }, bdUsers] = await Promise.all(
-    [
-      supabaseAdmin
-        .from("buildings")
-        .select("id, building_name, building_address, onboarding_status, score")
-        .eq("supplier_id", id)
-        .order("created_at", { ascending: false }),
-      supabaseAdmin
-        .from("contracts")
-        .select("id, status, embedded_signing_url, document_url, created_at")
-        .eq("supplier_id", id)
-        .order("created_at", { ascending: false }),
-      isAdmin
-        ? supabaseAdmin
-            .from("suppliers")
-            .select("id, company_name, contact_email")
-            .eq("role", "bd")
-            .order("company_name")
-            .then((r) => (r.data ?? []) as BdUser[])
-        : Promise.resolve([] as BdUser[]),
-    ],
-  );
-
-  return {
-    supplier: supplier as SupplierDetail,
-    buildings: (buildings ?? []) as BuildingInfo[],
-    contracts: (contracts ?? []) as ContractInfo[],
-    bdUsers,
-  };
-}
+import { SupplierTimeline } from "@/components/admin/SupplierTimeline";
+import { BuildingProgressCard } from "@/components/admin/BuildingProgressCard";
+import { SupplierNotes } from "@/components/admin/SupplierNotes";
+import {
+  getPageContext,
+  checkBdAccess,
+  fetchSupplierData,
+  countFilledFields,
+} from "./data";
 
 export default async function SupplierDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const ctx = await getPageContext();
+  let ctx: Awaited<ReturnType<typeof getPageContext>>;
+  try {
+    ctx = await getPageContext();
+  } catch (err) {
+    console.error("[supplier-detail] getPageContext failed", err);
+    redirect("/login");
+  }
   if (!ctx) redirect("/login");
   const { id } = await params;
 
-  // BD scoping: non-admin BD can only view assigned suppliers
   if (!ctx.isAdmin) {
-    const supabaseAdmin = createAdminClient();
-    const { data: target } = await supabaseAdmin
-      .from("suppliers")
-      .select("bd_user_id")
-      .eq("id", id)
-      .single();
-    if (target?.bd_user_id !== ctx.bdSupplierId) notFound();
+    const hasAccess = await checkBdAccess(id, ctx.bdSupplierId);
+    if (!hasAccess) notFound();
   }
 
-  const data = await getSupplierDetail(id, ctx.isAdmin);
+  let data: Awaited<ReturnType<typeof fetchSupplierData>>;
+  try {
+    data = await fetchSupplierData(id, ctx.isAdmin);
+  } catch (err) {
+    console.error("[supplier-detail] fetchSupplierData failed", err);
+    notFound();
+  }
   if (!data) notFound();
 
-  const { supplier, buildings, contracts, bdUsers } = data;
-  const statusConfig = SUPPLIER_STATUS_CONFIG[supplier.status] ?? {
-    label: supplier.status,
-    className:
-      "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
-  };
+  const { supplier, contract, buildings, onboardingData, bdUsers } = data;
+
+  const pipelineBuildings = buildings.map((b) => ({
+    onboarding_status: b.onboarding_status ?? "incomplete",
+    score: b.score ?? 0,
+  }));
+  const stage = computePipelineStage(
+    supplier.status,
+    contract?.status ?? null,
+    pipelineBuildings,
+  );
+  const nextAction = getNextAction(
+    stage,
+    contract?.status ?? null,
+    pipelineBuildings,
+  );
+  const stageConfig = PIPELINE_STAGES.find((s) => s.value === stage);
+
+  const onboardingMap = new Map(onboardingData.map((d) => [d.building_id, d]));
+  const enrichedBuildings = buildings.map((b) => {
+    const od = onboardingMap.get(b.id);
+    const filled = countFilledFields(od?.field_values ?? null);
+    return {
+      id: b.id,
+      building_name: b.building_name,
+      building_address: b.building_address,
+      onboarding_status: b.onboarding_status ?? "incomplete",
+      score: b.score ?? 0,
+      missing_count: 100 - filled,
+      updated_at: od?.updated_at ?? null,
+    };
+  });
+
+  const location = [supplier.city, supplier.country].filter(Boolean).join(", ");
+  const contractType =
+    (contract?.provider_metadata as { type?: string } | null)?.type ?? null;
+  const contractStatusCfg = contract
+    ? (CONTRACT_STATUS_LABELS[contract.status] ?? {
+        label: contract.status,
+        className:
+          "bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]",
+      })
+    : null;
 
   return (
-    <div>
-      <nav className="flex items-center gap-1.5 text-sm mb-4 text-[var(--color-text-secondary)]">
-        <Link
-          href="/admin/suppliers"
-          className="hover:text-[var(--color-text-primary)] transition-colors"
-        >
-          Suppliers
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5" />
-        <span className="text-[var(--color-text-primary)] font-medium truncate">
-          {supplier.company_name}
-        </span>
-      </nav>
+    <div className="max-w-6xl mx-auto">
+      <Link
+        href="/admin/suppliers"
+        className="inline-flex items-center gap-1.5 text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-4"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to Suppliers
+      </Link>
 
-      {/* 基本信息 */}
-      <div className="rounded-lg border border-[var(--color-border)] p-4 md:p-6 mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
-            {supplier.company_name}
-          </h1>
-          {(() => {
-            const StatusIcon = STATUS_ICONS[supplier.status];
-            return (
-              <span
-                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium ${statusConfig.className}`}
-              >
-                {StatusIcon && <StatusIcon className="h-3.5 w-3.5" />}
-                {statusConfig.label}
-              </span>
-            );
-          })()}
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-2">
+        <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">
+          {supplier.ref_code && (
+            <span className="text-sm text-[var(--color-text-muted)] font-normal me-2">
+              {supplier.ref_code}
+            </span>
+          )}
+          {supplier.company_name}
+        </h1>
+        {stageConfig && (
+          <span
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
+            style={{
+              backgroundColor: `color-mix(in srgb, ${stageConfig.color} 15%, transparent)`,
+              color: stageConfig.color,
+            }}
+          >
+            {stageConfig.label}
+          </span>
+        )}
+      </div>
+      <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+        {supplier.contact_email}
+        {supplier.contact_phone && <> &middot; {supplier.contact_phone}</>}
+        {location && <> &middot; {location}</>}
+      </p>
+
+      {/* Next action banner */}
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-secondary)] px-4 py-3 mb-6">
+        <div className="flex items-center gap-2 text-sm text-[var(--color-text-primary)]">
+          <FileText className="w-4 h-4 text-[var(--color-text-muted)] shrink-0" />
+          <span>{nextAction.text}</span>
         </div>
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <div>
-            <dt className="text-[var(--color-text-muted)]">Email</dt>
-            <dd className="text-[var(--color-text-primary)]">
-              {supplier.contact_email}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-[var(--color-text-muted)]">Created</dt>
-            <dd className="text-[var(--color-text-primary)]">
-              {formatDate(supplier.created_at)}
-            </dd>
-          </div>
-          <div className="sm:col-span-2">
-            <dt className="text-[var(--color-text-muted)] mb-1">Assigned BD</dt>
-            <dd>
-              {ctx.isAdmin ? (
-                <BdAssignSelect
-                  supplierId={supplier.id}
-                  currentBdId={supplier.bd_user_id}
-                  bdUsers={bdUsers}
-                />
-              ) : (
-                <span className="text-[var(--color-text-primary)]">
-                  {bdUsers.find((b) => b.id === supplier.bd_user_id)
-                    ?.company_name ?? "—"}
-                </span>
-              )}
-            </dd>
-          </div>
-        </dl>
+        {nextAction.actionType === "copy_email" && (
+          <button
+            className="inline-flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline shrink-0"
+            title="Copy supplier email"
+            data-copy={supplier.contact_email}
+          >
+            <Copy className="w-3.5 h-3.5" />
+            Copy Email
+          </button>
+        )}
       </div>
 
-      {/* 关联楼宇 */}
-      <BuildingsSection buildings={buildings} />
+      {/* Two-column layout */}
+      <div className="lg:grid lg:grid-cols-[1fr_1.5fr] lg:gap-6 space-y-6 lg:space-y-0">
+        {/* LEFT COLUMN */}
+        <div className="space-y-6">
+          <SupplierTimeline supplierId={supplier.id} />
+          <ContractSection
+            contract={contract}
+            statusCfg={contractStatusCfg}
+            contractType={contractType}
+          />
+          {ctx.isAdmin && (
+            <section className="rounded-lg border border-[var(--color-border)] p-4">
+              <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">
+                BD Assignment
+              </h2>
+              <BdAssignSelect
+                supplierId={supplier.id}
+                currentBdId={supplier.bd_user_id}
+                bdUsers={bdUsers}
+              />
+            </section>
+          )}
+        </div>
 
-      {/* 合同信息 */}
-      <ContractsSection contracts={contracts} />
+        {/* RIGHT COLUMN */}
+        <div className="space-y-6">
+          <BuildingProgressCard
+            buildings={enrichedBuildings}
+            supplierId={supplier.id}
+          />
+          <SupplierNotes supplierId={supplier.id} canEdit={true} />
+        </div>
+      </div>
     </div>
+  );
+}
+
+/* ── Contract sub-section ── */
+
+function ContractSection({
+  contract,
+  statusCfg,
+  contractType,
+}: {
+  contract: {
+    id: string;
+    status: string;
+    document_url: string | null;
+    signed_at: string | null;
+  } | null;
+  statusCfg: { label: string; className: string } | null;
+  contractType: string | null;
+}) {
+  return (
+    <section className="rounded-lg border border-[var(--color-border)] p-4">
+      <h2 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">
+        Contract
+      </h2>
+      {contract ? (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            {statusCfg && (
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${statusCfg.className}`}
+              >
+                {statusCfg.label}
+              </span>
+            )}
+            {contractType && (
+              <span className="text-xs text-[var(--color-text-muted)]">
+                {contractType}
+              </span>
+            )}
+          </div>
+          {contract.signed_at && (
+            <p className="text-xs text-[var(--color-text-secondary)]">
+              Signed {formatDate(contract.signed_at)}
+            </p>
+          )}
+          <div className="flex items-center gap-2 pt-1">
+            {contract.document_url && (
+              <a
+                href={contract.document_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Download PDF
+              </a>
+            )}
+            <Link
+              href={`/admin/contracts/${contract.id}/edit`}
+              className="inline-flex items-center gap-1 text-xs text-[var(--color-primary)] hover:underline"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              View Contract
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-[var(--color-text-muted)]">
+          No contract yet
+        </p>
+      )}
+    </section>
   );
 }

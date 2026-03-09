@@ -18,6 +18,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { BuildingInfo, ContractInfo } from "./supplier-detail-config";
 import { CONTRACT_STATUS_LABELS, formatDate } from "./supplier-detail-config";
+import { SignedContractDownload } from "@/components/contracts/SignedContractDownload";
 import { ResendButton } from "@/components/admin/ResendButton";
 
 const CONTRACT_ICONS: Record<string, LucideIcon> = {
@@ -151,14 +152,10 @@ export function ContractsSection({ contracts }: { contracts: ContractInfo[] }) {
                         </Link>
                       )}
                       {c.status === "SIGNED" && c.document_url && (
-                        <a
-                          href={c.document_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[var(--color-primary)] hover:underline"
-                        >
-                          Download Signed Contract
-                        </a>
+                        <SignedContractDownload
+                          contractId={c.id}
+                          variant="link"
+                        />
                       )}
                       {c.status === "SENT" && (
                         <ResendButton contractId={c.id} />

@@ -55,16 +55,20 @@ export async function handleConfirm(
   }
 
   const adminClient = createAdminClient();
-  const { error: confirmError } = await adminClient
+
+  // H-02 fix: atomic WHERE guard prevents double-click race condition
+  const { data: updated } = await adminClient
     .from("contracts")
     .update({ status: "CONFIRMED" })
-    .eq("id", contract.id);
+    .eq("id", contract.id)
+    .eq("status", "PENDING_REVIEW")
+    .select("id");
 
-  if (confirmError) {
+  if (!updated || updated.length === 0) {
     return {
       success: false,
-      error: "Failed to update contract status",
-      httpStatus: 500,
+      error: "Contract is already being processed",
+      httpStatus: 409,
     };
   }
 
@@ -104,16 +108,27 @@ export async function handleRequestChanges(
   }
 
   const adminClient = createAdminClient();
-  const { error: updateError } = await adminClient
+  // Atomic WHERE guard: prevent race with concurrent confirm
+  const { data: updated, error: updateError } = await adminClient
     .from("contracts")
     .update({ status: "DRAFT" })
-    .eq("id", contract.id);
+    .eq("id", contract.id)
+    .eq("status", "PENDING_REVIEW")
+    .select("id");
 
   if (updateError) {
     return {
       success: false,
       error: "Failed to update contract status",
       httpStatus: 500,
+    };
+  }
+
+  if (!updated || updated.length === 0) {
+    return {
+      success: false,
+      error: "Contract status has already changed. Please refresh.",
+      httpStatus: 409,
     };
   }
 
@@ -175,9 +190,12 @@ async function sendEnvelope(
   } catch (err: unknown) {
     const detail =
       err instanceof Error ? err.message : "Unknown DocuSign error";
+
+    // C-01 fix: rollback to PENDING_REVIEW so admin can retry
     await adminClient
       .from("contracts")
       .update({
+        status: "PENDING_REVIEW",
         provider_metadata: {
           docusign_error: detail,
           docusign_error_at: new Date().toISOString(),

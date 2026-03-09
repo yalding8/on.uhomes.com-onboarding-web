@@ -95,12 +95,12 @@ export async function PATCH(request: Request, context: RouteContext) {
       );
     }
 
-    // 4. Fetch current building status
+    // 4. Fetch current building status with supplier ownership
     const supabaseAdmin = createAdminClient();
 
     const { data: building, error: fetchError } = await supabaseAdmin
       .from("buildings")
-      .select("id, onboarding_status")
+      .select("id, onboarding_status, supplier_id")
       .eq("id", buildingId)
       .single();
 
@@ -109,6 +109,21 @@ export async function PATCH(request: Request, context: RouteContext) {
         { error: "Building not found" },
         { status: 404 },
       );
+    }
+
+    // H-04 fix: BD scoping — verify ownership via supplier's bd_user_id
+    if (!authResult.isAdmin) {
+      const { data: supplier } = await supabaseAdmin
+        .from("suppliers")
+        .select("bd_user_id")
+        .eq("id", building.supplier_id)
+        .single();
+      if (supplier?.bd_user_id !== authResult.supplier.id) {
+        return NextResponse.json(
+          { error: "Forbidden: building is not assigned to you" },
+          { status: 403 },
+        );
+      }
     }
 
     const currentStatus = (building.onboarding_status ??
@@ -178,9 +193,10 @@ export async function PATCH(request: Request, context: RouteContext) {
       ...(reason ? { reason } : {}),
     });
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Unknown server error";
     console.error("[admin/buildings/status]", error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

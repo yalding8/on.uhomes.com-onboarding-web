@@ -1,12 +1,50 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
 import { buildNewApplicationEmail } from "@/lib/email/templates/new-application";
 import { ADMIN_EMAILS } from "@/lib/admin/permissions";
+import { SUPPLIER_TYPES } from "@/lib/constants/supplier-types";
+
+/** Server-side validation schema — mirrors client schema with added sanitization */
+const serverApplicantSchema = z
+  .object({
+    company_name: z.string().trim().min(2).max(200),
+    supplier_type: z.enum(SUPPLIER_TYPES),
+    contact_email: z.string().trim().toLowerCase().email(),
+    contact_phone: z
+      .string()
+      .trim()
+      .regex(/^\+\d{1,4}[\s\-]?\(?\d[\d\s\-()]{3,15}$/),
+    country: z.string().trim().min(2).max(100),
+    website_url: z
+      .string()
+      .trim()
+      .transform((val) => {
+        if (!val) return val;
+        if (!/^https?:\/\//i.test(val)) return `https://${val}`;
+        return val;
+      })
+      .pipe(z.string().url())
+      .optional()
+      .or(z.literal("")),
+    referral_code: z.string().trim().max(50).optional().or(z.literal("")),
+  })
+  .strict();
 
 export async function POST(request: Request) {
   try {
     const payload = await request.json();
+
+    // Validate and sanitize input using Zod
+    const parsed = serverApplicantSchema.safeParse(payload);
+    if (!parsed.success) {
+      const firstError = parsed.error.issues[0];
+      return NextResponse.json(
+        { error: firstError?.message ?? "Invalid input" },
+        { status: 400 },
+      );
+    }
 
     const {
       company_name,
@@ -16,40 +54,16 @@ export async function POST(request: Request) {
       country,
       website_url,
       referral_code,
-    } = payload;
-
-    if (
-      !company_name ||
-      !supplier_type ||
-      !contact_email ||
-      !contact_phone ||
-      !country
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing required fields: company_name, supplier_type, contact_email, contact_phone, and country are all required.",
-        },
-        { status: 400 },
-      );
-    }
-
-    // Basic email format check
-    if (!/\S+@\S+\.\S+/.test(contact_email)) {
-      return NextResponse.json(
-        { error: "Invalid email format." },
-        { status: 400 },
-      );
-    }
+    } = parsed.data;
 
     // Connect via service role to bypass RLS during system-level insert
     const supabase = createAdminClient();
 
-    // Duplicate submission guard — prevent multiple PENDING applications for the same email
+    // Duplicate submission guard — case-insensitive (email already lowercased by Zod)
     const { data: existingApp } = await supabase
       .from("applications")
       .select("id")
-      .eq("contact_email", contact_email)
+      .ilike("contact_email", contact_email)
       .eq("status", "PENDING")
       .limit(1);
 
@@ -64,7 +78,7 @@ export async function POST(request: Request) {
     const { data: existingSupplier } = await supabase
       .from("suppliers")
       .select("id")
-      .eq("contact_email", contact_email)
+      .ilike("contact_email", contact_email)
       .limit(1);
 
     if (existingSupplier && existingSupplier.length > 0) {
@@ -76,11 +90,11 @@ export async function POST(request: Request) {
 
     // Resolve referral code to BD supplier id
     let assignedBdId: string | null = null;
-    if (referral_code && typeof referral_code === "string") {
+    if (referral_code) {
       const { data: referrer } = await supabase
         .from("suppliers")
         .select("id")
-        .eq("referral_code", referral_code.trim())
+        .eq("referral_code", referral_code)
         .eq("role", "bd")
         .single();
       if (referrer) {
@@ -88,6 +102,7 @@ export async function POST(request: Request) {
       }
     }
 
+    // Use validated/sanitized data for insert
     const { error } = await supabase.from("applications").insert([
       {
         company_name,
@@ -102,6 +117,7 @@ export async function POST(request: Request) {
     ]);
 
     if (error) {
+      console.error("[apply] insert error", error);
       return NextResponse.json(
         { error: "Internal database error saving application." },
         { status: 500 },
@@ -130,8 +146,10 @@ export async function POST(request: Request) {
       { status: 200 },
     );
   } catch (error: unknown) {
-    const message =
-      error instanceof Error ? error.message : "Server error occurred";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[apply]", error);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }

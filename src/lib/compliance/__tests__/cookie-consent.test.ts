@@ -2,7 +2,7 @@
  * S3.1 Cookie Consent — Unit Tests
  * Covers consent state management, country-based defaults, persistence.
  */
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
   getDefaultConsent,
   readConsent,
@@ -11,6 +11,23 @@ import {
   acceptAll,
   rejectOptional,
 } from "../cookie-consent";
+
+/** Mock localStorage since happy-dom's implementation is incomplete */
+function createMockLocalStorage(): Storage {
+  const store = new Map<string, string>();
+  return {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => store.set(key, value),
+    removeItem: (key: string) => store.delete(key),
+    clear: () => store.clear(),
+    get length() {
+      return store.size;
+    },
+    key: (index: number) => [...store.keys()][index] ?? null,
+  };
+}
+
+vi.stubGlobal("localStorage", createMockLocalStorage());
 
 describe("getDefaultConsent", () => {
   it("returns analytics OFF for EU country (DE)", () => {

@@ -73,7 +73,10 @@ export async function POST(request: Request, context: RouteContext) {
 
     return toResponse(await handleRequestChanges(contract));
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Unknown server error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[contracts/confirm]", err);
+    return NextResponse.json(
+      { error: "An unexpected error occurred" },
+      { status: 500 },
+    );
   }
 }
