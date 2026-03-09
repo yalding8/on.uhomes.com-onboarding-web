@@ -110,7 +110,7 @@ export async function extractFromWebsite(
   );
 
   // 5. 分层提取（首页）
-  let mergedFields = extractLayered(scraped);
+  const mergedFields = extractLayered(scraped);
 
   // 6. LLM 提取（首页，如需要）
   const llmSkipped = hasHighCoverage(scraped);
