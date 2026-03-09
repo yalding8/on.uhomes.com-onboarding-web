@@ -17,6 +17,7 @@ import { calculateScore } from "@/lib/onboarding/scoring-engine";
 import type { FieldValue } from "@/lib/onboarding/field-value";
 import type { BuildingStatus } from "@/lib/onboarding/status-engine";
 import { PlatformOverview } from "@/components/dashboard/PlatformOverview";
+import { SupplierNotes } from "@/components/supplier/SupplierNotes";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -56,12 +57,15 @@ export default async function DashboardPage() {
     status: string;
     contract_fields: ContractFields | null;
     document_url: string | null;
+    uploaded_document_url: string | null;
   } | null = null;
 
   if (supplier.status === "PENDING_CONTRACT") {
     const { data } = await supabase
       .from("contracts")
-      .select("id, status, contract_fields, document_url")
+      .select(
+        "id, status, contract_fields, document_url, uploaded_document_url",
+      )
       .eq("supplier_id", supplier.id)
       .not("status", "eq", "CANCELED")
       .order("created_at", { ascending: false })
@@ -134,6 +138,9 @@ export default async function DashboardPage() {
         </p>
       </div>
 
+      {/* BD Notes — visible to supplier */}
+      <SupplierNotes />
+
       {/* 合同区域 — 新状态流程 */}
       {supplier.status === "PENDING_CONTRACT" && (
         <div>
@@ -146,6 +153,7 @@ export default async function DashboardPage() {
               status={contract.status as ContractStatus}
               fields={contract.contract_fields}
               documentUrl={contract.document_url}
+              uploadedDocumentUrl={contract.uploaded_document_url}
             />
           ) : contract && contract.status === "SIGNED" ? (
             <ContractPreview
@@ -153,6 +161,7 @@ export default async function DashboardPage() {
               status={contract.status as ContractStatus}
               fields={contract.contract_fields}
               documentUrl={contract.document_url}
+              uploadedDocumentUrl={contract.uploaded_document_url}
             />
           ) : (
             <div className="p-4 bg-[var(--color-primary-light)] rounded-xl border border-[var(--color-border)] flex items-start gap-3">

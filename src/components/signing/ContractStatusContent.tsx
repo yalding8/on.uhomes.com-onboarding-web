@@ -7,34 +7,9 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import type { ContractStatus, ContractFields } from "@/lib/contracts/types";
+export { FIELD_LABELS, FIELD_ORDER } from "@/lib/contracts/types";
 import { ContractDocumentPreview } from "@/components/contracts/ContractDocumentPreview";
 import { SignedContractDownload } from "@/components/contracts/SignedContractDownload";
-
-/** Field labels for the 9 dynamic contract fields */
-export const FIELD_LABELS: Record<keyof ContractFields, string> = {
-  partner_company_name: "Partner Company",
-  partner_contact_name: "Contact Name",
-  partner_address: "Address",
-  partner_city: "City",
-  partner_country: "Country / Region",
-  commission_rate: "Commission Rate (%)",
-  contract_start_date: "Contract Start Date",
-  contract_end_date: "Contract End Date",
-  covered_properties: "Covered Properties",
-};
-
-/** Field display order */
-export const FIELD_ORDER: ReadonlyArray<keyof ContractFields> = [
-  "partner_company_name",
-  "partner_contact_name",
-  "partner_address",
-  "partner_city",
-  "partner_country",
-  "commission_rate",
-  "contract_start_date",
-  "contract_end_date",
-  "covered_properties",
-];
 
 /** Status badge */
 export function StatusBadge({ status }: { status: ContractStatus }) {
@@ -72,6 +47,7 @@ export function StatusContent({
   status,
   fields,
   documentUrl,
+  uploadedDocumentUrl,
   contractId,
   isLoading,
   onAction,
@@ -79,17 +55,21 @@ export function StatusContent({
   status: ContractStatus;
   fields: ContractFields | null;
   documentUrl: string | null;
+  uploadedDocumentUrl?: string | null;
   contractId: string;
   isLoading: boolean;
   onAction: (action: "confirm" | "request_changes" | "resend") => void;
 }) {
+  const hasCustomPdf = !!uploadedDocumentUrl;
+
   switch (status) {
     case "DRAFT":
-      return <DraftContent />;
+      return <DraftContent contractId={hasCustomPdf ? contractId : null} />;
     case "PENDING_REVIEW":
       return (
         <PendingReviewContent
           fields={fields}
+          contractId={hasCustomPdf ? contractId : null}
           isLoading={isLoading}
           onAction={onAction}
         />
@@ -112,7 +92,7 @@ export function StatusContent({
   }
 }
 
-function DraftContent() {
+function DraftContent({ contractId }: { contractId: string | null }) {
   return (
     <div className="text-center py-12">
       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--color-primary-light)] text-[var(--color-primary)] mb-4">
@@ -124,16 +104,27 @@ function DraftContent() {
       <p className="text-sm text-[var(--color-text-secondary)]">
         Our BD team is preparing the partnership agreement for you. Please wait.
       </p>
+      {contractId && (
+        <div className="mt-6">
+          <SignedContractDownload
+            contractId={contractId}
+            label="Preview Contract PDF"
+            variant="link"
+          />
+        </div>
+      )}
     </div>
   );
 }
 
 function PendingReviewContent({
   fields,
+  contractId,
   isLoading,
   onAction,
 }: {
   fields: ContractFields | null;
+  contractId: string | null;
   isLoading: boolean;
   onAction: (action: "confirm" | "request_changes") => void;
 }) {
@@ -147,6 +138,14 @@ function PendingReviewContent({
       <div data-testid="contract-fields">
         <ContractDocumentPreview fields={fields} />
       </div>
+
+      {contractId && (
+        <SignedContractDownload
+          contractId={contractId}
+          label="Download Contract PDF"
+          variant="link"
+        />
+      )}
 
       <div className="flex flex-col sm:flex-row gap-3 pt-2">
         <button

@@ -7,12 +7,14 @@ interface SignedContractDownloadProps {
   contractId: string;
   className?: string;
   variant?: "button" | "link";
+  label?: string;
 }
 
 export function SignedContractDownload({
   contractId,
   className,
   variant = "button",
+  label,
 }: SignedContractDownloadProps) {
   const [loading, setLoading] = useState(false);
 
@@ -41,7 +43,7 @@ export function SignedContractDownload({
           "text-[var(--color-primary)] hover:underline disabled:opacity-50"
         }
       >
-        {loading ? "Loading..." : "Download Signed Contract"}
+        {loading ? "Loading..." : (label ?? "Download Signed Contract")}
       </button>
     );
   }
@@ -61,7 +63,9 @@ export function SignedContractDownload({
       ) : (
         <Download className="w-4 h-4 me-2" />
       )}
-      {loading ? "Generating link..." : "Download Signed Contract (PDF)"}
+      {loading
+        ? "Generating link..."
+        : (label ?? "Download Signed Contract (PDF)")}
     </button>
   );
 }

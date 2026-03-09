@@ -49,3 +49,29 @@ export interface FieldValidationResult {
   valid: boolean;
   errors: Record<string, string>; // fieldName → errorMessage
 }
+
+/** Field labels for the 9 dynamic contract fields */
+export const FIELD_LABELS: Record<keyof ContractFields, string> = {
+  partner_company_name: "Partner Company",
+  partner_contact_name: "Contact Name",
+  partner_address: "Address",
+  partner_city: "City",
+  partner_country: "Country / Region",
+  commission_rate: "Commission Rate (%)",
+  contract_start_date: "Contract Start Date",
+  contract_end_date: "Contract End Date",
+  covered_properties: "Covered Properties",
+};
+
+/** Field display order */
+export const FIELD_ORDER: ReadonlyArray<keyof ContractFields> = [
+  "partner_company_name",
+  "partner_contact_name",
+  "partner_address",
+  "partner_city",
+  "partner_country",
+  "commission_rate",
+  "contract_start_date",
+  "contract_end_date",
+  "covered_properties",
+];

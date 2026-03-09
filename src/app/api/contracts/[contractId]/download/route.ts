@@ -32,7 +32,7 @@ export async function GET(_request: Request, { params }: RouteParams) {
     // Fetch contract with supplier ownership info
     const { data: contract, error: contractErr } = await supabaseAdmin
       .from("contracts")
-      .select("id, supplier_id, status, document_url")
+      .select("id, supplier_id, status, document_url, uploaded_document_url")
       .eq("id", contractId)
       .single();
 
@@ -64,28 +64,46 @@ export async function GET(_request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Only signed contracts have downloadable documents
-    if (!contract.document_url) {
-      return NextResponse.json(
-        { error: "No signed document available" },
-        { status: 404 },
-      );
+    // Determine which document to serve
+    // Priority: signed document > uploaded custom PDF
+    if (contract.document_url) {
+      const { data: signedUrlData, error: signedUrlErr } =
+        await supabaseAdmin.storage
+          .from("signed-contracts")
+          .createSignedUrl(contract.document_url, 300);
+
+      if (signedUrlErr || !signedUrlData?.signedUrl) {
+        return NextResponse.json(
+          { error: "Failed to generate download URL" },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({ url: signedUrlData.signedUrl });
     }
 
-    // Generate a signed URL (valid for 5 minutes)
-    const { data: signedUrlData, error: signedUrlErr } =
-      await supabaseAdmin.storage
-        .from("signed-contracts")
-        .createSignedUrl(contract.document_url, 300);
+    // Custom contract PDF uploaded by BD (available before signing)
+    if (contract.uploaded_document_url) {
+      const storagePath = `${contract.supplier_id}/${contractId}.pdf`;
+      const { data: signedUrlData, error: signedUrlErr } =
+        await supabaseAdmin.storage
+          .from("uploaded-contracts")
+          .createSignedUrl(storagePath, 300);
 
-    if (signedUrlErr || !signedUrlData?.signedUrl) {
-      return NextResponse.json(
-        { error: "Failed to generate download URL" },
-        { status: 500 },
-      );
+      if (signedUrlErr || !signedUrlData?.signedUrl) {
+        return NextResponse.json(
+          { error: "Failed to generate download URL" },
+          { status: 500 },
+        );
+      }
+
+      return NextResponse.json({ url: signedUrlData.signedUrl });
     }
 
-    return NextResponse.json({ url: signedUrlData.signedUrl });
+    return NextResponse.json(
+      { error: "No document available" },
+      { status: 404 },
+    );
   } catch {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }

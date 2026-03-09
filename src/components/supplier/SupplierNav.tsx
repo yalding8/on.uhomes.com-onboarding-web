@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LogoutButton } from "@/components/admin/LogoutButton";
+import { NotificationBell } from "@/components/supplier/NotificationBell";
 
 interface SupplierNavProps {
   email: string;
@@ -19,6 +20,7 @@ export function SupplierNav({ email }: SupplierNavProps) {
           <span className="hidden sm:inline text-sm text-[var(--color-text-secondary)] truncate max-w-[200px]">
             {email}
           </span>
+          <NotificationBell />
           <LogoutButton />
         </div>
       </div>

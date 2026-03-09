@@ -11,6 +11,7 @@ interface ContractPreviewProps {
   status: ContractStatus;
   fields: ContractFields | null;
   documentUrl: string | null;
+  uploadedDocumentUrl?: string | null;
 }
 
 export function ContractPreview({
@@ -18,6 +19,7 @@ export function ContractPreview({
   status,
   fields,
   documentUrl,
+  uploadedDocumentUrl,
 }: ContractPreviewProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -80,6 +82,7 @@ export function ContractPreview({
           status={status}
           fields={fields}
           documentUrl={documentUrl}
+          uploadedDocumentUrl={uploadedDocumentUrl}
           contractId={contractId}
           isLoading={isLoading}
           onAction={handleAction}
