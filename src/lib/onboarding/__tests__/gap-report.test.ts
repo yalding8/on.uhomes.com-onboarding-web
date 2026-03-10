@@ -15,6 +15,7 @@ const makeField = (
   weight: 5,
   extractTier: tier,
   required: true,
+  phase: 1,
 });
 
 const makeFV = (value: unknown): FieldValue => ({

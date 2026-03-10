@@ -15,7 +15,7 @@ export type BuildingStatus =
   | "ready_to_publish"
   | "published";
 
-const PREVIEWABLE_THRESHOLD = 80;
+const PREVIEWABLE_THRESHOLD = 70;
 
 /** 不受评分自动影响的终态 */
 const LOCKED_STATUSES: BuildingStatus[] = [
