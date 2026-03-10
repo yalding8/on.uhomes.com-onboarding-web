@@ -29,14 +29,6 @@ vi.stubGlobal("fetch", mockFetch);
 import { triggerExtractionAfterConfirm } from "../extraction-trigger";
 import { captureError } from "@/lib/security/sentry";
 
-function setupChain(data: unknown) {
-  mockFrom.mockReturnValue({ select: mockSelect });
-  mockSelect.mockReturnValue({ eq: mockEq });
-  mockEq.mockReturnValue({ single: mockSingle });
-  // For buildings query (no .single())
-  mockEq.mockResolvedValueOnce({ data });
-}
-
 beforeEach(() => {
   vi.clearAllMocks();
   process.env.NEXT_PUBLIC_BASE_URL = "https://test.example.com";
@@ -72,7 +64,6 @@ describe("triggerExtractionAfterConfirm", () => {
 
   it("triggers extraction for each building", async () => {
     const buildings = [{ id: "b-1" }, { id: "b-2" }];
-    let callCount = 0;
 
     mockFrom.mockImplementation((table: string) => {
       if (table === "buildings") {
