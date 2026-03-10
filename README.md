@@ -31,10 +31,12 @@
 | P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                      | ✅ 完成   |
 | P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                              | ✅ 完成   |
 | P2-SupplierFlow | 供应商流程重设计（G2-G9）：提取时序、OTP 账户、数据源上传、预览、导出、BD 预填             | ✅ 完成   |
+| P2-InviteUX     | Invite 页面重设计：双栏布局、流程步骤条、成功卡片、Tips 面板                               | ✅ 完成   |
+| S1-Audit        | Sprint 1 安全审计：C-01/C-03 修复 + E2E 126 测试 + Playwright 认证体系                     | ✅ 完成   |
 | P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
 | P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                            | 🚧 开发中 |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计均已完成（686 测试用例，48 个测试文件）。下一阶段：手动验收测试 → P1-Pub 内部预览与发布 → Uhomes OAuth 集成。
+**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计 + Invite 页面重设计 + Sprint 1 安全审计均已完成（697 Vitest 用例 + 126 E2E 用例，15 个 E2E spec 文件）。下一阶段：Sprint 2 Publishing 流程 + 通知系统 → Sprint 3 运营效率工具。
 
 ## 基础设施与选型
 
@@ -533,7 +535,8 @@ curl -X POST http://localhost:3000/api/apply \
 | 页面 + API 路由   | 46 个（17 页面 + 29 API）                   |
 | UI 组件           | 53 个（8 个功能模块）                       |
 | 核心库模块        | 8 个子目录、35+ 个模块文件                  |
-| 单元测试          | 48 个文件、686 个测试用例                   |
+| 单元测试          | 51 个文件、697 个测试用例                   |
+| E2E 测试          | 15 个 spec 文件、126 个测试用例             |
 | 数据库表          | 18 个核心表、20 个迁移文件                  |
 | ESLint 警告       | 0（src/ + scripts/ + tests/）               |
 | TypeScript 错误   | 0                                           |
@@ -588,6 +591,29 @@ curl -X POST http://localhost:3000/api/apply \
 16. **域名经验复用**：同一域名多次爬取后跳过 probe，复用已知策略，千站规模节省数小时
 17. **提取遥测积累**：每次爬取 20+ 维度写入 extraction_logs，为自适应进化积累数据
 
+### S1-Audit Sprint 1 安全审计（2026-03-11）
+
+基于供应链管理专家组评估报告（综合评分 7.8/10），完成 P0 级修复 + E2E 测试全面覆盖：
+
+**Bug 修复**
+
+- **C-01 合同卡死修复**：DocuSign 成功但 DB 更新失败时，自动重试 3 次（500ms 指数退避）；最终失败则存入 `orphaned_envelope_id` 供人工对账
+- **C-03 GDPR 导出补全**：新增 5 张表导出（`application_notes`、`supplier_notes`、`supplier_badges`、`building_images`、`extraction_feedback`）；账户删除同步清理这些表
+
+**E2E 测试体系（19 → 126 tests）**
+
+- **Playwright globalSetup 认证**：通过 Supabase admin `generateLink` + `verifyOtp` 获取真实 session，保存 BD / Supplier 两套 storageState
+- **3 个 Playwright project**：`public`（公开页面）、`admin`（BD 认证）、`supplier`（供应商认证）
+- **API 安全边界** 15 tests：所有受保护端点拒绝未授权请求
+- **Webhook 安全** 4 tests：DocuSign/OpenSign/Extraction 签名验证
+- **Auth 保护** 14 tests：所有 admin/supplier 路由重定向 + 公开路由可访问
+- **Landing Page** 17 tests：表单校验、API 错误、网络故障、loading 态
+- **Login** 18 tests：邮箱格式、OTP 非数字、API 限流、resend、terms 链接
+- **Admin 页面** 28 tests：Applications/Suppliers/Invite 结构、交互、响应式
+- **Supplier Dashboard** 8 tests：页面加载、JS 无错误、响应式
+- **响应式布局** 8 tests：三断点无溢出 + 触摸目标尺寸
+- **导航 + 法律页面** 14 tests：跨页跳转、404、Privacy/Terms 完整性
+
 ---
 
 ## 下一阶段工作计划
@@ -612,9 +638,9 @@ curl -X POST http://localhost:3000/api/apply \
 
 ### P2 第三优先级：体验与合规
 
-| 任务         | 描述                                                          | 预估复杂度 |
-| :----------- | :------------------------------------------------------------ | :--------- |
-| i18n 多语言  | 运行时语言切换（英 / 中 / 日 / 阿拉伯语），CSS 逻辑属性已就绪 | 高         |
-| 数据分析面板 | 供应商转化漏斗、签约耗时、数据完整度分布                      | 中         |
-| Worker 联调  | 主应用与 Fly.io Extraction Worker 端到端联调测试              | 中         |
-| E2E 自动化   | Playwright E2E 测试覆盖核心签约流程，集成到 CI                | 高         |
+| 任务         | 描述                                                                    | 预估复杂度 |
+| :----------- | :---------------------------------------------------------------------- | :--------- |
+| i18n 多语言  | 运行时语言切换（英 / 中 / 日 / 阿拉伯语），CSS 逻辑属性已就绪           | 高         |
+| 数据分析面板 | 供应商转化漏斗、签约耗时、数据完整度分布                                | 中         |
+| Worker 联调  | 主应用与 Fly.io Extraction Worker 端到端联调测试                        | 中         |
+| E2E 自动化   | ~~Playwright E2E 测试覆盖核心流程~~ → **已完成（S1-Audit，126 tests）** | ✅         |

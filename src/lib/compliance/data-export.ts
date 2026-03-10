@@ -10,10 +10,15 @@ export type DataExportPackage = {
   supplier: Record<string, unknown> | null;
   buildings: Record<string, unknown>[];
   buildingOnboardingData: Record<string, unknown>[];
+  buildingImages: Record<string, unknown>[];
   contracts: Record<string, unknown>[];
   applications: Record<string, unknown>[];
+  applicationNotes: Record<string, unknown>[];
+  supplierNotes: Record<string, unknown>[];
+  supplierBadges: Record<string, unknown>[];
   fieldAuditLogs: Record<string, unknown>[];
   extractionJobs: Record<string, unknown>[];
+  extractionFeedback: Record<string, unknown>[];
   storageFiles: Record<string, string[]>;
 };
 
@@ -73,12 +78,20 @@ export async function exportSupplierData(
 
   // Fetch building onboarding data (via building IDs)
   let buildingOnboardingData: Record<string, unknown>[] = [];
+  let buildingImages: Record<string, unknown>[] = [];
   if (buildingIds.length > 0) {
     const { data } = await admin
       .from("building_onboarding_data")
       .select("building_id, field_values, version, created_at, updated_at")
       .in("building_id", buildingIds);
     buildingOnboardingData = (data ?? []) as Record<string, unknown>[];
+
+    // C-03 fix: export building images metadata
+    const { data: imgData } = await admin
+      .from("building_images")
+      .select("id, building_id, url, category, created_at")
+      .in("building_id", buildingIds);
+    buildingImages = (imgData ?? []) as Record<string, unknown>[];
   }
 
   // Fetch all contracts
@@ -96,6 +109,35 @@ export async function exportSupplierData(
       "id, company_name, supplier_type, contact_email, contact_phone, country, status, created_at",
     )
     .eq("contact_email", contactEmail);
+
+  // C-03 fix: export application notes
+  const applicationIds = (applications ?? []).map(
+    (a) => (a as { id: string }).id,
+  );
+  let applicationNotes: Record<string, unknown>[] = [];
+  if (applicationIds.length > 0) {
+    const { data: notesData } = await admin
+      .from("application_notes")
+      .select("id, application_id, content, author_id, created_at")
+      .in("application_id", applicationIds);
+    applicationNotes = (notesData ?? []) as Record<string, unknown>[];
+  }
+
+  // C-03 fix: export supplier notes
+  let supplierNotes: Record<string, unknown>[] = [];
+  const { data: sNotesData } = await admin
+    .from("supplier_notes")
+    .select("id, supplier_id, content, author_id, created_at")
+    .eq("supplier_id", supplierId);
+  supplierNotes = (sNotesData ?? []) as Record<string, unknown>[];
+
+  // C-03 fix: export supplier badges
+  let supplierBadges: Record<string, unknown>[] = [];
+  const { data: badgesData } = await admin
+    .from("supplier_badges")
+    .select("id, supplier_id, badge_type, granted_at")
+    .eq("supplier_id", supplierId);
+  supplierBadges = (badgesData ?? []) as Record<string, unknown>[];
 
   // Fetch field audit logs (by user_id from supplier)
   let fieldAuditLogs: Record<string, unknown>[] = [];
@@ -120,6 +162,16 @@ export async function exportSupplierData(
     extractionJobs = (data ?? []) as Record<string, unknown>[];
   }
 
+  // C-03 fix: export extraction feedback
+  let extractionFeedback: Record<string, unknown>[] = [];
+  if (buildingIds.length > 0) {
+    const { data: fbData } = await admin
+      .from("extraction_feedback")
+      .select("id, building_id, field_key, feedback, created_at")
+      .in("building_id", buildingIds);
+    extractionFeedback = (fbData ?? []) as Record<string, unknown>[];
+  }
+
   // Fetch storage file inventory (BUG-NEW-05 fix)
   const storageFiles: Record<string, string[]> = {};
   const storageBuckets = ["signed-contracts", "uploaded-contracts"];
@@ -136,10 +188,15 @@ export async function exportSupplierData(
     supplier: (supplier as Record<string, unknown>) ?? null,
     buildings: (buildings ?? []) as Record<string, unknown>[],
     buildingOnboardingData,
+    buildingImages,
     contracts: (contracts ?? []) as Record<string, unknown>[],
     applications: (applications ?? []) as Record<string, unknown>[],
+    applicationNotes,
+    supplierNotes,
+    supplierBadges,
     fieldAuditLogs,
     extractionJobs,
+    extractionFeedback,
     storageFiles,
   };
 }
