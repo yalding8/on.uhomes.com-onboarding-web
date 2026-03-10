@@ -103,21 +103,13 @@ export async function handleRecipientCompleted(
     console.error("[docusign] supplier update failed", supplierErr);
   }
 
-  // Trigger extraction for supplier's buildings (non-blocking)
+  // P0-G3: Trigger contract_pdf extraction only (website_crawl already
+  // triggered at Confirm time via confirm-handlers.ts)
   try {
     const { data: buildings } = await adminClient
       .from("buildings")
       .select("id")
       .eq("supplier_id", contract.supplier_id);
-
-    // Get supplier website_url for website_crawl source
-    const { data: supplier } = await adminClient
-      .from("suppliers")
-      .select("website_url")
-      .eq("id", contract.supplier_id)
-      .single();
-
-    const websiteUrl = (supplier?.website_url as string) ?? undefined;
 
     if (buildings && buildings.length > 0 && contractPdfUrl) {
       const baseUrl =
@@ -135,7 +127,7 @@ export async function handleRecipientCompleted(
             buildingId: building.id,
             supplierId: contract.supplier_id,
             contractPdfUrl,
-            websiteUrl,
+            sourceFilter: "contract_pdf",
           }),
         }).catch((err) =>
           console.error("[docusign] extraction trigger failed", err),

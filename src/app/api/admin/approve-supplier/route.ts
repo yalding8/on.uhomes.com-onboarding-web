@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { verifyAdminRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/email/resend";
+import { buildPartnershipConfirmedEmail } from "@/lib/email/templates/partnership-confirmed";
 
 const VALID_CONTRACT_TYPES = [
   "STANDARD_PROMOTION_2026",
@@ -75,56 +77,45 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Create Auth user — must happen first as supplier requires user_id
-    // Try invite; if the email already exists in auth (e.g. user triggered OTP
-    // before approval), reuse the existing auth user instead of failing.
+    // 4. Create Auth user — P0-G9: use createUser with email_confirm: true
+    // so user logs in via OTP (no password/invitation needed).
+    // If email already exists in auth, reuse that user.
     let userId: string;
-    const { data: authUser, error: authError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(
-        application.contact_email,
-      );
+    const { data: createResult, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email: application.contact_email,
+        email_confirm: true,
+        user_metadata: { role: "supplier" },
+      });
 
-    if (authError || !authUser.user) {
-      // Attempt to find existing auth user by creating with existing email
-      const { data: createResult, error: createError } =
-        await supabaseAdmin.auth.admin.createUser({
-          email: application.contact_email,
-          email_confirm: true,
+    if (createError || !createResult.user) {
+      const errorMsg = createError?.message ?? "";
+      if (errorMsg.toLowerCase().includes("already")) {
+        // Email already registered — find existing user
+        const { data: listed } = await supabaseAdmin.auth.admin.listUsers({
+          perPage: 1000,
         });
-
-      if (createError || !createResult.user) {
-        // Both invite and create failed — check if "already registered" style error
-        const errorMsg =
-          (authError?.message ?? "") + (createError?.message ?? "");
-        if (errorMsg.toLowerCase().includes("already")) {
-          // Find the existing user via admin list (paginated to limit scope)
-          const { data: listed } = await supabaseAdmin.auth.admin.listUsers({
-            perPage: 1000,
-          });
-          const found = listed?.users?.find(
-            (u: { email?: string }) => u.email === application.contact_email,
-          );
-          if (found) {
-            userId = found.id;
-          } else {
-            console.error("[approve-supplier]", authError, createError);
-            return NextResponse.json(
-              { error: "Failed to create auth user" },
-              { status: 500 },
-            );
-          }
+        const found = listed?.users?.find(
+          (u: { email?: string }) => u.email === application.contact_email,
+        );
+        if (found) {
+          userId = found.id;
         } else {
-          console.error("[approve-supplier]", authError, createError);
+          console.error("[approve-supplier]", createError);
           return NextResponse.json(
             { error: "Failed to create auth user" },
             { status: 500 },
           );
         }
       } else {
-        userId = createResult.user.id;
+        console.error("[approve-supplier]", createError);
+        return NextResponse.json(
+          { error: "Failed to create auth user" },
+          { status: 500 },
+        );
       }
     } else {
-      userId = authUser.user.id;
+      userId = createResult.user.id;
     }
 
     // 5. Create supplier record — rollback Auth user on failure
@@ -191,9 +182,23 @@ export async function POST(request: Request) {
       .update({ status: "CONVERTED" })
       .eq("id", application.id);
 
+    // 8. P0-G9: Send partnership confirmed email (non-blocking)
+    try {
+      const emailData = buildPartnershipConfirmedEmail({
+        company_name: application.company_name,
+      });
+      await sendEmail({
+        to: application.contact_email,
+        subject: emailData.subject,
+        html: emailData.html,
+      });
+    } catch (emailErr) {
+      console.error("[approve-supplier] notification email failed", emailErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Supplier provisioned and invitation sent",
+      message: "Supplier provisioned and notification sent",
       supplier_id: supplier.id,
     });
   } catch (error) {
