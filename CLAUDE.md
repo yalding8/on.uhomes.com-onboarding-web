@@ -208,3 +208,10 @@ git push gitlab --tags
 - [ ] **涉及已有 API 端点的功能，必须验证该端点依赖的完整数据库 schema**（不能假设已有代码的 DB 依赖都已同步——教训：`approve-supplier` 依赖 `CONVERTING` 状态和 `supplier_type` 列，均未在 DB 中创建）
 - [ ] **Vercel 功能（Cron、Edge Config 等）符合当前计划限制**（Hobby: Cron 最低每天一次）
 - [ ] **push 后确认 Vercel Deployments 出现新部署**（防止 webhook 断裂无感知）
+
+## 11. 分支与 PR 流程
+
+- **所有代码变更必须通过 feature 分支 + PR 合并到 main**，禁止直接 push 到 main。
+- PR 必须等待 CI 全部通过后才能合并，不得使用 `--admin` 绕过 Branch Protection。
+- 唯一例外：纯文档修改（README、docs/）且不涉及代码逻辑的可以直推，但仍建议走 PR。
+- 教训：2026-03-10 的 DocuSign webhook 修复和 InviteForm 更新直接推送 main，绕过了 CI 检查，违反了工程纪律。

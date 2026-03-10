@@ -1,15 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import {
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+import { AlertCircle, Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { SUPPLIER_TYPES } from "@/lib/constants/supplier-types";
 import { ContractFieldGrid } from "./ContractFieldGrid";
+import { InviteSuccessCard } from "./InviteSuccessCard";
 import type { ContractFields } from "@/lib/contracts/types";
 import {
   validateInviteForm,
@@ -24,9 +19,10 @@ export function InviteForm() {
   const [form, setForm] = useState<InviteFormData>(INITIAL_FORM);
   const [errors, setErrors] = useState<InviteFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
-  const [result, setResult] = useState<{
-    type: "success" | "error";
-    message: string;
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [success, setSuccess] = useState<{
+    company: string;
+    email: string;
   } | null>(null);
   const [showContractFields, setShowContractFields] = useState(false);
   const [contractFields, setContractFields] = useState<Partial<ContractFields>>(
@@ -35,12 +31,10 @@ export function InviteForm() {
 
   const handleChange = (field: keyof InviteFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-    // 清除该字段的错误
     if (errors[field as keyof InviteFormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
-    // 清除上次提交结果
-    if (result) setResult(null);
+    if (errorMessage) setErrorMessage(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,10 +47,9 @@ export function InviteForm() {
     }
 
     setSubmitting(true);
-    setResult(null);
+    setErrorMessage(null);
 
     try {
-      // Include contractFields only if any field has a value
       const hasContractFields = Object.values(contractFields).some(
         (v) => v && v.trim(),
       );
@@ -73,52 +66,60 @@ export function InviteForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        setResult({
-          type: "error",
-          message: data.error || "Operation failed, please try again",
-        });
+        setErrorMessage(data.error || "Operation failed, please try again");
         return;
       }
 
-      setResult({ type: "success", message: "Invitation sent successfully" });
+      setSuccess({ company: form.company_name, email: form.email });
       setForm(INITIAL_FORM);
       setContractFields({});
       setShowContractFields(false);
     } catch {
-      setResult({
-        type: "error",
-        message: "Operation failed, please try again",
-      });
+      setErrorMessage("Operation failed, please try again");
     } finally {
       setSubmitting(false);
     }
   };
 
+  const handleInviteAnother = () => {
+    setSuccess(null);
+    setErrorMessage(null);
+    setErrors({});
+  };
+
+  if (success) {
+    return (
+      <InviteSuccessCard
+        company={success.company}
+        email={success.email}
+        onInviteAnother={handleInviteAnother}
+      />
+    );
+  }
+
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-lg rounded-lg border border-[var(--color-border)] p-4 md:p-6"
+      className="rounded-lg border border-[var(--color-border)] p-4 md:p-6"
     >
-      {/* 结果提示 — 双编码：图标 + 颜色 */}
-      {result && (
+      {/* Required hint */}
+      <p className="text-xs text-[var(--color-text-muted)] mb-4">
+        Fields marked with{" "}
+        <span className="text-[var(--color-primary)]">*</span> are required
+      </p>
+
+      {/* Error alert */}
+      {errorMessage && (
         <div
           role="alert"
-          className={`mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2 ${
-            result.type === "success"
-              ? "bg-[var(--color-success-light)] text-[var(--color-success)]"
-              : "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
-          }`}
+          className="mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2 bg-[var(--color-warning-light)] text-[var(--color-warning)]"
         >
-          {result.type === "success" ? (
-            <CheckCircle2 className="h-4 w-4 shrink-0" />
-          ) : (
-            <AlertCircle className="h-4 w-4 shrink-0" />
-          )}
-          {result.message}
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          {errorMessage}
         </div>
       )}
 
-      {/* 邮箱 */}
+      {/* Email */}
       <div className="mb-4">
         <label
           htmlFor="invite-email"
@@ -145,7 +146,7 @@ export function InviteForm() {
         )}
       </div>
 
-      {/* 公司名称 */}
+      {/* Company Name */}
       <div className="mb-4">
         <label
           htmlFor="invite-company"
@@ -172,7 +173,7 @@ export function InviteForm() {
         )}
       </div>
 
-      {/* 供应商类型 */}
+      {/* Supplier Type */}
       <div className="mb-4">
         <label
           htmlFor="invite-supplier-type"
@@ -211,7 +212,7 @@ export function InviteForm() {
         )}
       </div>
 
-      {/* 电话 */}
+      {/* Phone */}
       <div className="mb-4">
         <label
           htmlFor="invite-phone"
@@ -224,12 +225,12 @@ export function InviteForm() {
           type="tel"
           value={form.phone}
           onChange={(e) => handleChange("phone", e.target.value)}
-          placeholder="+44 20 1234 5678"
+          placeholder="+1 234 567 8900"
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
       </div>
 
-      {/* 网站 */}
+      {/* Website */}
       <div className="mb-6">
         <label
           htmlFor="invite-website"
@@ -247,12 +248,12 @@ export function InviteForm() {
         />
       </div>
 
-      {/* 合同字段预填（可选） */}
+      {/* Contract Fields (collapsible) */}
       <div className="mb-6 border border-[var(--color-border)] rounded-lg overflow-hidden">
         <button
           type="button"
           onClick={() => setShowContractFields(!showContractFields)}
-          className="w-full px-4 py-3 flex items-center justify-between text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+          className="w-full px-4 py-3 flex items-center justify-between text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-secondary)]/80 transition-colors"
         >
           <span>Pre-fill Contract Fields (Optional)</span>
           {showContractFields ? (
@@ -261,7 +262,13 @@ export function InviteForm() {
             <ChevronRight className="h-4 w-4 text-[var(--color-text-muted)]" />
           )}
         </button>
-        {showContractFields && (
+        <div
+          className={`overflow-hidden transition-all duration-200 ${
+            showContractFields
+              ? "max-h-[800px] opacity-100"
+              : "max-h-0 opacity-0"
+          }`}
+        >
           <div className="p-4 border-t border-[var(--color-border)]">
             <p className="text-xs text-[var(--color-text-secondary)] mb-3">
               Pre-filled fields will skip the DRAFT stage — contract goes
@@ -276,10 +283,10 @@ export function InviteForm() {
               }
             />
           </div>
-        )}
+        </div>
       </div>
 
-      {/* 提交按钮 */}
+      {/* Submit */}
       <button
         type="submit"
         disabled={submitting}
