@@ -164,6 +164,20 @@ export async function executeDeletion(
     }
     completedSteps.push("storage");
 
+    // C-03 fix: Delete supplier notes (before supplier deletion)
+    await adminClient
+      .from("supplier_notes")
+      .delete()
+      .eq("supplier_id", supplierId);
+    completedSteps.push("supplier_notes");
+
+    // C-03 fix: Delete supplier badges
+    await adminClient
+      .from("supplier_badges")
+      .delete()
+      .eq("supplier_id", supplierId);
+    completedSteps.push("supplier_badges");
+
     // 1. Delete buildings (child tables cascade via FK)
     await adminClient.from("buildings").delete().eq("supplier_id", supplierId);
     completedSteps.push("buildings");
@@ -176,7 +190,19 @@ export async function executeDeletion(
         .eq("supplier_id", supplierId);
       completedSteps.push("contracts_anonymized");
 
+      // C-03 fix: Delete application notes before applications
       if (supplier.contact_email) {
+        const { data: apps } = await adminClient
+          .from("applications")
+          .select("id")
+          .eq("contact_email", supplier.contact_email);
+        const appIds = (apps ?? []).map((a) => (a as { id: string }).id);
+        if (appIds.length > 0) {
+          await adminClient
+            .from("application_notes")
+            .delete()
+            .in("application_id", appIds);
+        }
         await adminClient
           .from("applications")
           .delete()
@@ -202,7 +228,19 @@ export async function executeDeletion(
         .eq("supplier_id", supplierId);
       completedSteps.push("contracts_anonymized");
 
+      // C-03 fix: Delete application notes before applications
       if (supplier.contact_email) {
+        const { data: apps } = await adminClient
+          .from("applications")
+          .select("id")
+          .eq("contact_email", supplier.contact_email);
+        const appIds = (apps ?? []).map((a) => (a as { id: string }).id);
+        if (appIds.length > 0) {
+          await adminClient
+            .from("application_notes")
+            .delete()
+            .in("application_id", appIds);
+        }
         await adminClient
           .from("applications")
           .delete()

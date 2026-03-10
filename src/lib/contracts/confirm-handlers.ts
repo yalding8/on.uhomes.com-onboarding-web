@@ -173,19 +173,49 @@ async function sendEnvelope(
       fields,
     );
 
-    const { error: sentError } = await adminClient
-      .from("contracts")
-      .update({
-        status: "SENT",
-        signature_request_id: envelopeId,
-        signature_provider: "DOCUSIGN",
-      })
-      .eq("id", contract.id);
+    // C-01 fix: retry DB update up to 3 times if DocuSign succeeded.
+    // If DB update ultimately fails, store envelopeId in metadata so it
+    // can be reconciled — avoids orphaned envelopes and stuck contracts.
+    let dbUpdateOk = false;
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const { error: sentError } = await adminClient
+        .from("contracts")
+        .update({
+          status: "SENT",
+          signature_request_id: envelopeId,
+          signature_provider: "DOCUSIGN",
+        })
+        .eq("id", contract.id);
 
-    if (sentError) {
+      if (!sentError) {
+        dbUpdateOk = true;
+        break;
+      }
+      console.error(
+        `[confirm-handlers] DB update attempt ${attempt}/3 failed`,
+        sentError,
+      );
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 500 * attempt));
+      }
+    }
+
+    if (!dbUpdateOk) {
+      // Last resort: store envelopeId in metadata for manual reconciliation
+      await adminClient
+        .from("contracts")
+        .update({
+          provider_metadata: {
+            orphaned_envelope_id: envelopeId,
+            db_update_failed_at: new Date().toISOString(),
+          },
+        })
+        .eq("id", contract.id);
+
       return {
         success: false,
-        error: "Failed to update contract after envelope creation",
+        error:
+          "Signing email sent but status update failed. Admin will reconcile.",
         httpStatus: 500,
       };
     }
