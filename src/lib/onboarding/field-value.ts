@@ -7,6 +7,9 @@ export type DataSource =
   | "contract_pdf"
   | "website_crawl"
   | "google_sheets"
+  | "file_upload"
+  | "dropbox"
+  | "api_doc"
   | "manual_input";
 export type Confidence = "high" | "medium" | "low";
 

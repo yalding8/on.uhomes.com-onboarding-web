@@ -8,6 +8,8 @@
 import { NextResponse } from "next/server";
 import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sendEmail } from "@/lib/email/resend";
+import { buildPartnershipConfirmedEmail } from "@/lib/email/templates/partnership-confirmed";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -17,6 +19,8 @@ interface InvitePayload {
   supplier_type?: string;
   phone?: string;
   website?: string;
+  /** P1-G8: BD can pre-fill contract fields */
+  contractFields?: Record<string, unknown>;
 }
 
 function validatePayload(
@@ -53,6 +57,12 @@ function validatePayload(
         typeof payload.website === "string"
           ? payload.website.trim() || undefined
           : undefined,
+      contractFields:
+        payload.contractFields &&
+        typeof payload.contractFields === "object" &&
+        !Array.isArray(payload.contractFields)
+          ? (payload.contractFields as Record<string, unknown>)
+          : undefined,
     },
   };
 }
@@ -70,8 +80,14 @@ export async function POST(request: Request) {
     if (!validation.valid) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
-    const { email, company_name, supplier_type, phone, website } =
-      validation.data;
+    const {
+      email,
+      company_name,
+      supplier_type,
+      phone,
+      website,
+      contractFields,
+    } = validation.data;
 
     const supabaseAdmin = createAdminClient();
 
@@ -89,49 +105,42 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Create Auth user — must happen first as supplier requires user_id
-    // Try invite; reuse existing auth user if the email is already registered
+    // 3. P0-G9: Create Auth user with email_confirm (OTP login, no invite)
     let userId: string;
-    const { data: authUser, error: authError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+    const { data: createResult, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: { role: "supplier" },
+      });
 
-    if (authError || !authUser.user) {
-      const { data: createResult, error: createError } =
-        await supabaseAdmin.auth.admin.createUser({
-          email,
-          email_confirm: true,
+    if (createError || !createResult.user) {
+      const errMsg = createError?.message ?? "";
+      if (errMsg.toLowerCase().includes("already")) {
+        const { data: listed } = await supabaseAdmin.auth.admin.listUsers({
+          perPage: 1000,
         });
-      if (createError || !createResult.user) {
-        const errMsg =
-          (authError?.message ?? "") + (createError?.message ?? "");
-        if (errMsg.toLowerCase().includes("already")) {
-          const { data: listed } = await supabaseAdmin.auth.admin.listUsers({
-            perPage: 1000,
-          });
-          const found = listed?.users?.find(
-            (u: { email?: string }) => u.email === email,
-          );
-          if (found) {
-            userId = found.id;
-          } else {
-            console.error("[invite-supplier]", authError, createError);
-            return NextResponse.json(
-              { error: "Failed to create auth user" },
-              { status: 500 },
-            );
-          }
+        const found = listed?.users?.find(
+          (u: { email?: string }) => u.email === email,
+        );
+        if (found) {
+          userId = found.id;
         } else {
-          console.error("[invite-supplier]", authError, createError);
+          console.error("[invite-supplier]", createError);
           return NextResponse.json(
             { error: "Failed to create auth user" },
             { status: 500 },
           );
         }
       } else {
-        userId = createResult.user.id;
+        console.error("[invite-supplier]", createError);
+        return NextResponse.json(
+          { error: "Failed to create auth user" },
+          { status: 500 },
+        );
       }
     } else {
-      userId = authUser.user.id;
+      userId = createResult.user.id;
     }
 
     // 4. Guard: user_id may already exist in suppliers (e.g. BD/Admin account)
@@ -176,14 +185,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // 6. Create contract record — rollback supplier + Auth user on failure
+    // 6. Create contract — P1-G8: use pre-filled fields if provided
+    const hasPreFill = contractFields && Object.keys(contractFields).length > 0;
     const { error: contractError } = await supabaseAdmin
       .from("contracts")
       .insert({
         supplier_id: supplier.id,
-        status: "DRAFT",
+        status: hasPreFill ? "PENDING_REVIEW" : "DRAFT",
         signature_provider: "DOCUSIGN",
-        contract_fields: {},
+        contract_fields: contractFields ?? {},
         provider_metadata: {
           type: "STANDARD_PROMOTION_2026",
           source: "manual_invite",
@@ -200,9 +210,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // 7. Send partnership notification email (non-blocking)
+    try {
+      const emailData = buildPartnershipConfirmedEmail({ company_name });
+      await sendEmail({
+        to: email,
+        subject: emailData.subject,
+        html: emailData.html,
+      });
+    } catch (emailErr) {
+      console.error("[invite-supplier] notification email failed", emailErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Supplier invitation sent",
+      message: "Supplier invited and notification sent",
       supplier_id: supplier.id,
     });
   } catch (error) {

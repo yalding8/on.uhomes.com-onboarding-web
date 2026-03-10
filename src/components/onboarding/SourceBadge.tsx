@@ -9,6 +9,9 @@ const SOURCE_CONFIG: Record<DataSource, { label: string; color: string }> = {
   contract_pdf: { label: "Contract", color: "var(--color-primary)" },
   website_crawl: { label: "Website", color: "var(--color-warning)" },
   google_sheets: { label: "Sheets", color: "var(--color-success)" },
+  file_upload: { label: "Upload", color: "var(--color-info)" },
+  dropbox: { label: "Dropbox", color: "var(--color-info)" },
+  api_doc: { label: "API", color: "var(--color-info)" },
   manual_input: { label: "Manual", color: "var(--color-text-muted)" },
 };
 

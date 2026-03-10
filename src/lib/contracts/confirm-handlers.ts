@@ -8,6 +8,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { validateTransition } from "./status-machine";
 import { createEnvelope } from "@/lib/docusign/client";
+import { triggerExtractionAfterConfirm } from "./extraction-trigger";
 import type { ContractFields, ContractStatus } from "./types";
 
 export interface ContractRow {
@@ -72,7 +73,15 @@ export async function handleConfirm(
     };
   }
 
-  return sendEnvelope(contract, supplier);
+  const result = await sendEnvelope(contract, supplier);
+
+  // P0-G3: Trigger extraction immediately after successful confirm
+  if (result.success) {
+    // Non-blocking: errors captured via Sentry, do not affect response
+    triggerExtractionAfterConfirm(contract.supplier_id).catch(() => {});
+  }
+
+  return result;
 }
 
 /**

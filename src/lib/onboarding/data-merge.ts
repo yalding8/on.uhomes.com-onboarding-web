@@ -28,7 +28,10 @@ export interface ExtractionResult {
 /** 数据源优先级（数值越高越优先） */
 const SOURCE_PRIORITY: Record<DataSource, number> = {
   contract_pdf: 3,
+  api_doc: 2,
   google_sheets: 2,
+  dropbox: 2,
+  file_upload: 2,
   website_crawl: 1,
   manual_input: 0,
 };
