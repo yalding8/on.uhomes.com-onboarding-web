@@ -9,6 +9,7 @@ import { FIELD_SCHEMA } from "@/lib/onboarding/field-schema";
 import { calculateScore } from "@/lib/onboarding/scoring-engine";
 import type { FieldValue } from "@/lib/onboarding/field-value";
 import { mergeWithProtection } from "@/lib/onboarding/data-merge";
+import { getExcludedFields } from "@/lib/onboarding/field-applicability";
 
 export type AdminClient = ReturnType<typeof createClient>;
 
@@ -106,8 +107,9 @@ export async function checkAndFinalizeExtraction(
 
   const fieldValues: Record<string, FieldValue> =
     onboardingData?.field_values ?? {};
-  const score = calculateScore(FIELD_SCHEMA, fieldValues);
-  const newStatus = score.score >= 80 ? "previewable" : "incomplete";
+  const excluded = getExcludedFields(fieldValues);
+  const score = calculateScore(FIELD_SCHEMA, fieldValues, excluded);
+  const newStatus = score.score >= 70 ? "previewable" : "incomplete";
 
   await admin
     .from("buildings")

@@ -16,6 +16,8 @@ import {
   mergeWithProtection,
 } from "@/lib/onboarding/data-merge";
 import type { ExtractionFieldValue } from "@/lib/onboarding/data-merge";
+import { adjustConfidence } from "@/lib/onboarding/confidence-adjuster";
+import { getExcludedFields } from "@/lib/onboarding/field-applicability";
 import {
   getAdminClient,
   verifyServiceKey,
@@ -98,12 +100,24 @@ export async function POST(request: Request) {
     } as Record<string, unknown>;
 
     if (jobId) {
-      // Verify job belongs to this building
+      // Idempotency: skip already-processed callbacks
       const { data: jobCheck } = (await admin
         .from("extraction_jobs")
-        .select("building_id")
+        .select("building_id, status")
         .eq("id", jobId)
-        .single()) as { data: { building_id: string } | null };
+        .single()) as {
+        data: { building_id: string; status: string } | null;
+      };
+
+      if (
+        jobCheck &&
+        (jobCheck.status === "completed" || jobCheck.status === "failed")
+      ) {
+        return NextResponse.json({
+          message: "Callback already processed (idempotent)",
+          buildingId,
+        });
+      }
 
       if (jobCheck && jobCheck.building_id === buildingId) {
         await admin
@@ -146,6 +160,12 @@ export async function POST(request: Request) {
       });
     }
 
+    // ── 2.5. 根据 LLM validation 质量调整置信度 ──
+    const { adjusted: adjustedFields } = adjustConfidence(
+      extractedFields,
+      meta?.llmValidationQuality ?? null,
+    );
+
     // ── 3. 融合提取数据到 building_onboarding_data ──
     const { data: onboardingData } = (await admin
       .from("building_onboarding_data")
@@ -162,7 +182,7 @@ export async function POST(request: Request) {
       onboardingData?.field_values ?? {};
 
     const incomingValues = mergeExtractionResults([
-      { source, fields: extractedFields },
+      { source, fields: adjustedFields },
     ]);
     const mergedValues = mergeWithProtection(existingValues, incomingValues);
 
@@ -192,8 +212,9 @@ export async function POST(request: Request) {
     }
 
     // ── 6. 重新计算评分 + 状态转换 ──
-    const oldScore = calculateScore(FIELD_SCHEMA, existingValues);
-    const newScore = calculateScore(FIELD_SCHEMA, mergedValues);
+    const excluded = getExcludedFields(mergedValues);
+    const oldScore = calculateScore(FIELD_SCHEMA, existingValues, excluded);
+    const newScore = calculateScore(FIELD_SCHEMA, mergedValues, excluded);
 
     const { data: building } = (await admin
       .from("buildings")

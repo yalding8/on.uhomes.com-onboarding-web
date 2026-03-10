@@ -41,6 +41,7 @@ export interface FieldDefinition {
   weight: number; // 1-10
   extractTier: ExtractTier;
   required: boolean;
+  phase: 1 | 2 | 3;
   options?: string[];
   description?: string;
   maxItems?: number;
