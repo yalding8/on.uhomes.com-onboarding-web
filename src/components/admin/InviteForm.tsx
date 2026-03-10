@@ -1,63 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, AlertCircle, Loader2, ChevronDown } from "lucide-react";
+import {
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { SUPPLIER_TYPES } from "@/lib/constants/supplier-types";
+import { ContractFieldGrid } from "./ContractFieldGrid";
+import type { ContractFields } from "@/lib/contracts/types";
+import {
+  validateInviteForm,
+  INITIAL_FORM,
+  type InviteFormData,
+  type InviteFormErrors,
+} from "./invite-form-utils";
 
-interface FormData {
-  email: string;
-  company_name: string;
-  supplier_type: string;
-  phone: string;
-  website: string;
-}
-
-interface FormErrors {
-  email?: string;
-  company_name?: string;
-  supplier_type?: string;
-}
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-const INITIAL_FORM: FormData = {
-  email: "",
-  company_name: "",
-  supplier_type: "",
-  phone: "",
-  website: "",
-};
-
-/** 前端表单验证 */
-export function validateInviteForm(data: FormData): FormErrors {
-  const errors: FormErrors = {};
-  if (!data.email.trim()) {
-    errors.email = "Email is required";
-  } else if (!EMAIL_REGEX.test(data.email.trim())) {
-    errors.email = "Invalid email format";
-  }
-  if (!data.company_name.trim()) {
-    errors.company_name = "Company name is required";
-  }
-  if (!data.supplier_type) {
-    errors.supplier_type = "Supplier type is required";
-  }
-  return errors;
-}
+export { validateInviteForm } from "./invite-form-utils";
 
 export function InviteForm() {
-  const [form, setForm] = useState<FormData>(INITIAL_FORM);
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [form, setForm] = useState<InviteFormData>(INITIAL_FORM);
+  const [errors, setErrors] = useState<InviteFormErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [showContractFields, setShowContractFields] = useState(false);
+  const [contractFields, setContractFields] = useState<Partial<ContractFields>>(
+    {},
+  );
 
-  const handleChange = (field: keyof FormData, value: string) => {
+  const handleChange = (field: keyof InviteFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     // 清除该字段的错误
-    if (errors[field as keyof FormErrors]) {
+    if (errors[field as keyof InviteFormErrors]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
     // 清除上次提交结果
@@ -77,10 +56,18 @@ export function InviteForm() {
     setResult(null);
 
     try {
+      // Include contractFields only if any field has a value
+      const hasContractFields = Object.values(contractFields).some(
+        (v) => v && v.trim(),
+      );
+      const payload = hasContractFields
+        ? { ...form, contractFields }
+        : { ...form };
+
       const response = await fetch("/api/admin/invite-supplier", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -95,6 +82,8 @@ export function InviteForm() {
 
       setResult({ type: "success", message: "Invitation sent successfully" });
       setForm(INITIAL_FORM);
+      setContractFields({});
+      setShowContractFields(false);
     } catch {
       setResult({
         type: "error",
@@ -256,6 +245,38 @@ export function InviteForm() {
           placeholder="https://example.com"
           className="w-full px-3 py-2 rounded-lg border border-[var(--color-border)] text-sm bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
+      </div>
+
+      {/* 合同字段预填（可选） */}
+      <div className="mb-6 border border-[var(--color-border)] rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowContractFields(!showContractFields)}
+          className="w-full px-4 py-3 flex items-center justify-between text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+        >
+          <span>Pre-fill Contract Fields (Optional)</span>
+          {showContractFields ? (
+            <ChevronDown className="h-4 w-4 text-[var(--color-text-muted)]" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-[var(--color-text-muted)]" />
+          )}
+        </button>
+        {showContractFields && (
+          <div className="p-4 border-t border-[var(--color-border)]">
+            <p className="text-xs text-[var(--color-text-secondary)] mb-3">
+              Pre-filled fields will skip the DRAFT stage — contract goes
+              directly to Pending Review.
+            </p>
+            <ContractFieldGrid
+              fields={contractFields}
+              errors={{}}
+              isEditable={true}
+              onFieldChange={(key, value) =>
+                setContractFields((prev) => ({ ...prev, [key]: value }))
+              }
+            />
+          </div>
+        )}
       </div>
 
       {/* 提交按钮 */}
