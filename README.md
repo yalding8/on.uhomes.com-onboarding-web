@@ -31,10 +31,11 @@
 | P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                      | ✅ 完成   |
 | P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                              | ✅ 完成   |
 | P2-SupplierFlow | 供应商流程重设计（G2-G9）：提取时序、OTP 账户、数据源上传、预览、导出、BD 预填             | ✅ 完成   |
+| P2-InviteUX     | Invite 页面重设计：双栏布局、流程步骤条、成功卡片、Tips 面板                               | ✅ 完成   |
 | P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
 | P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                            | 🚧 开发中 |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计均已完成（686 测试用例，48 个测试文件）。下一阶段：手动验收测试 → P1-Pub 内部预览与发布 → Uhomes OAuth 集成。
+**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计 + Invite 页面重设计均已完成（697 测试用例，51 个测试文件）。下一阶段：手动验收测试 → P1-Pub 内部预览与发布 → Uhomes OAuth 集成。
 
 ## 基础设施与选型
 
@@ -364,7 +365,7 @@ USING (
 | `/admin/suppliers/[id]`                        | 供应商详情：Timeline 7 节点 + 合同 + Building 卡片 + 备注           | BD 角色          |
 | `/admin/suppliers/[id]/buildings/[buildingId]` | Building 详情：字段级提取视图 + 来源/置信度 + 提取任务状态          | BD 角色          |
 | `/admin/contracts/[contractId]/edit`           | 合同编辑页面：字段编辑、PDF 上传、AI 提取                           | BD 角色          |
-| `/admin/invite`                                | 手动邀请供应商表单                                                  | BD 角色          |
+| `/admin/invite`                                | 邀请供应商：双栏布局（表单+Tips）、流程步骤条、合同预填             | BD 角色          |
 | `/privacy`                                     | 隐私政策页面                                                        | 公开             |
 | `/terms`                                       | 服务条款页面                                                        | 公开             |
 | `/auth/confirm`                                | Supabase Auth 邮件回调处理                                          | 系统内部         |
@@ -495,6 +496,7 @@ curl -X POST http://localhost:3000/api/apply \
 - `docs/ADAPTIVE_EXTRACTION_ROADMAP.md` — 自适应提取管线路线图
 - `docs/APARTMENT_SCRAPING_FEASIBILITY.md` — 公寓网站爬取可行性分析
 - `docs/SUPPLIER_FLOW_REDESIGN.md` — 供应商流程重设计方案（G2-G9，含 Gate 1 评审记录）
+- `docs/PRD_INVITE_REDESIGN.md` — Invite 页面重设计 PRD（双栏布局、流程步骤、成功卡片）
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
 
 ---
@@ -526,14 +528,22 @@ curl -X POST http://localhost:3000/api/apply \
 - **JSON/CSV 导出（G7）**：BD 导出供应商完整数据用于主站集成
 - **BD 邀请预填（G8）**：`contractFields` 参数，预填合同字段并跳过 DRAFT 阶段
 
+### P2-InviteUX Invite 页面重设计（2026-03-10）
+
+- **双栏布局**（PR #22）：左栏表单 + 右栏 Tips 引导面板，响应式三断点适配
+- **流程步骤条**：4 步 Onboarding 流程（Invite → Register → Contract → Go Live），桌面横排 + 移动 2×2 grid
+- **成功卡片**：提交后显示公司名 + 邮箱确认 + 双 CTA（Invite Another / View Suppliers）
+- **UX 优化**：必填字段提示、折叠区 CSS 过渡动画、Phone placeholder 国际化
+- **CLAUDE.md §11**：新增分支与 PR 流程规则（禁止直推 main）
+
 ### 代码库健康度
 
 | 维度              | 指标                                        |
 | :---------------- | :------------------------------------------ |
 | 页面 + API 路由   | 46 个（17 页面 + 29 API）                   |
-| UI 组件           | 53 个（8 个功能模块）                       |
+| UI 组件           | 57 个（8 个功能模块）                       |
 | 核心库模块        | 8 个子目录、35+ 个模块文件                  |
-| 单元测试          | 48 个文件、686 个测试用例                   |
+| 单元测试          | 51 个文件、697 个测试用例                   |
 | 数据库表          | 18 个核心表、20 个迁移文件                  |
 | ESLint 警告       | 0（src/ + scripts/ + tests/）               |
 | TypeScript 错误   | 0                                           |
