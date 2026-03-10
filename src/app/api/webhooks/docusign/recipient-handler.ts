@@ -93,7 +93,8 @@ export async function handleRecipientCompleted(
     })
     .eq("id", contract.id);
 
-  // Update supplier status → SIGNED
+  // Update supplier status → SIGNED (critical — return 500 on failure so
+  // DocuSign retries the webhook instead of silently losing the update)
   const { error: supplierErr } = await adminClient
     .from("suppliers")
     .update({ status: "SIGNED" })
@@ -101,6 +102,10 @@ export async function handleRecipientCompleted(
 
   if (supplierErr) {
     console.error("[docusign] supplier update failed", supplierErr);
+    return NextResponse.json(
+      { error: "Failed to update supplier status" },
+      { status: 500 },
+    );
   }
 
   // P0-G3: Trigger contract_pdf extraction only (website_crawl already

@@ -5,6 +5,8 @@
  * 1. CONVERTING timeout: reset stale CONVERTING applications back to PENDING
  * 2. DocuSign expiry: flag SENT contracts older than 30 days
  * 3. Deletion execution: process DELETION_PENDING suppliers past cooling period
+ * 4. Signing state repair: fix suppliers stuck in PENDING_CONTRACT after
+ *    successful DocuSign signing (webhook failure fallback)
  *
  * Auth: CRON_SECRET header check (set in Vercel Cron config)
  */
@@ -119,6 +121,44 @@ export async function GET(request: NextRequest) {
   } else {
     results.deletions = deletionErr
       ? { error: deletionErr.message }
+      : { count: 0 };
+  }
+
+  // 4. Repair suppliers stuck in PENDING_CONTRACT after successful signing
+  // This catches cases where the DocuSign webhook failed to update supplier status
+  const { data: stuckSuppliers, error: stuckErr } = await admin
+    .from("contracts")
+    .select("id, supplier_id, status")
+    .eq("status", "SIGNED");
+
+  if (!stuckErr && stuckSuppliers && stuckSuppliers.length > 0) {
+    let repaired = 0;
+    for (const c of stuckSuppliers) {
+      const { data: supplier } = await admin
+        .from("suppliers")
+        .select("id, status")
+        .eq("id", c.supplier_id)
+        .single();
+
+      if (supplier && supplier.status === "PENDING_CONTRACT") {
+        const { error: repairErr } = await admin
+          .from("suppliers")
+          .update({ status: "SIGNED" })
+          .eq("id", supplier.id)
+          .eq("status", "PENDING_CONTRACT");
+
+        if (repairErr) {
+          console.error("[cron/cleanup] signing repair failed", repairErr);
+        } else {
+          console.error("[cron/cleanup] repaired stuck supplier", supplier.id);
+          repaired++;
+        }
+      }
+    }
+    results.signing_repair = { repaired };
+  } else {
+    results.signing_repair = stuckErr
+      ? { error: stuckErr.message }
       : { count: 0 };
   }
 
