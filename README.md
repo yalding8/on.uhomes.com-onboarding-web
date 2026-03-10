@@ -30,10 +30,11 @@
 | P2-Suppliers    | Suppliers 模块重设计：5 阶段 Pipeline 视图、Timeline 7 节点、Next Action、Building 评分卡  | ✅ 完成   |
 | P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                      | ✅ 完成   |
 | P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                              | ✅ 完成   |
+| P2-SupplierFlow | 供应商流程重设计（G2-G9）：提取时序、OTP 账户、数据源上传、预览、导出、BD 预填             | ✅ 完成   |
 | P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
 | P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                            | 🚧 开发中 |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页均已完成（617 测试用例，39 个测试文件）。下一阶段：手动验收测试 → P1-Pub 内部预览与发布 → Uhomes OAuth 集成。
+**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计均已完成（686 测试用例，48 个测试文件）。下一阶段：手动验收测试 → P1-Pub 内部预览与发布 → Uhomes OAuth 集成。
 
 ## 基础设施与选型
 
@@ -356,6 +357,7 @@ USING (
 | `/login`                                       | 邮箱 OTP 两步登录                                                   | 公开             |
 | `/dashboard`                                   | 供应商控制台：合同签署（PENDING_CONTRACT）/ Building 列表（SIGNED） | 需登录           |
 | `/onboarding/[buildingId]`                     | Building Onboarding 编辑页面：字段编辑、评分、Gap Report            | 需登录（SIGNED） |
+| `/dashboard/preview/[buildingId]`              | uhomes.com 风格房源预览页：字段展示、缺失占位、完成度评分           | 需登录（SIGNED） |
 | `/admin`                                       | BD 管理后台入口（重定向到申请列表）                                 | BD 角色          |
 | `/admin/applications`                          | BD 工作台：KPI 卡片 + 搜索 + 状态筛选 + Drawer 详情 + 认领/备注     | BD 角色          |
 | `/admin/suppliers`                             | 供应商 Pipeline：5 阶段看板 + KPI + 搜索 + Drawer + Next Action     | BD 角色          |
@@ -402,8 +404,12 @@ USING (
 | `/api/admin/suppliers/stats`                | GET      | Supabase Session（BD/Admin）           | 供应商 Pipeline KPI 统计（各阶段数量、逾期、均分）           |
 | `/api/admin/suppliers/[id]/notes`           | GET/POST | Supabase Session（BD/Admin）           | 供应商跟进备注（查看/添加）                                  |
 | `/api/admin/suppliers/[id]/timeline`        | GET      | Supabase Session（BD/Admin）           | 供应商 Onboarding 时间线（7 个里程碑节点）                   |
-| `/api/extraction/trigger`                   | POST     | `Authorization: Bearer` (service_role) | 触发多源数据提取，创建 3 个 extraction_jobs                  |
+| `/api/extraction/trigger`                   | POST     | `Authorization: Bearer` (service_role) | 触发多源数据提取（支持 sourceFilter 过滤）                   |
 | `/api/extraction/callback`                  | POST     | `Authorization: Bearer` (service_role) | 接收 Worker 提取结果，融合数据并更新评分                     |
+| `/api/contracts/[contractId]/preview-pdf`   | GET      | Supabase Session（供应商/BD）          | 合同 PDF 预览：返回已上传 PDF URL 或生成 HTML 预览           |
+| `/api/data-sources`                         | GET/POST | Supabase Session（供应商）             | 供应商数据源管理：列表查看 / 提交新数据源（URL/文件上传）    |
+| `/api/data-sources/[id]`                    | DELETE   | Supabase Session（供应商）             | 删除待处理的数据源记录（含 Storage 文件清理）                |
+| `/api/admin/export/[supplierId]`            | GET      | Supabase Session（BD/Admin）           | 导出供应商数据（JSON/CSV），含楼宇字段、评分、缺失字段       |
 
 ## Demo 流程（本地）
 
@@ -422,25 +428,26 @@ curl -X POST http://localhost:3000/api/apply \
 
 ## 数据库表结构
 
-| 表名                       | 说明                                            |
-| :------------------------- | :---------------------------------------------- |
-| `applications`             | 公开申请暂存表，无需 Auth 用户关联              |
-| `suppliers`                | 已审批的供应商身份表，关联 `auth.users`         |
-| `contracts`                | 合同流转表，支持 DocuSign eSignature 追踪       |
-| `buildings`                | 楼宇房源数据表                                  |
-| `building_onboarding_data` | Building Onboarding 字段值 + 乐观锁版本号       |
-| `field_audit_logs`         | 字段修改审计日志                                |
-| `extraction_jobs`          | AI 提取任务记录                                 |
-| `extraction_feedback`      | 提取结果反馈 + 人工修正日志（供管线迭代优化用） |
-| `extraction_logs`          | 提取运行详细日志（性能指标、置信度、策略）      |
-| `building_images`          | 楼宇图片记录（分类、质量评分）                  |
-| `amenity_catalog`          | 标准化设施定义目录（类别、展示属性）            |
-| `building_amenities`       | 楼宇-设施关联表（含置信度评分）                 |
-| `bd_territories`           | BD 负责区域分配（国家/城市覆盖）                |
-| `supplier_badges`          | 供应商信任徽章（verified_identity 等）          |
-| `consent_records`          | GDPR 合规：用户同意记录（cookies/隐私/条款）    |
-| `application_notes`        | 申请跟进备注（BD 协作沟通记录）                 |
-| `supplier_notes`           | 供应商跟进备注（BD 协作沟通记录）               |
+| 表名                       | 说明                                              |
+| :------------------------- | :------------------------------------------------ |
+| `applications`             | 公开申请暂存表，无需 Auth 用户关联                |
+| `suppliers`                | 已审批的供应商身份表，关联 `auth.users`           |
+| `contracts`                | 合同流转表，支持 DocuSign eSignature 追踪         |
+| `buildings`                | 楼宇房源数据表                                    |
+| `building_onboarding_data` | Building Onboarding 字段值 + 乐观锁版本号         |
+| `field_audit_logs`         | 字段修改审计日志                                  |
+| `extraction_jobs`          | AI 提取任务记录                                   |
+| `extraction_feedback`      | 提取结果反馈 + 人工修正日志（供管线迭代优化用）   |
+| `extraction_logs`          | 提取运行详细日志（性能指标、置信度、策略）        |
+| `building_images`          | 楼宇图片记录（分类、质量评分）                    |
+| `amenity_catalog`          | 标准化设施定义目录（类别、展示属性）              |
+| `building_amenities`       | 楼宇-设施关联表（含置信度评分）                   |
+| `bd_territories`           | BD 负责区域分配（国家/城市覆盖）                  |
+| `supplier_badges`          | 供应商信任徽章（verified_identity 等）            |
+| `consent_records`          | GDPR 合规：用户同意记录（cookies/隐私/条款）      |
+| `application_notes`        | 申请跟进备注（BD 协作沟通记录）                   |
+| `supplier_notes`           | 供应商跟进备注（BD 协作沟通记录）                 |
+| `supplier_data_sources`    | 供应商提交的数据源（Sheets/Dropbox/API/文件上传） |
 
 ## 项目结构
 
@@ -465,8 +472,8 @@ curl -X POST http://localhost:3000/api/apply \
 ├── sentry.server.config.ts  # Sentry 服务端初始化
 ├── sentry.edge.config.ts    # Sentry Edge 初始化
 ├── scripts/                 # 质量脚本（check-file-lines.sh）
-├── supabase/                # 数据库迁移（18 个）
-└── docs/                    # 项目文档（15 篇）
+├── supabase/                # 数据库迁移（20 个）
+└── docs/                    # 项目文档（16 篇）
 ```
 
 ## 文档索引
@@ -487,6 +494,7 @@ curl -X POST http://localhost:3000/api/apply \
 - `docs/PRD_SUPPLIERS_REDESIGN.md` — Suppliers 模块重设计 PRD
 - `docs/ADAPTIVE_EXTRACTION_ROADMAP.md` — 自适应提取管线路线图
 - `docs/APARTMENT_SCRAPING_FEASIBILITY.md` — 公寓网站爬取可行性分析
+- `docs/SUPPLIER_FLOW_REDESIGN.md` — 供应商流程重设计方案（G2-G9，含 Gate 1 评审记录）
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
 
 ---
@@ -508,15 +516,25 @@ curl -X POST http://localhost:3000/api/apply \
 - **Building 字段级详情页**（PR #18）：字段来源标记（contract_pdf/website_crawl/manual）、置信度标签、ExtractionJobsCard
 - **Adaptive Extraction Phase 1**（PR #18）：LLM 自校验、域名经验复用、提取遥测 20+ 维度、7 条分析 SQL
 
+### P2-SupplierFlow 新增功能（2026-03-10）
+
+- **提取时序重设计（G2）**：Confirm 触发 website_crawl，DocuSign 签署后仅触发 contract_pdf（`sourceFilter` 参数）
+- **OTP 账户供给（G3/G9）**：`createUser` + 合作确认邮件，供应商通过 OTP 魔法链接登录，无密码
+- **多数据源上传（G4）**：`supplier_data_sources` 表 + 文件上传 API（50MB 限制、MIME 白名单、UUID 命名）
+- **合同 PDF 预览（G5）**：供应商签约前预览合同内容
+- **uhomes.com 房源预览（G6）**：主站风格的房源展示页，缺失字段灰色占位 + 完成度评分
+- **JSON/CSV 导出（G7）**：BD 导出供应商完整数据用于主站集成
+- **BD 邀请预填（G8）**：`contractFields` 参数，预填合同字段并跳过 DRAFT 阶段
+
 ### 代码库健康度
 
 | 维度              | 指标                                        |
 | :---------------- | :------------------------------------------ |
-| 页面 + API 路由   | 40 个（16 页面 + 24 API）                   |
-| UI 组件           | 52 个（8 个功能模块）                       |
-| 核心库模块        | 8 个子目录、30+ 个模块文件                  |
-| 单元测试          | 39 个文件、617 个测试用例                   |
-| 数据库表          | 17 个核心表、19 个迁移文件                  |
+| 页面 + API 路由   | 46 个（17 页面 + 29 API）                   |
+| UI 组件           | 53 个（8 个功能模块）                       |
+| 核心库模块        | 8 个子目录、35+ 个模块文件                  |
+| 单元测试          | 48 个文件、686 个测试用例                   |
+| 数据库表          | 18 个核心表、20 个迁移文件                  |
 | ESLint 警告       | 0（src/ + scripts/ + tests/）               |
 | TypeScript 错误   | 0                                           |
 | 文件行数超限      | 0（全部 ≤ 300 行）                          |
