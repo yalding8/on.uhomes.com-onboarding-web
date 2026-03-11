@@ -142,69 +142,34 @@ export async function POST(request: Request) {
       userId = createResult.user.id;
     }
 
-    // 5. Create supplier record — rollback Auth user on failure
-    const { data: supplier, error: supplierError } = await supabaseAdmin
-      .from("suppliers")
-      .insert({
-        user_id: userId,
-        company_name: application.company_name,
-        supplier_type: application.supplier_type ?? null,
-        contact_email: application.contact_email,
-        status: "PENDING_CONTRACT",
-        role: "supplier",
-        bd_user_id: application.assigned_bd_id ?? authResult.supplier.id,
-      })
-      .select()
-      .single();
+    // 5. Atomic transaction: create supplier + contract + mark CONVERTED
+    const { data: txResult, error: txError } = await supabaseAdmin.rpc(
+      "approve_supplier_tx",
+      {
+        p_application_id: application.id,
+        p_user_id: userId,
+        p_company_name: application.company_name,
+        p_supplier_type: application.supplier_type ?? null,
+        p_contact_email: application.contact_email,
+        p_bd_user_id: application.assigned_bd_id ?? authResult.supplier.id,
+        p_contract_type: resolvedContractType,
+      },
+    );
 
-    if (supplierError || !supplier) {
-      console.error("[approve-supplier]", supplierError);
+    if (txError || !txResult) {
+      console.error("[approve-supplier] transaction failed", txError);
       await supabaseAdmin.auth.admin.deleteUser(userId);
-      // Reset application status so it can be retried
       await supabaseAdmin
         .from("applications")
         .update({ status: "PENDING" })
         .eq("id", application.id);
       return NextResponse.json(
-        { error: "Failed to create supplier record" },
+        { error: "Failed to provision supplier" },
         { status: 500 },
       );
     }
 
-    // 6. Create contract record — rollback supplier + Auth user on failure
-    const { error: contractError } = await supabaseAdmin
-      .from("contracts")
-      .insert({
-        supplier_id: supplier.id,
-        status: "DRAFT",
-        signature_provider: "DOCUSIGN",
-        contract_fields: {},
-        provider_metadata: {
-          type: resolvedContractType,
-          source_application: application.id,
-        },
-      });
-
-    if (contractError) {
-      console.error("[approve-supplier]", contractError);
-      await supabaseAdmin.from("suppliers").delete().eq("id", supplier.id);
-      await supabaseAdmin.auth.admin.deleteUser(userId);
-      // Reset application status so it can be retried
-      await supabaseAdmin
-        .from("applications")
-        .update({ status: "PENDING" })
-        .eq("id", application.id);
-      return NextResponse.json(
-        { error: "Failed to create contract record" },
-        { status: 500 },
-      );
-    }
-
-    // 7. Mark application as converted to prevent duplicate approvals
-    await supabaseAdmin
-      .from("applications")
-      .update({ status: "CONVERTED" })
-      .eq("id", application.id);
+    const supplier = { id: txResult.supplier_id as string };
 
     // 8. P0-G9: Send partnership confirmed email (non-blocking)
     try {

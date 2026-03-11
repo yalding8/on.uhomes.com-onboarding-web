@@ -51,6 +51,7 @@ export function StatusContent({
   contractId,
   isLoading,
   onAction,
+  signingExpired,
 }: {
   status: ContractStatus;
   fields: ContractFields | null;
@@ -59,6 +60,7 @@ export function StatusContent({
   contractId: string;
   isLoading: boolean;
   onAction: (action: "confirm" | "request_changes" | "resend") => void;
+  signingExpired?: boolean;
 }) {
   const hasCustomPdf = !!uploadedDocumentUrl;
 
@@ -81,6 +83,7 @@ export function StatusContent({
         <SentContent
           isLoading={isLoading}
           onResend={() => onAction("resend")}
+          signingExpired={signingExpired}
         />
       );
     case "SIGNED":
@@ -201,27 +204,42 @@ function ConfirmedContent() {
 function SentContent({
   isLoading,
   onResend,
+  signingExpired,
 }: {
   isLoading: boolean;
   onResend: () => void;
+  signingExpired?: boolean;
 }) {
+  const Icon = signingExpired ? AlertCircle : Mail;
+  const iconBg = signingExpired
+    ? "bg-[var(--color-warning-light)] text-[var(--color-warning)]"
+    : "bg-[var(--color-success-light)] text-[var(--color-success)]";
+  const title = signingExpired
+    ? "Signing Link Expired"
+    : "Signing Email Sent — Check Your Inbox";
+  const desc = signingExpired
+    ? "Your signing link has expired. Please click below to request a new one, or contact your account manager."
+    : "A DocuSign signing link has been sent to your registered email. Please follow the instructions to complete the e-signature.";
+  const btnCls = signingExpired
+    ? "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)]"
+    : "border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)]";
+
   return (
     <div className="text-center py-12">
-      <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[var(--color-success-light)] text-[var(--color-success)] mb-4">
-        <Mail className="w-8 h-8" />
+      <div
+        className={`inline-flex items-center justify-center w-16 h-16 rounded-full mb-4 ${iconBg}`}
+      >
+        <Icon className="w-8 h-8" />
       </div>
       <h4 className="text-lg font-semibold text-[var(--color-text-primary)] mb-2">
-        Signing Email Sent — Check Your Inbox
+        {title}
       </h4>
-      <p className="text-sm text-[var(--color-text-secondary)] mb-6">
-        A DocuSign signing link has been sent to your registered email. Please
-        follow the instructions to complete the e-signature.
-      </p>
+      <p className="text-sm text-[var(--color-text-secondary)] mb-6">{desc}</p>
       <button
         type="button"
         disabled={isLoading}
         onClick={onResend}
-        className="inline-flex items-center justify-center px-5 py-2.5 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-primary)] font-medium text-sm transition-all active:scale-[0.98] disabled:opacity-70"
+        className={`inline-flex items-center justify-center px-5 py-2.5 rounded-lg font-medium text-sm transition-all active:scale-[0.98] disabled:opacity-70 ${btnCls}`}
       >
         {isLoading ? (
           <>

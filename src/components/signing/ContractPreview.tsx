@@ -12,6 +12,7 @@ interface ContractPreviewProps {
   fields: ContractFields | null;
   documentUrl: string | null;
   uploadedDocumentUrl?: string | null;
+  signingExpired?: boolean;
 }
 
 export function ContractPreview({
@@ -20,6 +21,7 @@ export function ContractPreview({
   fields,
   documentUrl,
   uploadedDocumentUrl,
+  signingExpired,
 }: ContractPreviewProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -86,6 +88,7 @@ export function ContractPreview({
           contractId={contractId}
           isLoading={isLoading}
           onAction={handleAction}
+          signingExpired={signingExpired}
         />
       </div>
     </div>

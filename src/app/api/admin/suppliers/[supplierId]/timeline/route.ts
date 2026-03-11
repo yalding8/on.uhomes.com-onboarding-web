@@ -157,6 +157,14 @@ function buildApplicationApproved(createdAt: string): TimelineNode {
 function buildContractSent(contract: ContractRow | null): TimelineNode {
   const sentStatuses = ["SENT", "SIGNED"];
   if (contract && sentStatuses.includes(contract.status)) {
+    const meta = contract.provider_metadata;
+    if (contract.status === "SENT" && meta && meta.signing_expired === true) {
+      return {
+        label: "Contract sent (signing expired)",
+        status: "in_progress",
+        date: contract.updated_at,
+      };
+    }
     return {
       label: "Contract sent",
       status: "completed",

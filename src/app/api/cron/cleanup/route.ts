@@ -59,17 +59,21 @@ export async function GET(request: NextRequest) {
 
   const { data: expiredContracts, error: contractsErr } = await admin
     .from("contracts")
-    .select("id, supplier_id, updated_at")
+    .select("id, supplier_id, updated_at, provider_metadata")
     .eq("status", "SENT")
     .lt("updated_at", expiryCutoff);
 
   if (!contractsErr && expiredContracts && expiredContracts.length > 0) {
-    // Add expiry warning to provider_metadata
+    // Add expiry warning to provider_metadata (skip already-flagged)
     for (const c of expiredContracts) {
+      const meta = c.provider_metadata as Record<string, unknown> | null;
+      if (meta?.signing_expired === true) continue;
+
       await admin
         .from("contracts")
         .update({
           provider_metadata: {
+            ...((meta ?? {}) as Record<string, unknown>),
             signing_expired: true,
             expired_at: new Date().toISOString(),
             original_sent_at: c.updated_at,

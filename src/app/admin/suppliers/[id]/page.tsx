@@ -203,6 +203,10 @@ function ContractSection({
     status: string;
     document_url: string | null;
     signed_at: string | null;
+    provider_metadata?: {
+      signing_expired?: boolean;
+      expired_at?: string;
+    } | null;
   } | null;
   statusCfg: { label: string; className: string } | null;
   contractType: string | null;
@@ -227,6 +231,12 @@ function ContractSection({
                 {contractType}
               </span>
             )}
+            {contract.status === "SENT" &&
+              contract.provider_metadata?.signing_expired && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-[var(--color-warning-light)] text-[var(--color-warning)]">
+                  Signing Expired
+                </span>
+              )}
           </div>
           {contract.signed_at && (
             <p className="text-xs text-[var(--color-text-secondary)]">

@@ -28,7 +28,7 @@
 | C-01 | 合同卡在 CONFIRMED — DocuSign 成功但 DB 更新失败，无回滚机制                                                                       | ✅ 已修       | `confirm-handlers.ts`: DB retry 3 次 + orphaned envelope 元数据 (PR #24) |
 | C-02 | `/api/apply` 缺少服务端 Zod 校验                                                                                                   | ⏭️ 已有无需改 | 已有 Zod schema 验证，无需额外修改                                       |
 | C-03 | GDPR 数据导出/删除遗漏 5 张表 (`application_notes`, `supplier_notes`, `supplier_badges`, `building_images`, `extraction_feedback`) | ✅ 已修       | `data-export.ts` + `account-deletion.ts` 补全 (PR #24)                   |
-| C-04 | 账户删除未清理 Supabase Storage 文件（合同 PDF、楼宇图片），违反 GDPR Right to Erasure                                             | ❌ 未修       | 需在 `executeDeletion` 中增加 Storage bucket 文件清理                    |
+| C-04 | 账户删除未清理 Supabase Storage 文件（合同 PDF、楼宇图片），违反 GDPR Right to Erasure                                             | ✅ 已修       | 全部 3 个 bucket 已清理 + DB 操作已事务化（RPC）                         |
 | C-05 | 审批接口竞态条件，并发请求可能重复审批                                                                                             | ⏭️ 已有无需改 | 原子 `UPDATE WHERE status='PENDING'` 已防护                              |
 
 ---
@@ -61,10 +61,26 @@
 
 ---
 
+## 2026-03-11 二次核实结果
+
+> 对本报告及 `EXPERT_REVIEW_TEST_STRATEGY.md` 中的发现项进行了代码级核实，纠正了多处误报。
+
+| 原始发现                       | 核实结论     | 说明                                                                                                        |
+| :----------------------------- | :----------- | :---------------------------------------------------------------------------------------------------------- |
+| C-04 Storage 文件未清理        | **部分属实** | 已清理 `signed-contracts` + `uploaded-contracts`，缺 building images bucket                                 |
+| Gap #2 Auth 用户未删除         | **误报**     | `account-deletion.ts:256` 已调用 `auth.admin.deleteUser(supplier.user_id)`                                  |
+| Gap #3 `isAustralia` 死代码    | **误报**     | `account-deletion.ts:139` 计算、`185` 行 `if (isAustralia)` 正常使用                                        |
+| Gap #1 多步操作无事务          | **属实**     | `executeDeletion` 和 `approve-supplier` 均为顺序调用，无 DB 事务，approve-supplier 有手动 rollback 但非原子 |
+| 并发 #1 合同乐观锁不完整       | **误报**     | `contracts/[contractId]/route.ts:147` 已有 `.eq("updated_at", body.updated_at)` 双层乐观锁                  |
+| Gap #7 DocuSign 信封过期无机制 | **误报**     | `cron/cleanup/route.ts` 每天 3AM 检测 SENT>30天 并标记 `signing_expired`，但缺少用户通知和 UI 展示          |
+
 ## 下一步行动
 
-1. **C-04 修复**：在 `executeDeletion` 中增加 Supabase Storage 文件清理（合同 PDF bucket + 楼宇图片 bucket）
-2. 参考 `docs/EXPERT_REVIEW_TEST_STRATEGY.md`（2026-03-08）中的 Gap #1~#10 为后续迭代待办
+1. ~~**C-04 补全**~~：✅ 已完成 — `building-images` bucket 清理已加入 `executeDeletion`
+2. ~~**Gap #1 事务化**~~：✅ 已完成 — `approve_supplier_tx` + `delete_supplier_tx` 两个 PostgreSQL 函数，通过 `supabase.rpc()` 调用
+3. ~~**DocuSign 过期体验优化**~~：✅ 已完成 — 供应商端/管理端 UI 展示过期状态，重发后自动清除标记，cron 跳过已标记合同
+4. **待执行 migration**：需在 Supabase 执行 `20260311100000_approve_supplier_tx.sql` 和 `20260311200000_delete_supplier_tx.sql`
+5. 其余 Gap (#4~#6, #8~#10) 按优先级排入后续迭代
 
 ---
 
