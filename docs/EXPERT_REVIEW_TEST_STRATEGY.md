@@ -10,28 +10,28 @@
 
 ### Critical Severity
 
-| #   | Gap                                                                                                                                                                                                        | Impact                                                                    |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| 1   | **No transaction boundaries on multi-step mutations** — `executeDeletion` performs 5 sequential Supabase calls with no transaction. If step 3 fails, steps 1-2 are committed. Same for `approve-supplier`. | Partial deletion violates GDPR; partial approval creates orphaned records |
-| 2   | **Auth user not deleted during account deletion** — `executeDeletion` deletes supplier record but never calls `adminClient.auth.admin.deleteUser(userId)`                                                  | Supabase Auth user persists after "deletion", violating Right to Erasure  |
+| #   | Gap                                                                                                                                                                                                        | Impact                                                                    | 核实状态 (2026-03-11)                                                |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| 1   | **No transaction boundaries on multi-step mutations** — `executeDeletion` performs 5 sequential Supabase calls with no transaction. If step 3 fails, steps 1-2 are committed. Same for `approve-supplier`. | Partial deletion violates GDPR; partial approval creates orphaned records | ✅ 属实                                                              |
+| 2   | ~~**Auth user not deleted during account deletion**~~ — `executeDeletion` deletes supplier record but never calls `adminClient.auth.admin.deleteUser(userId)`                                              | ~~Supabase Auth user persists after "deletion"~~                          | ❌ 误报 — `account-deletion.ts:256` 已调用 `auth.admin.deleteUser()` |
 
 ### High Severity
 
-| #   | Gap                                                                                                        | Impact                                                                 |
-| --- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| 3   | **Australia anonymization path is dead code** — `isAustralia` computed but never used in `executeDeletion` | Compliance violation for AU suppliers under Privacy Act 1988           |
-| 4   | **No accessibility testing** — Zero WCAG 2.1 AA verification                                               | Legal liability under European Accessibility Act (effective June 2025) |
-| 5   | **No concurrent user integration tests** — All concurrency fixes tested only at unit level with mocks      | WHERE guards validated by code review, not actual DB race conditions   |
-| 6   | **Proxy error path not tested per-route** — 7 public route exemptions not individually tested              | A wrong exemption could leak protected routes                          |
+| #   | Gap                                                                                                            | Impact                                                                 | 核实状态 (2026-03-11)                                                           |
+| --- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 3   | ~~**Australia anonymization path is dead code**~~ — `isAustralia` computed but never used in `executeDeletion` | ~~Compliance violation for AU suppliers~~                              | ❌ 误报 — `account-deletion.ts:139` 计算、`:185` 处 `if (isAustralia)` 正常使用 |
+| 4   | **No accessibility testing** — Zero WCAG 2.1 AA verification                                                   | Legal liability under European Accessibility Act (effective June 2025) | 待验证                                                                          |
+| 5   | **No concurrent user integration tests** — All concurrency fixes tested only at unit level with mocks          | WHERE guards validated by code review, not actual DB race conditions   | 待验证                                                                          |
+| 6   | **Proxy error path not tested per-route** — 7 public route exemptions not individually tested                  | A wrong exemption could leak protected routes                          | 待验证                                                                          |
 
 ### Medium Severity
 
-| #   | Gap                                                                                                    | Impact                                       |
-| --- | ------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| 7   | **DocuSign envelope expiration handling** — No mechanism for SENT contracts whose signing link expires | Contracts stuck in SENT state permanently    |
-| 8   | **GDPR data inventory not centralized** — Personal data scope spread across export + deletion files    | New tables may miss export/deletion coverage |
-| 9   | **Safari ITP localStorage clearing** — 7-day expiry can clear consent record                           | EU user re-consented without notice          |
-| 10  | **Rate limiter IP extraction spoofable** — Relies on Vercel-set `x-forwarded-for`                      | If infra changes, rate limiting bypassed     |
+| #   | Gap                                                                                                        | Impact                                        | 核实状态 (2026-03-11)                                                                           |
+| --- | ---------------------------------------------------------------------------------------------------------- | --------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 7   | ~~**DocuSign envelope expiration handling** — No mechanism for SENT contracts whose signing link expires~~ | ~~Contracts stuck in SENT state permanently~~ | ❌ 误报 — `cron/cleanup/route.ts` 已有每日检测 + 标记 `signing_expired`，但缺用户通知与 UI 展示 |
+| 8   | **GDPR data inventory not centralized** — Personal data scope spread across export + deletion files        | New tables may miss export/deletion coverage  | 待验证                                                                                          |
+| 9   | **Safari ITP localStorage clearing** — 7-day expiry can clear consent record                               | EU user re-consented without notice           | 待验证                                                                                          |
+| 10  | **Rate limiter IP extraction spoofable** — Relies on Vercel-set `x-forwarded-for`                          | If infra changes, rate limiting bypassed      | 待验证                                                                                          |
 
 ---
 
@@ -49,11 +49,11 @@
 
 ### Gaps Requiring Strengthening
 
-| #   | Scenario                          | Issue                                                                                             | Fix                                                    |
-| --- | --------------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 1   | **Contract edit optimistic lock** | `updated_at` check is app-level only (line 127), UPDATE (line 139) lacks `.eq("updated_at", ...)` | Add `.eq("updated_at", body.updated_at)` to UPDATE     |
-| 2   | **Duplicate email applications**  | TOCTOU between email check and INSERT                                                             | UNIQUE constraint added (manual action #3) closes this |
-| 3   | **Webhook silent no-op**          | Second webhook UPDATE returns 0 rows but no warning logged                                        | Add observability logging                              |
+| #   | Scenario                              | Issue                                                      | Fix                                                                                                  |
+| --- | ------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1   | ~~**Contract edit optimistic lock**~~ | ~~`updated_at` check is app-level only~~                   | ❌ 误报 — `contracts/[contractId]/route.ts:147` 已有 `.eq("updated_at", body.updated_at)` 双层乐观锁 |
+| 2   | **Duplicate email applications**      | TOCTOU between email check and INSERT                      | UNIQUE constraint added (manual action #3) closes this                                               |
+| 3   | **Webhook silent no-op**              | Second webhook UPDATE returns 0 rows but no warning logged | Add observability logging                                                                            |
 
 ---
 
@@ -62,9 +62,9 @@
 ### Must-Do (Before Production)
 
 1. **Wrap `executeDeletion` + `approve-supplier` in DB transactions** via `supabase.rpc()` PostgreSQL functions
-2. **Add `auth.admin.deleteUser()` to `executeDeletion`** to fully erase auth identity
-3. **Fix or remove Australia anonymization dead code** — decide the correct behavior
-4. **Strengthen contract edit optimistic lock** — add `WHERE updated_at = ?` to UPDATE statement
+2. ~~**Add `auth.admin.deleteUser()` to `executeDeletion`**~~ — ❌ 误报，已实现 (`account-deletion.ts:256`)
+3. ~~**Fix or remove Australia anonymization dead code**~~ — ❌ 误报，`isAustralia` 正常使用 (`:139` 计算、`:185` 分支)
+4. ~~**Strengthen contract edit optimistic lock**~~ — ❌ 误报，已有双层乐观锁 (`route.ts:147`)
 
 ### Should-Do (Next Sprint)
 

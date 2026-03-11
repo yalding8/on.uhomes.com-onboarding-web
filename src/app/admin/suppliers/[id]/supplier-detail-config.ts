@@ -15,7 +15,11 @@ export interface ContractInfo {
   status: string;
   embedded_signing_url: string | null;
   document_url: string | null;
-  provider_metadata: { type?: string } | null;
+  provider_metadata: {
+    type?: string;
+    signing_expired?: boolean;
+    expired_at?: string;
+  } | null;
   signed_at: string | null;
   created_at: string;
 }

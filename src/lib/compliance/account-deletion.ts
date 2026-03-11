@@ -151,9 +151,9 @@ export async function executeDeletion(
   }
 
   try {
-    // 0. Delete Storage files
-    const storageBuckets = ["signed-contracts", "uploaded-contracts"];
-    for (const bucket of storageBuckets) {
+    // 0a. Delete Storage files (supplier-scoped buckets)
+    const supplierBuckets = ["signed-contracts", "uploaded-contracts"];
+    for (const bucket of supplierBuckets) {
       const { data: files } = await adminClient.storage
         .from(bucket)
         .list(supplierId);
@@ -162,95 +162,36 @@ export async function executeDeletion(
         await adminClient.storage.from(bucket).remove(paths);
       }
     }
+
+    // 0b. Delete building-images (building-scoped bucket, keyed by buildingId)
+    const { data: buildings } = await adminClient
+      .from("buildings")
+      .select("id")
+      .eq("supplier_id", supplierId);
+    if (buildings && buildings.length > 0) {
+      for (const b of buildings) {
+        const { data: imgFiles } = await adminClient.storage
+          .from("building-images")
+          .list(b.id);
+        if (imgFiles && imgFiles.length > 0) {
+          const imgPaths = imgFiles.map((f) => `${b.id}/${f.name}`);
+          await adminClient.storage.from("building-images").remove(imgPaths);
+        }
+      }
+    }
     completedSteps.push("storage");
 
-    // C-03 fix: Delete supplier notes (before supplier deletion)
-    await adminClient
-      .from("supplier_notes")
-      .delete()
-      .eq("supplier_id", supplierId);
-    completedSteps.push("supplier_notes");
+    // Atomic DB transaction: delete/anonymize all supplier data
+    const { error: txError } = await adminClient.rpc("delete_supplier_tx", {
+      p_supplier_id: supplierId,
+      p_contact_email: supplier.contact_email,
+      p_is_australia: isAustralia,
+    });
 
-    // C-03 fix: Delete supplier badges
-    await adminClient
-      .from("supplier_badges")
-      .delete()
-      .eq("supplier_id", supplierId);
-    completedSteps.push("supplier_badges");
-
-    // 1. Delete buildings (child tables cascade via FK)
-    await adminClient.from("buildings").delete().eq("supplier_id", supplierId);
-    completedSteps.push("buildings");
-
-    if (isAustralia) {
-      // AU: anonymize instead of delete (Privacy Act 1988)
-      await adminClient
-        .from("contracts")
-        .update({ document_url: null, signature_fields: null })
-        .eq("supplier_id", supplierId);
-      completedSteps.push("contracts_anonymized");
-
-      // C-03 fix: Delete application notes before applications
-      if (supplier.contact_email) {
-        const { data: apps } = await adminClient
-          .from("applications")
-          .select("id")
-          .eq("contact_email", supplier.contact_email);
-        const appIds = (apps ?? []).map((a) => (a as { id: string }).id);
-        if (appIds.length > 0) {
-          await adminClient
-            .from("application_notes")
-            .delete()
-            .in("application_id", appIds);
-        }
-        await adminClient
-          .from("applications")
-          .delete()
-          .eq("contact_email", supplier.contact_email);
-      }
-      completedSteps.push("applications");
-
-      // Anonymize supplier record (keep row for financial records)
-      await adminClient
-        .from("suppliers")
-        .update({
-          contact_email: `deleted-${supplierId}@anonymized.local`,
-          company_name: "[DELETED]",
-          status: "DELETED",
-        })
-        .eq("id", supplierId);
-      completedSteps.push("supplier_anonymized");
-    } else {
-      // GDPR: full erasure
-      await adminClient
-        .from("contracts")
-        .update({ document_url: null, signature_fields: null })
-        .eq("supplier_id", supplierId);
-      completedSteps.push("contracts_anonymized");
-
-      // C-03 fix: Delete application notes before applications
-      if (supplier.contact_email) {
-        const { data: apps } = await adminClient
-          .from("applications")
-          .select("id")
-          .eq("contact_email", supplier.contact_email);
-        const appIds = (apps ?? []).map((a) => (a as { id: string }).id);
-        if (appIds.length > 0) {
-          await adminClient
-            .from("application_notes")
-            .delete()
-            .in("application_id", appIds);
-        }
-        await adminClient
-          .from("applications")
-          .delete()
-          .eq("contact_email", supplier.contact_email);
-      }
-      completedSteps.push("applications");
-
-      await adminClient.from("suppliers").delete().eq("id", supplierId);
-      completedSteps.push("supplier_deleted");
+    if (txError) {
+      throw new Error(`DB transaction failed: ${txError.message}`);
     }
+    completedSteps.push("db_transaction");
 
     // Final: delete Supabase Auth user (BUG-NEW-01 fix)
     await adminClient.auth.admin.deleteUser(supplier.user_id);

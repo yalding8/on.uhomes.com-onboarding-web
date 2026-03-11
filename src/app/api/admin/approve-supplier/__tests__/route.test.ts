@@ -125,7 +125,6 @@ describe("POST /api/admin/approve-supplier", () => {
   it("TC-APPROVE-001: BD (non-admin) can approve", async () => {
     mockAuthSession("random.bd@uhomes.com", "bd");
 
-    let singleCallCount = 0;
     const { proxy } = createChainProxy({
       auth: {
         admin: {
@@ -137,19 +136,13 @@ describe("POST /api/admin/approve-supplier", () => {
           deleteUser: vi.fn(),
         },
       },
-      single: (..._args: unknown[]) => {
-        singleCallCount++;
-        // 1st single: claim application
-        if (singleCallCount === 1) {
-          return Promise.resolve({ data: APPLICATION, error: null });
-        }
-        // 2nd single: insert supplier
-        if (singleCallCount === 2) {
-          return Promise.resolve({ data: { id: "sup-1" }, error: null });
-        }
-        return Promise.resolve({ data: null, error: null });
-      },
+      single: () => Promise.resolve({ data: APPLICATION, error: null }),
       maybeSingle: () => Promise.resolve({ data: null, error: null }),
+      rpc: () =>
+        Promise.resolve({
+          data: { supplier_id: "sup-1", contract_id: "con-1" },
+          error: null,
+        }),
     });
 
     mockCreateAdmin.mockReturnValue(proxy as never);

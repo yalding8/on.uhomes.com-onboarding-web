@@ -58,13 +58,14 @@ export default async function DashboardPage() {
     contract_fields: ContractFields | null;
     document_url: string | null;
     uploaded_document_url: string | null;
+    provider_metadata: Record<string, unknown> | null;
   } | null = null;
 
   if (supplier.status === "PENDING_CONTRACT") {
     const { data } = await supabase
       .from("contracts")
       .select(
-        "id, status, contract_fields, document_url, uploaded_document_url",
+        "id, status, contract_fields, document_url, uploaded_document_url, provider_metadata",
       )
       .eq("supplier_id", supplier.id)
       .not("status", "eq", "CANCELED")
@@ -154,6 +155,10 @@ export default async function DashboardPage() {
               fields={contract.contract_fields}
               documentUrl={contract.document_url}
               uploadedDocumentUrl={contract.uploaded_document_url}
+              signingExpired={
+                !!(contract.provider_metadata as Record<string, unknown> | null)
+                  ?.signing_expired
+              }
             />
           ) : contract && contract.status === "SIGNED" ? (
             <ContractPreview

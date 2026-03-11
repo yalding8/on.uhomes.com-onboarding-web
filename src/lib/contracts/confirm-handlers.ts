@@ -98,7 +98,24 @@ export async function handleResend(
       httpStatus: 400,
     };
   }
-  return sendEnvelope(contract, supplier);
+
+  const result = await sendEnvelope(contract, supplier);
+
+  // Clear expiration metadata after successful resend
+  if (result.success) {
+    const adminClient = createAdminClient();
+    await adminClient
+      .from("contracts")
+      .update({
+        provider_metadata: {
+          signing_expired: false,
+          resent_at: new Date().toISOString(),
+        },
+      })
+      .eq("id", contract.id);
+  }
+
+  return result;
 }
 
 /**
