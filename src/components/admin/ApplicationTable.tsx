@@ -133,8 +133,7 @@ export function ApplicationTable({
               const isPending = app.status === "PENDING";
               const isUnassigned = app.assigned_bd_id === null;
               const bdLabel = getBdLabel(app.assigned_bd_id, bdUsers);
-              const canApprove =
-                isPending && (isAdmin || app.assigned_bd_id === currentBdId);
+              const canApprove = isPending;
 
               return (
                 <tr
@@ -219,8 +218,7 @@ export function ApplicationTable({
           const isPending = app.status === "PENDING";
           const isUnassigned = app.assigned_bd_id === null;
           const bdLabel = getBdLabel(app.assigned_bd_id, bdUsers);
-          const canApprove =
-            isPending && (isAdmin || app.assigned_bd_id === currentBdId);
+          const canApprove = isPending;
 
           return (
             <div

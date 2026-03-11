@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyAdminRole, isBdAuthError } from "@/lib/admin/auth";
+import { verifyBdRole, isBdAuthError } from "@/lib/admin/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendEmail } from "@/lib/email/resend";
 import { buildPartnershipConfirmedEmail } from "@/lib/email/templates/partnership-confirmed";
@@ -12,8 +12,8 @@ const VALID_CONTRACT_TYPES = [
 export async function POST(request: Request) {
   let claimedApplicationId: string | null = null;
   try {
-    // 1. Authorization: verify admin role (H-03 fix)
-    const authResult = await verifyAdminRole();
+    // 1. Authorization: all BD users can approve (was admin-only, relaxed per business requirement)
+    const authResult = await verifyBdRole();
     if (isBdAuthError(authResult)) {
       return authResult;
     }
@@ -71,6 +71,10 @@ export async function POST(request: Request) {
       .maybeSingle();
 
     if (existingSupplier) {
+      await supabaseAdmin
+        .from("applications")
+        .update({ status: "PENDING" })
+        .eq("id", application.id);
       return NextResponse.json(
         { error: "A supplier with this email already exists" },
         { status: 409 },
@@ -101,16 +105,36 @@ export async function POST(request: Request) {
         if (found) {
           userId = found.id;
         } else {
-          console.error("[approve-supplier]", createError);
+          console.error(
+            "[approve-supplier] user exists but not found in list",
+            {
+              email: application.contact_email,
+              createError,
+            },
+          );
+          await supabaseAdmin
+            .from("applications")
+            .update({ status: "PENDING" })
+            .eq("id", application.id);
           return NextResponse.json(
             { error: "Failed to create auth user" },
             { status: 500 },
           );
         }
       } else {
-        console.error("[approve-supplier]", createError);
+        console.error("[approve-supplier] createUser failed", {
+          email: application.contact_email,
+          message: errorMsg,
+          createError,
+        });
+        await supabaseAdmin
+          .from("applications")
+          .update({ status: "PENDING" })
+          .eq("id", application.id);
         return NextResponse.json(
-          { error: "Failed to create auth user" },
+          {
+            error: `Failed to create auth user: ${errorMsg || "unknown error"}`,
+          },
           { status: 500 },
         );
       }
