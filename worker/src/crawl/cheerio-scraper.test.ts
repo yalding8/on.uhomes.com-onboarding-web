@@ -75,12 +75,54 @@ describe("parseHtml", () => {
     expect(result.openGraph.image).toBe("https://example.com/hero.jpg");
   });
 
-  it("should extract nav links", () => {
+  it("should extract nav links from <nav>", () => {
     const result = parseHtml(SAMPLE_HTML);
-    expect(result.navLinks).toEqual([
-      { href: "/pricing", text: "Pricing" },
-      { href: "/amenities", text: "Amenities" },
-    ]);
+    expect(result.navLinks).toContainEqual({
+      href: "/pricing",
+      text: "Pricing",
+    });
+    expect(result.navLinks).toContainEqual({
+      href: "/amenities",
+      text: "Amenities",
+    });
+  });
+
+  it("should extract links from header when no <nav>", () => {
+    const html = `<html><head><title>T</title></head><body>
+      <header><a href="/rates">Rates</a><a href="/contact">Contact</a></header>
+      <main><p>Content</p></main>
+    </body></html>`;
+    const result = parseHtml(html);
+    expect(result.navLinks).toContainEqual({ href: "/rates", text: "Rates" });
+    expect(result.navLinks).toContainEqual({
+      href: "/contact",
+      text: "Contact",
+    });
+  });
+
+  it("should fallback to all links when no nav/header links", () => {
+    const html = `<html><head><title>T</title></head><body>
+      <div><a href="/pricing">Pricing</a><a href="/about">About</a></div>
+    </body></html>`;
+    const result = parseHtml(html);
+    expect(result.navLinks.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("should extract contactText from footer/header", () => {
+    const result = parseHtml(SAMPLE_HTML);
+    expect(result.contactText).toContain("Header content");
+    expect(result.contactText).toContain("Footer content");
+  });
+
+  it("should extract metaTags", () => {
+    const html = `<html><head>
+      <title>T</title>
+      <meta name="twitter:title" content="Apartments">
+      <meta name="description" content="Best apartments">
+    </head><body><p>Content</p></body></html>`;
+    const result = parseHtml(html);
+    expect(result.metaTags.twitter_title).toBe("Apartments");
+    expect(result.metaTags.meta_description).toBe("Best apartments");
   });
 
   it("should convert HTML to markdown", () => {

@@ -137,4 +137,95 @@ describe("mapStructuredData", () => {
     expect(result.fields).toEqual({});
     expect(result.coveredCount).toBe(0);
   });
+
+  // ── 新增规则测试 ──
+
+  it("should map location.address nested path", () => {
+    const jsonLd = [
+      {
+        "@type": "Hotel",
+        name: "Grand Hotel",
+        location: {
+          address: {
+            streetAddress: "456 Oak Ave",
+            addressLocality: "London",
+            addressCountry: "UK",
+            postalCode: "SW1A 1AA",
+          },
+        },
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.building_address?.value).toBe("456 Oak Ave");
+    expect(result.fields.city?.value).toBe("London");
+    expect(result.fields.country?.value).toBe("UK");
+    expect(result.fields.postal_code?.value).toBe("SW1A 1AA");
+  });
+
+  it("should map yearBuilt", () => {
+    const jsonLd = [{ "@type": "Apartment", name: "Test", yearBuilt: 2020 }];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.year_built?.value).toBe(2020);
+  });
+
+  it("should map petsAllowed to amenity", () => {
+    const jsonLd = [{ "@type": "Apartment", name: "Test", petsAllowed: true }];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.key_amenities?.value).toContain("Pet Friendly");
+  });
+
+  it("should handle WebSite @type with property data", () => {
+    const jsonLd = [
+      {
+        "@type": "WebSite",
+        name: "Maple Residences",
+        telephone: "+44-20-1234",
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.building_name?.value).toBe("Maple Residences");
+    expect(result.fields.primary_contact_phone?.value).toBe("+44-20-1234");
+  });
+
+  it("should handle array @type", () => {
+    const jsonLd = [
+      {
+        "@type": ["LocalBusiness", "LodgingBusiness"],
+        name: "City Suites",
+        email: "info@city.com",
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.building_name?.value).toBe("City Suites");
+  });
+
+  it("should map offers.price single value", () => {
+    const jsonLd = [
+      {
+        "@type": "Apartment",
+        name: "Test",
+        offers: { price: "1500", priceCurrency: "GBP" },
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.price_min?.value).toBe(1500);
+    expect(result.fields.currency?.value).toBe("GBP");
+  });
+
+  it("should map photos array to images", () => {
+    const jsonLd = [
+      {
+        "@type": "Apartment",
+        name: "Test",
+        photos: [
+          { url: "https://example.com/a.jpg" },
+          { url: "https://example.com/b.jpg" },
+        ],
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    const images = result.fields.images?.value as string[];
+    expect(images).toContain("https://example.com/a.jpg");
+    expect(images).toContain("https://example.com/b.jpg");
+  });
 });

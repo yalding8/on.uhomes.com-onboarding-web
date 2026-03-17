@@ -53,6 +53,12 @@ export interface ExtractionMeta {
   llmSkipped: boolean;
   llmProvider: string | null;
   fieldCoverageRatio: number;
+  /** Tier A 字段覆盖率（核心必填字段） */
+  tierACoverageRatio: number;
+  /** Tier B 字段覆盖率（详细信息字段） */
+  tierBCoverageRatio: number;
+  /** 最终提取字段总数 */
+  totalFieldCount: number;
   confidenceHigh: number;
   confidenceMedium: number;
   confidenceLow: number;

@@ -35,8 +35,9 @@
 | S1-Audit        | Sprint 1 安全审计：C-01/C-03 修复 + E2E 126 测试 + Playwright 认证体系                     | ✅ 完成   |
 | P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
 | P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                            | 🚧 开发中 |
+| P3-CrawlQ       | 爬虫质量全面提升：四层提取（JSON-LD→OG→CSS→LLM）、扩展链接发现、智能截断、分层 Prompt      | 🚧 开发中 |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计 + Invite 页面重设计 + Sprint 1 安全审计均已完成（697 Vitest 用例 + 126 E2E 用例，15 个 E2E spec 文件）。下一阶段：Sprint 2 Publishing 流程 + 通知系统 → Sprint 3 运营效率工具。
+**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计 + Invite 页面重设计 + Sprint 1 安全审计均已完成（697 Vitest 用例 + 126 E2E 用例）。P3 爬虫质量提升进行中（四层提取管线、扩展链接发现、CSS 选择器层、智能截断、分层 Prompt）。
 
 ## 基础设施与选型
 
@@ -121,11 +122,12 @@ npm run dev
          - standard: SPA/WordPress → Playwright 爬取
          - stealth: CF 保护站 → 反检测浏览器 + 代理
          - skip: CF enterprise/business → 报错，需人工处理
-      ③ 分层提取：
-         a. JSON-LD / Schema.org 直接映射（跳过 LLM，高置信度）
-         b. OpenGraph 补充
-         c. LLM 提取仅针对缺失字段（覆盖率 < 80% 时触发）
-      ④ 多页面爬取 → 子页面发现 + 置信度合并
+      ③ 四层提取（v2）：
+         a. JSON-LD / Schema.org 直接映射（35+ 规则，高置信度）
+         b. OpenGraph + Twitter Card 补充（12 字段）
+         c. CSS 选择器提取（mailto:/tel:/microdata/平台模板专用规则）
+         d. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断）
+      ④ 多页面爬取 → 扩展链接发现（8 选择器 + fallback）→ 按标签过滤 LLM 调用
       ⑤ 字段校验（规则引擎）→ 修复/降级/移除不合理字段
       ⑥ LLM 自校验 → 交叉验证提取结果，调整置信度（correct↑/suspect↓/wrong✗）
   → Worker POST /api/extraction/callback 回调结果 + ExtractionMeta 遥测
@@ -460,7 +462,7 @@ curl -X POST http://localhost:3000/api/apply \
 │   └── lib/                 # 工具库（API、LLM、Supabase 等）
 ├── worker/                  # Extraction Worker 微服务
 │   ├── src/
-│   │   ├── extractors/      # 提取器（contract-pdf、website-crawl、og-mapper、structured-data-mapper）
+│   │   ├── extractors/      # 提取器（website-crawl、css-extractor、og-mapper、structured-data-mapper、sub-page-crawl）
 │   │   ├── llm/             # LLM 客户端 + Prompt + 字段映射
 │   │   ├── pdf/             # PDF 下载与解析
 │   │   ├── crawl/           # 爬虫引擎（Playwright + cheerio）+ site-probe + stealth + multi-page
@@ -497,6 +499,7 @@ curl -X POST http://localhost:3000/api/apply \
 - `docs/ADAPTIVE_EXTRACTION_ROADMAP.md` — 自适应提取管线路线图
 - `docs/APARTMENT_SCRAPING_FEASIBILITY.md` — 公寓网站爬取可行性分析
 - `docs/SUPPLIER_FLOW_REDESIGN.md` — 供应商流程重设计方案（G2-G9，含 Gate 1 评审记录）
+- `docs/DESIGN_CRAWLER_QUALITY_V1.md` — 爬虫质量提升设计方案（9 大根因 + 四层提取 + Gate 1 评审 8.2/10）
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
 
 ---
