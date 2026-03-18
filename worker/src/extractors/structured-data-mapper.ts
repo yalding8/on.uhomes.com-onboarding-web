@@ -19,138 +19,60 @@ interface MappingRule {
   confidence: Confidence;
 }
 
+// prettier-ignore
 const MAPPING_RULES: MappingRule[] = [
-  // --- 基本信息 ---
+  // 基本信息
   { jsonLdPath: "name", fieldKey: "building_name", confidence: "high" },
-  {
-    jsonLdPath: "address.streetAddress",
-    fieldKey: "building_address",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "address.addressLocality",
-    fieldKey: "city",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "address.addressCountry",
-    fieldKey: "country",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "address.postalCode",
-    fieldKey: "postal_code",
-    confidence: "high",
-  },
+  { jsonLdPath: "address.streetAddress", fieldKey: "building_address", confidence: "high" },
+  { jsonLdPath: "address.addressLocality", fieldKey: "city", confidence: "high" },
+  { jsonLdPath: "address.addressCountry", fieldKey: "country", confidence: "high" },
+  { jsonLdPath: "address.postalCode", fieldKey: "postal_code", confidence: "high" },
   { jsonLdPath: "description", fieldKey: "description", confidence: "high" },
-
-  // --- 图片 ---
-  {
-    jsonLdPath: "image",
-    fieldKey: "cover_image",
-    confidence: "high",
-    transform: (v) => (Array.isArray(v) ? v[0] : v),
-  },
-  {
-    jsonLdPath: "photo",
-    fieldKey: "cover_image",
-    confidence: "high",
-    transform: (v) => (Array.isArray(v) ? v[0] : v),
-  },
-  {
-    jsonLdPath: "image",
-    fieldKey: "images",
-    confidence: "high",
-    transform: (v) => (Array.isArray(v) ? v.slice(0, 10) : [v]),
-  },
-
-  // --- 联系方式 ---
-  {
-    jsonLdPath: "telephone",
-    fieldKey: "primary_contact_phone",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "email",
-    fieldKey: "primary_contact_email",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "contactPoint.telephone",
-    fieldKey: "primary_contact_phone",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "contactPoint.email",
-    fieldKey: "primary_contact_email",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "contactPoint.contactType",
-    fieldKey: "primary_contact_name",
-    confidence: "medium",
-  },
-
-  // --- 价格 ---
-  {
-    jsonLdPath: "offers.lowPrice",
-    fieldKey: "price_min",
-    confidence: "high",
-    transform: parseNumeric,
-  },
-  {
-    jsonLdPath: "offers.highPrice",
-    fieldKey: "price_max",
-    confidence: "high",
-    transform: parseNumeric,
-  },
-  {
-    jsonLdPath: "offers.priceCurrency",
-    fieldKey: "currency",
-    confidence: "high",
-  },
-  {
-    jsonLdPath: "priceRange",
-    fieldKey: "price_min",
-    confidence: "medium",
-    transform: extractMinPrice,
-  },
-
-  // --- 设施 ---
-  {
-    jsonLdPath: "amenityFeature",
-    fieldKey: "key_amenities",
-    confidence: "medium",
-    transform: extractAmenityNames,
-  },
-  {
-    jsonLdPath: "numberOfRooms",
-    fieldKey: "total_units",
-    confidence: "medium",
-    transform: parseNumeric,
-  },
-  {
-    jsonLdPath: "floorSize.value",
-    fieldKey: "total_units",
-    confidence: "low",
-    transform: parseNumeric,
-  },
-
-  // --- URL ---
+  // 图片
+  { jsonLdPath: "image", fieldKey: "cover_image", confidence: "high", transform: (v) => (Array.isArray(v) ? v[0] : v) },
+  { jsonLdPath: "photo", fieldKey: "cover_image", confidence: "high", transform: (v) => (Array.isArray(v) ? v[0] : v) },
+  { jsonLdPath: "image", fieldKey: "images", confidence: "high", transform: (v) => (Array.isArray(v) ? v.slice(0, 10) : [v]) },
+  // 联系方式
+  { jsonLdPath: "telephone", fieldKey: "primary_contact_phone", confidence: "high" },
+  { jsonLdPath: "email", fieldKey: "primary_contact_email", confidence: "high" },
+  { jsonLdPath: "contactPoint.telephone", fieldKey: "primary_contact_phone", confidence: "high" },
+  { jsonLdPath: "contactPoint.email", fieldKey: "primary_contact_email", confidence: "high" },
+  { jsonLdPath: "contactPoint.contactType", fieldKey: "primary_contact_name", confidence: "medium" },
+  // 价格
+  { jsonLdPath: "offers.lowPrice", fieldKey: "price_min", confidence: "high", transform: parseNumeric },
+  { jsonLdPath: "offers.highPrice", fieldKey: "price_max", confidence: "high", transform: parseNumeric },
+  { jsonLdPath: "offers.priceCurrency", fieldKey: "currency", confidence: "high" },
+  { jsonLdPath: "priceRange", fieldKey: "price_min", confidence: "medium", transform: extractMinPrice },
+  // 设施
+  { jsonLdPath: "amenityFeature", fieldKey: "key_amenities", confidence: "medium", transform: extractAmenityNames },
+  { jsonLdPath: "numberOfRooms", fieldKey: "total_units", confidence: "medium", transform: parseNumeric },
+  { jsonLdPath: "floorSize.value", fieldKey: "total_units", confidence: "low", transform: parseNumeric },
+  // URL
   { jsonLdPath: "url", fieldKey: "application_link", confidence: "medium" },
+  // 扩展: 地址变体（location.address 嵌套 + 扁平）
+  { jsonLdPath: "location.address.streetAddress", fieldKey: "building_address", confidence: "high" },
+  { jsonLdPath: "location.address.addressLocality", fieldKey: "city", confidence: "high" },
+  { jsonLdPath: "location.address.addressCountry", fieldKey: "country", confidence: "high" },
+  { jsonLdPath: "location.address.postalCode", fieldKey: "postal_code", confidence: "high" },
+  { jsonLdPath: "streetAddress", fieldKey: "building_address", confidence: "medium" },
+  { jsonLdPath: "addressLocality", fieldKey: "city", confidence: "medium" },
+  { jsonLdPath: "addressCountry", fieldKey: "country", confidence: "medium" },
+  // 扩展: 价格/联系/详情变体
+  { jsonLdPath: "offers.price", fieldKey: "price_min", confidence: "high", transform: parseNumeric },
+  { jsonLdPath: "contactPoint.name", fieldKey: "primary_contact_name", confidence: "medium" },
+  { jsonLdPath: "numberOfBedrooms", fieldKey: "total_units", confidence: "low", transform: parseNumeric },
+  { jsonLdPath: "yearBuilt", fieldKey: "year_built", confidence: "high", transform: parseNumeric },
+  { jsonLdPath: "petsAllowed", fieldKey: "key_amenities", confidence: "medium", transform: petToAmenity },
+  { jsonLdPath: "photos", fieldKey: "images", confidence: "high", transform: extractImageArray },
+  { jsonLdPath: "image.url", fieldKey: "cover_image", confidence: "high" },
 ];
 
-/** schema.org @type 值，表示可能是公寓/物业页面 */
+// prettier-ignore
 const PROPERTY_TYPES = [
-  "ApartmentComplex",
-  "Apartment",
-  "Residence",
-  "LodgingBusiness",
-  "RealEstateListing",
-  "Place",
-  "LocalBusiness",
-  "Organization",
-  "Product",
+  "ApartmentComplex", "Apartment", "Residence", "LodgingBusiness",
+  "RealEstateListing", "Place", "LocalBusiness", "Organization", "Product",
+  "Hotel", "House", "SingleFamilyResidence", "Accommodation", "Suite",
+  "HotelRoom", "Room", "RealEstateAgent", "WebSite", "WebPage",
 ];
 
 function parseNumeric(v: unknown): number | null {
@@ -183,14 +105,42 @@ function extractAmenityNames(v: unknown): string[] {
     .filter((name): name is string => typeof name === "string");
 }
 
-/** 从嵌套对象中按 dot path 取值 */
+function petToAmenity(v: unknown): string[] | null {
+  if (v === true || v === "true" || v === "True") return ["Pet Friendly"];
+  return null;
+}
+
+function extractImageArray(v: unknown): string[] {
+  if (Array.isArray(v)) {
+    return v
+      .map((item) => {
+        if (typeof item === "string") return item;
+        if (typeof item === "object" && item !== null) {
+          return (item as Record<string, unknown>).url as string;
+        }
+        return null;
+      })
+      .filter((url): url is string => typeof url === "string")
+      .slice(0, 10);
+  }
+  if (typeof v === "string") return [v];
+  return [];
+}
+
+/** 从嵌套对象中按 dot path 取值（支持数组索引） */
 function getByPath(obj: Record<string, unknown>, path: string): unknown {
   const parts = path.split(".");
   let current: unknown = obj;
   for (const part of parts) {
     if (current === null || current === undefined) return undefined;
-    if (typeof current !== "object") return undefined;
-    current = (current as Record<string, unknown>)[part];
+    if (Array.isArray(current)) {
+      const idx = parseInt(part, 10);
+      current = isNaN(idx) ? undefined : current[idx];
+    } else if (typeof current === "object") {
+      current = (current as Record<string, unknown>)[part];
+    } else {
+      return undefined;
+    }
   }
   return current;
 }

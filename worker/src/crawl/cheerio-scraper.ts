@@ -7,6 +7,7 @@
 
 import * as cheerio from "cheerio";
 import { simpleHtmlToMarkdown } from "./html-to-markdown.js";
+import { pruneBoilerplate } from "./dom-pruner.js";
 import type { ScrapedContent } from "./scraper.js";
 
 const FETCH_TIMEOUT_MS = 15_000;
@@ -65,10 +66,26 @@ export function parseHtml(html: string): ScrapedContent {
   // 导航栏链接
   const navLinks = extractNavLinks($);
 
-  // Markdown 转换
-  const markdown = simpleHtmlToMarkdown(html);
+  // DOM 裁剪 + Markdown 转换
+  const prunedHtml = pruneBoilerplate(html);
+  const markdown = simpleHtmlToMarkdown(prunedHtml);
 
-  return { title, bodyText, markdown, imageUrls, jsonLd, openGraph, navLinks };
+  // 联系信息 + 补充 meta
+  const contactText = extractContactText($);
+  const metaTags = extractMetaTags($);
+
+  return {
+    title,
+    bodyText,
+    markdown,
+    imageUrls,
+    jsonLd,
+    openGraph,
+    navLinks,
+    contactText,
+    metaTags,
+    apiFields: {},
+  };
 }
 
 function extractImages($: cheerio.CheerioAPI): string[] {
@@ -121,10 +138,85 @@ function extractNavLinks(
   $: cheerio.CheerioAPI,
 ): Array<{ href: string; text: string }> {
   const links: Array<{ href: string; text: string }> = [];
-  $("nav a[href]").each((_, el) => {
-    const href = $(el).attr("href") || "";
-    const text = $(el).text().trim();
-    if (href && text) links.push({ href, text });
-  });
+  const seen = new Set<string>();
+
+  // 优先级 1: 语义化导航区域
+  const NAV_SELECTORS = [
+    "nav a[href]",
+    '[role="navigation"] a[href]',
+    "header a[href]",
+    ".nav a[href]",
+    ".navbar a[href]",
+    ".navigation a[href]",
+    ".menu a[href]",
+    "#menu a[href]",
+  ];
+
+  for (const selector of NAV_SELECTORS) {
+    $(selector).each((_, el) => {
+      const href = $(el).attr("href") || "";
+      const text = $(el).text().trim();
+      if (href && text && !seen.has(href)) {
+        seen.add(href);
+        links.push({ href, text });
+      }
+    });
+  }
+
+  // 优先级 2: 语义化导航为空时 fallback 到全页面链接
+  if (links.length === 0) {
+    $("a[href]").each((_, el) => {
+      const href = $(el).attr("href") || "";
+      const text = $(el).text().trim();
+      if (!href || !text || seen.has(href)) return;
+      if (/^(mailto:|tel:|javascript:|#|data:)/.test(href)) return;
+      if (text.length > 60 || text.length < 2) return;
+      seen.add(href);
+      links.push({ href, text });
+    });
+  }
+
   return links;
+}
+
+/** 从 header/footer/contact 区域提取联系信息文本 */
+function extractContactText($: cheerio.CheerioAPI): string {
+  const parts: string[] = [];
+  const CONTACT_SELECTORS = [
+    "header",
+    "footer",
+    ".contact",
+    ".contact-info",
+    '[id*="contact"]',
+    '[class*="contact"]',
+  ];
+  for (const sel of CONTACT_SELECTORS) {
+    $(sel).each((_, el) => {
+      const text = $(el).text().replace(/\s+/g, " ").trim();
+      if (text.length > 5 && text.length < 2000) parts.push(text);
+    });
+  }
+  return [...new Set(parts)].join("\n");
+}
+
+/** 提取 Twitter Card 和其他有用的 meta 标签 */
+function extractMetaTags($: cheerio.CheerioAPI): Record<string, string> {
+  const meta: Record<string, string> = {};
+
+  $('meta[name^="twitter:"]').each((_, el) => {
+    const name = $(el).attr("name")?.replace("twitter:", "") ?? "";
+    const content = $(el).attr("content") ?? "";
+    if (name && content) meta[`twitter_${name}`] = content;
+  });
+  $('meta[name="description"]').each((_, el) => {
+    meta.meta_description = $(el).attr("content") ?? "";
+  });
+  $('meta[name="author"]').each((_, el) => {
+    meta.meta_author = $(el).attr("content") ?? "";
+  });
+  $('meta[name="geo.placename"]').each((_, el) => {
+    meta.geo_placename = $(el).attr("content") ?? "";
+  });
+
+  return meta;
 }

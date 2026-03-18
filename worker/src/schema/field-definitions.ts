@@ -73,8 +73,8 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   { key: "unit_types_summary", label: "Unit Types Summary", category: "building_details", type: "text", weight: 6, extractTier: "B", required: true },
 
   // ── Fees ──
-  { key: "price_min", label: "Minimum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true },
-  { key: "price_max", label: "Maximum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true },
+  { key: "price_min", label: "Minimum Price", category: "fees", type: "number", weight: 8, extractTier: "C", required: true },
+  { key: "price_max", label: "Maximum Price", category: "fees", type: "number", weight: 8, extractTier: "C", required: true },
   { key: "currency", label: "Currency", category: "fees", type: "select", weight: 6, extractTier: "A", required: true, options: ["USD", "CAD", "GBP", "EUR", "AUD", "JPY", "CNY"] },
   { key: "application_fee", label: "Application Fee", category: "fees", type: "number", weight: 3, extractTier: "C", required: false },
   { key: "admin_fee", label: "Administrative Fee", category: "fees", type: "number", weight: 3, extractTier: "C", required: false },

@@ -78,8 +78,8 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   { key: "unit_types_summary", label: "Unit Types Summary", category: "building_details", type: "text", weight: 6, extractTier: "B", required: true, phase: 1 },
 
   // ── Fees ──
-  { key: "price_min", label: "Minimum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true, phase: 1 },
-  { key: "price_max", label: "Maximum Price", category: "fees", type: "number", weight: 8, extractTier: "B", required: true, phase: 1 },
+  { key: "price_min", label: "Minimum Price", category: "fees", type: "number", weight: 8, extractTier: "C", required: true, phase: 1 },
+  { key: "price_max", label: "Maximum Price", category: "fees", type: "number", weight: 8, extractTier: "C", required: true, phase: 1 },
   { key: "currency", label: "Currency", category: "fees", type: "select", weight: 6, extractTier: "A", required: true, phase: 1, options: ["USD", "CAD", "GBP", "EUR", "AUD", "JPY", "CNY", "NZD", "SGD", "HKD", "KRW", "TWD", "MYR", "THB", "INR", "AED", "SAR", "TRY", "PLN", "BRL", "MXN", "ZAR"] },
   { key: "rent_period", label: "Rent Period", category: "fees", type: "select", weight: 7, extractTier: "A", required: true, phase: 1, options: ["Weekly", "Monthly", "Per Semester", "Yearly"], description: "The billing period for the listed price range (e.g. UK properties often use weekly pricing)" },
   { key: "application_fee", label: "Application Fee", category: "fees", type: "number", weight: 3, extractTier: "C", required: false, phase: 2 },

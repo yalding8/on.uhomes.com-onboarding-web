@@ -4,39 +4,43 @@
 
 ## 开发进度
 
-| 阶段            | 内容                                                                                       | 状态      |
-| :-------------- | :----------------------------------------------------------------------------------------- | :-------- |
-| Task 1          | 基础设施：Next.js + Supabase + Vercel 初始化                                               | ✅ 完成   |
-| Task 2          | AI 跨平台规则：AGENTS.md / CLAUDE.md / .kiro/rules.md                                      | ✅ 完成   |
-| Task 3          | 双层文档机制：README + docs/                                                               | ✅ 完成   |
-| Task 4          | GitHub Actions CI/CD 质量门禁                                                              | ✅ 完成   |
-| Task 5          | 品牌设计令牌注入（globals.css @theme）                                                     | ✅ 完成   |
-| Task 6          | Supabase 建表：applications / suppliers / contracts / buildings                            | ✅ 完成   |
-| Task 7          | Auth 认证 + 路由中间件（三态重定向）                                                       | ✅ 完成   |
-| Task 8          | P0 核心视图：Landing / Login / Dashboard                                                   | ✅ 完成   |
-| Task 9          | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                                              | ✅ 完成   |
-| P1-BD           | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请                                | ✅ 完成   |
-| P1-Core         | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页                    | ✅ 完成   |
-| P1-Sign         | Online Contract Signing：DocuSign eSignature 集成（替代 Mock OpenSign）                    | ✅ 完成   |
-| P1-i18n         | 全站 UI 英文化：组件文案、API 消息、验证错误、测试断言                                     | ✅ 完成   |
-| P1-Q            | 供应商全流程 P0 质量加固：事务一致性、Webhook 原子性、字段校验、乐观锁                     | ✅ 完成   |
-| P1-AI           | AI 多源提取管道 + 数据融合（纯函数 + API 已完成，待 Worker 联调）                          | ✅ 完成   |
-| P1-UX           | UI/UX 全面审计：Persona 走查 + 设计规范对齐 + ESLint 零警告                                | ✅ 完成   |
-| P2-AI           | 自适应提取管线：site-probe → 分层提取 → LLM fallback → 字段校验 + 基准测试                 | ✅ 完成   |
-| P1-i18n-modules | 国际化模块：GDPR 合规（账户删除/数据导出）、amenity catalog、楼宇图片、BD 领地、供应商徽章 | ✅ 完成   |
-| P2-AI-Bench     | Benchmark 增强：8 站点策略断言 + cheerio/stealth 路径验证 + 对比表格 + 爬取范围规则        | ✅ 完成   |
-| P2-AI-Adaptive  | 自适应进化 Phase 1：LLM 自校验 + 域名经验复用 + 提取遥测 + 分析查询                        | ✅ 完成   |
-| P2-Apps         | Applications 模块重设计：BD 工作台（KPI、搜索防抖、Drawer、认领、备注）                    | ✅ 完成   |
-| P2-Suppliers    | Suppliers 模块重设计：5 阶段 Pipeline 视图、Timeline 7 节点、Next Action、Building 评分卡  | ✅ 完成   |
-| P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                      | ✅ 完成   |
-| P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                              | ✅ 完成   |
-| P2-SupplierFlow | 供应商流程重设计（G2-G9）：提取时序、OTP 账户、数据源上传、预览、导出、BD 预填             | ✅ 完成   |
-| P2-InviteUX     | Invite 页面重设计：双栏布局、流程步骤条、成功卡片、Tips 面板                               | ✅ 完成   |
-| S1-Audit        | Sprint 1 安全审计：C-01/C-03 修复 + E2E 126 测试 + Playwright 认证体系                     | ✅ 完成   |
-| P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
-| P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                            | 🚧 开发中 |
+| 阶段            | 内容                                                                                                   | 状态      |
+| :-------------- | :----------------------------------------------------------------------------------------------------- | :-------- |
+| Task 1          | 基础设施：Next.js + Supabase + Vercel 初始化                                                           | ✅ 完成   |
+| Task 2          | AI 跨平台规则：AGENTS.md / CLAUDE.md / .kiro/rules.md                                                  | ✅ 完成   |
+| Task 3          | 双层文档机制：README + docs/                                                                           | ✅ 完成   |
+| Task 4          | GitHub Actions CI/CD 质量门禁                                                                          | ✅ 完成   |
+| Task 5          | 品牌设计令牌注入（globals.css @theme）                                                                 | ✅ 完成   |
+| Task 6          | Supabase 建表：applications / suppliers / contracts / buildings                                        | ✅ 完成   |
+| Task 7          | Auth 认证 + 路由中间件（三态重定向）                                                                   | ✅ 完成   |
+| Task 8          | P0 核心视图：Landing / Login / Dashboard                                                               | ✅ 完成   |
+| Task 9          | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                                                          | ✅ 完成   |
+| P1-BD           | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请                                            | ✅ 完成   |
+| P1-Core         | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页                                | ✅ 完成   |
+| P1-Sign         | Online Contract Signing：DocuSign eSignature 集成（替代 Mock OpenSign）                                | ✅ 完成   |
+| P1-i18n         | 全站 UI 英文化：组件文案、API 消息、验证错误、测试断言                                                 | ✅ 完成   |
+| P1-Q            | 供应商全流程 P0 质量加固：事务一致性、Webhook 原子性、字段校验、乐观锁                                 | ✅ 完成   |
+| P1-AI           | AI 多源提取管道 + 数据融合（纯函数 + API 已完成，待 Worker 联调）                                      | ✅ 完成   |
+| P1-UX           | UI/UX 全面审计：Persona 走查 + 设计规范对齐 + ESLint 零警告                                            | ✅ 完成   |
+| P2-AI           | 自适应提取管线：site-probe → 分层提取 → LLM fallback → 字段校验 + 基准测试                             | ✅ 完成   |
+| P1-i18n-modules | 国际化模块：GDPR 合规（账户删除/数据导出）、amenity catalog、楼宇图片、BD 领地、供应商徽章             | ✅ 完成   |
+| P2-AI-Bench     | Benchmark 增强：8 站点策略断言 + cheerio/stealth 路径验证 + 对比表格 + 爬取范围规则                    | ✅ 完成   |
+| P2-AI-Adaptive  | 自适应进化 Phase 1：LLM 自校验 + 域名经验复用 + 提取遥测 + 分析查询                                    | ✅ 完成   |
+| P2-Apps         | Applications 模块重设计：BD 工作台（KPI、搜索防抖、Drawer、认领、备注）                                | ✅ 完成   |
+| P2-Suppliers    | Suppliers 模块重设计：5 阶段 Pipeline 视图、Timeline 7 节点、Next Action、Building 评分卡              | ✅ 完成   |
+| P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                                  | ✅ 完成   |
+| P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                                          | ✅ 完成   |
+| P2-SupplierFlow | 供应商流程重设计（G2-G9）：提取时序、OTP 账户、数据源上传、预览、导出、BD 预填                         | ✅ 完成   |
+| P2-InviteUX     | Invite 页面重设计：双栏布局、流程步骤条、成功卡片、Tips 面板                                           | ✅ 完成   |
+| S1-Audit        | Sprint 1 安全审计：C-01/C-03 修复 + E2E 126 测试 + Playwright 认证体系                                 | ✅ 完成   |
+| P1-Pub          | 内部预览 + 发布到主站                                                                                  | 🚧 第二轮 |
+| P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                                        | 🚧 开发中 |
+| P3-CrawlQ       | 爬虫质量全面提升：四层提取（JSON-LD→OG→CSS→LLM）、扩展链接发现、智能截断、分层 Prompt                  | ✅ 完成   |
+| P3-CrawlQ2      | 爬虫提取率提升 Phase 2：多页内容聚合、超时重试、字段 Tier 重分级、field-mapper JSON 修复               | ✅ 完成   |
+| P3-CrawlQ3      | 爬虫提取率提升 Phase 3：Network API 拦截、文本密度 DOM 裁剪、请求屏蔽、Few-Shot Prompt、Zod 验证       | ✅ 完成   |
+| P3-CrawlBench   | 全球公寓爬虫训练：58 站点 Benchmark（NYC/JC 为主）、多 LLM Provider Fallback（火山引擎/Kimi/DeepSeek） | ✅ 完成   |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计 + Invite 页面重设计 + Sprint 1 安全审计均已完成（697 Vitest 用例 + 126 E2E 用例，15 个 E2E spec 文件）。下一阶段：Sprint 2 Publishing 流程 + 通知系统 → Sprint 3 运营效率工具。
+**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量三轮优化完成。58 个公寓网站 Benchmark（最新一轮 2026-03-18）：成功率 84%（49/58），平均 8.5 字段/站，TOP 站点可达 19 字段。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。196 Vitest 用例 + 126 E2E 用例。提取报告：`docs/extraction-results-2026-03-18.html`。
 
 ## 基础设施与选型
 
@@ -121,11 +125,12 @@ npm run dev
          - standard: SPA/WordPress → Playwright 爬取
          - stealth: CF 保护站 → 反检测浏览器 + 代理
          - skip: CF enterprise/business → 报错，需人工处理
-      ③ 分层提取：
-         a. JSON-LD / Schema.org 直接映射（跳过 LLM，高置信度）
-         b. OpenGraph 补充
-         c. LLM 提取仅针对缺失字段（覆盖率 < 80% 时触发）
-      ④ 多页面爬取 → 子页面发现 + 置信度合并
+      ③ 四层提取（v2）：
+         a. JSON-LD / Schema.org 直接映射（35+ 规则，高置信度）
+         b. OpenGraph + Twitter Card 补充（12 字段）
+         c. CSS 选择器提取（mailto:/tel:/microdata/平台模板专用规则）
+         d. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断）
+      ④ 多页面爬取 → 扩展链接发现（8 选择器 + fallback）→ 按标签过滤 LLM 调用
       ⑤ 字段校验（规则引擎）→ 修复/降级/移除不合理字段
       ⑥ LLM 自校验 → 交叉验证提取结果，调整置信度（correct↑/suspect↓/wrong✗）
   → Worker POST /api/extraction/callback 回调结果 + ExtractionMeta 遥测
@@ -460,7 +465,7 @@ curl -X POST http://localhost:3000/api/apply \
 │   └── lib/                 # 工具库（API、LLM、Supabase 等）
 ├── worker/                  # Extraction Worker 微服务
 │   ├── src/
-│   │   ├── extractors/      # 提取器（contract-pdf、website-crawl、og-mapper、structured-data-mapper）
+│   │   ├── extractors/      # 提取器（website-crawl、css-extractor、og-mapper、structured-data-mapper、sub-page-crawl）
 │   │   ├── llm/             # LLM 客户端 + Prompt + 字段映射
 │   │   ├── pdf/             # PDF 下载与解析
 │   │   ├── crawl/           # 爬虫引擎（Playwright + cheerio）+ site-probe + stealth + multi-page
@@ -497,6 +502,7 @@ curl -X POST http://localhost:3000/api/apply \
 - `docs/ADAPTIVE_EXTRACTION_ROADMAP.md` — 自适应提取管线路线图
 - `docs/APARTMENT_SCRAPING_FEASIBILITY.md` — 公寓网站爬取可行性分析
 - `docs/SUPPLIER_FLOW_REDESIGN.md` — 供应商流程重设计方案（G2-G9，含 Gate 1 评审记录）
+- `docs/DESIGN_CRAWLER_QUALITY_V1.md` — 爬虫质量提升设计方案（9 大根因 + 四层提取 + Gate 1 评审 8.2/10）
 - `AGENTS.md` / `CLAUDE.md` — AI 跨工具协作开发规约
 
 ---

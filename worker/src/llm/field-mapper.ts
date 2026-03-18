@@ -9,22 +9,35 @@
  */
 
 import { getFieldByKey, getValidFieldKeys } from "../schema/field-schema.js";
+import { validateAndRepairOutput } from "./output-validator.js";
 import type { ExtractedFields, Confidence } from "../types.js";
 
 /** 清理 LLM 输出中的 markdown 代码围栏 */
 function stripMarkdownFences(raw: string): string {
   let cleaned = raw.trim();
-  // 移除 ```json ... ``` 或 ``` ... ```
-  if (cleaned.startsWith("```")) {
+  // 移除 ```json ... ``` 或 ``` ... ```（支持多层嵌套）
+  while (cleaned.startsWith("```")) {
     const firstNewline = cleaned.indexOf("\n");
     if (firstNewline !== -1) {
       cleaned = cleaned.slice(firstNewline + 1);
+    } else {
+      break;
     }
+    cleaned = cleaned.trim();
   }
-  if (cleaned.endsWith("```")) {
-    cleaned = cleaned.slice(0, -3);
+  while (cleaned.endsWith("```")) {
+    cleaned = cleaned.slice(0, -3).trim();
   }
   return cleaned.trim();
+}
+
+/**
+ * 清理 JSON 字符串中 key/value 内嵌的换行符
+ * Kimi K2.5 会在 key 或 value 前插入 \n，如 {"\\nbuilding_name":"\\nTest"}
+ */
+function stripEmbeddedNewlines(text: string): string {
+  // 移除 JSON string token 内部紧跟引号后的换行: "\nfoo" → "foo"
+  return text.replace(/"[\n\r]+\s*/g, '"').replace(/[\n\r]+\s*"/g, '"');
 }
 
 /** 根据字段类型强转值 */
@@ -112,39 +125,76 @@ function checkTypeMismatch(fieldType: string, value: unknown): boolean {
 }
 
 /**
+ * 尝试从截断的 JSON 中恢复已完成的键值对。
+ * 策略：找到最后一个完整的 "key":value, 截断其后内容并闭合 JSON。
+ */
+function tryRecoverTruncatedJson(text: string): Record<string, unknown> | null {
+  if (!text.trimStart().startsWith("{")) return null;
+
+  // 从尾部逐步截断，直到找到最后一个完整的 key:value 对
+  // 找最后一个有效的逗号分隔位置
+  let lastGoodComma = -1;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === "{" || ch === "[") depth++;
+    if (ch === "}" || ch === "]") depth--;
+    if (ch === "," && depth === 1) {
+      lastGoodComma = i;
+    }
+  }
+
+  if (lastGoodComma <= 0) return null;
+
+  // 截取到最后一个逗号前的内容，闭合 JSON
+  const truncated = text.slice(0, lastGoodComma) + "}";
+  try {
+    return JSON.parse(truncated) as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * 将 LLM 原始输出转换为 ExtractedFields 格式
+ *
+ * 使用 Zod schema 验证 + 类型修复（output-validator），
+ * 再分配置信度。
  *
  * @param raw LLM 返回的原始文本（可能包含 markdown 围栏）
  * @returns 校验过的 ExtractedFields
  */
 export function mapLlmOutput(raw: string): ExtractedFields {
-  const cleaned = stripMarkdownFences(raw);
+  const validated = validateAndRepairOutput(raw);
 
-  let parsed: Record<string, unknown>;
-  try {
-    parsed = JSON.parse(cleaned) as Record<string, unknown>;
-  } catch {
+  if (Object.keys(validated).length === 0) {
     console.error(
       "[field-mapper] Failed to parse LLM JSON output. Raw (first 500 chars):",
-      cleaned.slice(0, 500),
+      raw.slice(0, 500),
     );
     return {};
   }
 
-  const validKeys = getValidFieldKeys();
   const result: ExtractedFields = {};
 
-  for (const [key, rawValue] of Object.entries(parsed)) {
-    // 跳过不在 schema 中的字段
-    if (!validKeys.has(key)) continue;
-
-    // 跳过空值
-    if (rawValue === null || rawValue === undefined) continue;
-    if (typeof rawValue === "string" && rawValue.trim() === "") continue;
-
-    const value = coerceValue(key, rawValue);
+  for (const [key, value] of Object.entries(validated)) {
     const confidence = assignConfidence(key, value);
-
     result[key] = { value, confidence };
   }
 

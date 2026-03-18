@@ -70,6 +70,7 @@ describe("runJob", () => {
       "contract_pdf",
       baseRequest.sourceUrl,
       expect.any(AbortSignal),
+      undefined, // domainHints
     );
     expect(mockSendCallback).toHaveBeenCalledWith(
       baseRequest.callbackUrl,

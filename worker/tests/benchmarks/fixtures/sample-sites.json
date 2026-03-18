@@ -1,5 +1,5 @@
 {
-  "description": "基准测试 fixture — 公寓商自有官网（非平台），按实际探测结果标注预期策略（2026-03-09 验证）",
+  "description": "基准测试 fixture — 公寓商自有官网（非平台），按实际探测结果标注预期策略（2026-03-18 验证，含 51 个纽约/泽西城公寓）",
   "sites": [
     {
       "id": "the-collective-london",
@@ -64,6 +64,417 @@
       "description": "Casita Living — 英国公寓商官网（CF Free 保护）",
       "expectedStrategy": "stealth",
       "expectedSiteType": "static"
+    },
+    {
+      "id": "555ten",
+      "category": "wordpress",
+      "url": "https://555ten.com/",
+      "description": "555TEN — 纽约曼哈顿公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "lyra-nyc",
+      "category": "static",
+      "url": "https://lyranyc.com/",
+      "description": "Lyra — 纽约公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "miramar",
+      "category": "wordpress",
+      "url": "https://rentmiramar.com/",
+      "description": "Miramar — 美国公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "1440-amsterdam",
+      "category": "static",
+      "url": "https://www.1440amsterdam.com/",
+      "description": "1440 Amsterdam — 纽约公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "the-biltmore-ny",
+      "category": "static",
+      "url": "https://thebiltmoreny.com/",
+      "description": "The Biltmore — 纽约公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "one-manhattan-square",
+      "category": "wordpress",
+      "url": "https://onemanhattansquare.com/",
+      "description": "One Manhattan Square — 纽约曼哈顿公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "maybury",
+      "category": "wordpress",
+      "url": "https://themaybury.com/",
+      "description": "Maybury — 美国公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "soma-nyc",
+      "category": "spa",
+      "url": "https://somanyc.com/",
+      "description": "Soma — 纽约公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "unknown",
+      "note": "HTTPS/HTTP both unreachable (2026-03-18), domain may be defunct"
+    },
+    {
+      "id": "kipsbay-court",
+      "category": "static",
+      "url": "https://www.kipsbaycourt.com/",
+      "description": "Kipsbay Court — 纽约公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "journal-jc",
+      "category": "static",
+      "url": "https://www.journaljc.com/",
+      "description": "The Journal — 泽西城公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "bisby-newport",
+      "category": "static",
+      "url": "https://www.bisby.com/",
+      "description": "Bisby Newport — 美国公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "485-marin",
+      "category": "cf-protected",
+      "url": "https://www.485marin.com/",
+      "description": "485 Marin — 美国公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "unknown",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "sable-jc",
+      "category": "wordpress",
+      "url": "https://verisresidential.com/jersey-city-nj-apartments/sable/",
+      "description": "Sable — 泽西城公寓（Veris Residential）",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "wordpress",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "newark-urby",
+      "category": "wordpress",
+      "url": "https://www.urby.com/location/newark",
+      "description": "Newark Urby — 纽瓦克公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "7-seventy-house",
+      "category": "static",
+      "url": "https://7seventyhouse.com/",
+      "description": "7 Seventy House — 美国公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "180-franklin",
+      "category": "platform_template",
+      "url": "https://180franklin.com/",
+      "description": "180 Franklin — 美国公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "1-qps",
+      "category": "static",
+      "url": "https://www.stonehengenyc.com/buildings/1-qps",
+      "description": "1 QPS — 纽约公寓（Stonehenge NYC）",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "static",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "malt-drive",
+      "category": "wordpress",
+      "url": "https://maltdrive.com/",
+      "description": "Malt Drive — 美国公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "wordpress",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "vista-65",
+      "category": "spa",
+      "url": "https://vista65.com/",
+      "description": "Vista 65 — 美国公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "spa"
+    },
+    {
+      "id": "parker-towers",
+      "category": "static",
+      "url": "https://www.parkertowers.com/",
+      "description": "Parker Towers — 纽约公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "224w124",
+      "category": "static",
+      "url": "https://www.224w124.com/",
+      "description": "224W124 — 纽约公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "the-hendrix-jc",
+      "category": "spa",
+      "url": "https://thehendrixjc.com/",
+      "description": "The Hendrix — 泽西城公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "spa"
+    },
+    {
+      "id": "4650-broadway",
+      "category": "platform_template",
+      "url": "https://www.fortysixfifty.com/",
+      "description": "4650 Broadway — 纽约公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "9-homestead",
+      "category": "platform_template",
+      "url": "https://www.cmpnd.com/residential/9-homestead",
+      "description": "9 Homestead — 美国公寓（CMPND）",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "link-apartments-qpn",
+      "category": "cf-protected",
+      "url": "https://www.linkapartmentsqpn.com/",
+      "description": "LINK Apartments @QPN — 美国公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "unknown"
+    },
+    {
+      "id": "sola-woodside",
+      "category": "static",
+      "url": "https://solawoodside.com/",
+      "description": "Sola Woodside — 美国公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "fiat-house",
+      "category": "static",
+      "url": "https://www.fiathouse.com/",
+      "description": "Fiat House — 美国公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "5-pointz-lic",
+      "category": "platform_template",
+      "url": "https://www.5pointzlic.com/",
+      "description": "5 Pointz — 长岛城公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "gotham-point",
+      "category": "platform_template",
+      "url": "https://gothampoint.com/",
+      "description": "Gotham Point — 纽约公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "lumen-lic",
+      "category": "platform_template",
+      "url": "https://www.lumenlic.com/",
+      "description": "Lumen — 长岛城公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "terra-lic",
+      "category": "spa",
+      "url": "https://www.terralic.com/",
+      "description": "Terra — 长岛城公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "spa"
+    },
+    {
+      "id": "hudson-landing",
+      "category": "static",
+      "url": "https://hudson-landing.com/",
+      "description": "Hudson Landing — 美国公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "ray-harlem",
+      "category": "platform_template",
+      "url": "https://www.rayharlem.place/",
+      "description": "Ray Harlem — 纽约哈莱姆公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "waterline-square",
+      "category": "platform_template",
+      "url": "https://www.windsorcommunities.com/properties/waterline-square/",
+      "description": "Waterline Square — 纽约公寓（Windsor Communities）",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "the-bexley",
+      "category": "wordpress",
+      "url": "https://www.livebexley.com/",
+      "description": "The Bexley — 美国公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "the-devan",
+      "category": "platform_template",
+      "url": "https://thedevan.com/",
+      "description": "The Devan — 美国公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "the-enclave-jc",
+      "category": "cf-protected",
+      "url": "https://www.theenclavejc.com/",
+      "description": "The Enclave JC — 泽西城公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "unknown"
+    },
+    {
+      "id": "one-ten-jc",
+      "category": "cf-protected",
+      "url": "https://www.onetenjc.com/",
+      "description": "One Ten — 泽西城公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "unknown"
+    },
+    {
+      "id": "brooklyn-tower",
+      "category": "wordpress",
+      "url": "https://thebrooklyntower.com/",
+      "description": "Brooklyn Tower — 布鲁克林公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "the-brook-bk",
+      "category": "static",
+      "url": "https://brookbk.com/",
+      "description": "The Brook — 布鲁克林公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "22-chapel",
+      "category": "platform_template",
+      "url": "https://22chapel.com/",
+      "description": "22 Chapel — 美国公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "the-axel",
+      "category": "platform_template",
+      "url": "https://the-axel.com/",
+      "description": "Axel — 美国公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "platform_template"
+    },
+    {
+      "id": "1080-amsterdam",
+      "category": "cf-protected",
+      "url": "https://www.stonehengenyc.com/buildings/1080-amsterdam",
+      "description": "1080 Amsterdam — 纽约公寓（Stonehenge NYC）",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "unknown",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "haus25-jc",
+      "category": "wordpress",
+      "url": "https://verisresidential.com/jersey-city-nj-apartments/haus25/",
+      "description": "Haus 25 — 泽西城公寓（Veris Residential）",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "wordpress",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "stuytown-pcv",
+      "category": "static",
+      "url": "https://www.stuytown.com/",
+      "description": "Peter Cooper Village & Stuytown — 纽约公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static"
+    },
+    {
+      "id": "journal-square-urby",
+      "category": "wordpress",
+      "url": "https://www.urby.com/location/journal-square",
+      "description": "Journal Square Urby — 泽西城公寓官网",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "wordpress"
+    },
+    {
+      "id": "mercedes-house",
+      "category": "platform_template",
+      "url": "https://www.mercedeshouseny.com/",
+      "description": "Mercedes House — 纽约公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "platform_template",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "the-max-606w57",
+      "category": "spa",
+      "url": "https://tfc.com/residential/606w57/new-york-luxury-no-fee-apartments",
+      "description": "The Max — 纽约奢华公寓（TFC）",
+      "expectedStrategy": "standard",
+      "expectedSiteType": "spa"
+    },
+    {
+      "id": "silver-towers",
+      "category": "wordpress",
+      "url": "https://silvertowers.com/",
+      "description": "Silver Towers — 纽约公寓官网",
+      "expectedStrategy": "stealth",
+      "expectedSiteType": "wordpress",
+      "note": "Timeout - may need longer timeout or different strategy"
+    },
+    {
+      "id": "riverside-blvd",
+      "category": "static",
+      "url": "https://liveriversideblvd.com/",
+      "description": "Riverside — 美国公寓官网",
+      "expectedStrategy": "lightweight",
+      "expectedSiteType": "static",
+      "note": "HTTPS/HTTP both unreachable (2026-03-18), domain may be defunct"
     }
   ]
 }

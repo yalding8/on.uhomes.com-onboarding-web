@@ -20,7 +20,7 @@ describe("mapLlmOutput", () => {
       confidence: "high",
     });
     expect(result.city).toEqual({ value: "New York", confidence: "high" });
-    expect(result.price_min).toEqual({ value: 1200, confidence: "medium" });
+    expect(result.price_min).toEqual({ value: 1200, confidence: "low" });
   });
 
   it("should strip markdown code fences", () => {
@@ -93,6 +93,39 @@ describe("mapLlmOutput", () => {
 
     const result = mapLlmOutput(raw);
     expect(result.key_amenities?.value).toEqual(["Gym", "Pool"]);
+  });
+
+  it("should parse JSON with newlines inside keys/values (Kimi K2.5 pattern)", () => {
+    // Kimi K2.5 实际输出：key 前面有换行字符
+    const raw = '{\n"building_name":"Test Tower",\n"city":"New York"}';
+    const result = mapLlmOutput(raw);
+    expect(result.building_name?.value).toBe("Test Tower");
+    expect(result.city?.value).toBe("New York");
+  });
+
+  it("should parse JSON with newlines embedded in keys (Kimi K2.5 variant)", () => {
+    // 更极端的情况：换行在引号内部
+    const raw = `{"\nbuilding_name":"\nTest Tower","\ncity":"New York"}`;
+    const result = mapLlmOutput(raw);
+    expect(result.building_name?.value).toBe("Test Tower");
+    expect(result.city?.value).toBe("New York");
+  });
+
+  it("should recover completed fields from truncated JSON", () => {
+    const raw =
+      '{"building_name":"Test Tower","city":"New York","key_amenities":["Gym","Pool","Pet F';
+    const result = mapLlmOutput(raw);
+    expect(result.building_name?.value).toBe("Test Tower");
+    expect(result.city?.value).toBe("New York");
+    // truncated amenities should NOT appear
+    expect(result.key_amenities).toBeUndefined();
+  });
+
+  it("should handle nested/double markdown fences", () => {
+    const raw =
+      '```json\n```json\n{"building_name": "Double Fenced"}\n```\n```';
+    const result = mapLlmOutput(raw);
+    expect(result.building_name?.value).toBe("Double Fenced");
   });
 
   it("should return empty object for invalid JSON", () => {

@@ -30,6 +30,18 @@ const PROVIDERS: readonly ProviderConfig[] = [
     envKey: "QWEN_API_KEY",
   },
   {
+    name: "deepseek-volc",
+    baseUrl: "https://ark.cn-beijing.volces.com/api/v3",
+    model: "deepseek-v3-2-251201",
+    envKey: "VOLC_API_KEY",
+  },
+  {
+    name: "kimi-k2",
+    baseUrl: "https://coding.dashscope.aliyuncs.com/v1",
+    model: "kimi-k2.5",
+    envKey: "KIMI_K2_API_KEY",
+  },
+  {
     name: "deepseek",
     baseUrl: "https://api.deepseek.com",
     model: "deepseek-chat",
