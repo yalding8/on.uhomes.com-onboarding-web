@@ -35,9 +35,12 @@
 | S1-Audit        | Sprint 1 安全审计：C-01/C-03 修复 + E2E 126 测试 + Playwright 认证体系                     | ✅ 完成   |
 | P1-Pub          | 内部预览 + 发布到主站                                                                      | 🚧 第二轮 |
 | P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                            | 🚧 开发中 |
-| P3-CrawlQ       | 爬虫质量全面提升：四层提取（JSON-LD→OG→CSS→LLM）、扩展链接发现、智能截断、分层 Prompt      | 🚧 开发中 |
+| P3-CrawlQ       | 爬虫质量全面提升：四层提取（JSON-LD→OG→CSS→LLM）、扩展链接发现、智能截断、分层 Prompt      | ✅ 完成   |
+| P3-CrawlQ2      | 爬虫提取率提升 Phase 2：多页内容聚合、超时重试、字段 Tier 重分级、field-mapper JSON 修复    | ✅ 完成   |
+| P3-CrawlQ3      | 爬虫提取率提升 Phase 3：Network API 拦截、文本密度 DOM 裁剪、请求屏蔽、Few-Shot Prompt、Zod 验证 | ✅ 完成   |
+| P3-CrawlBench   | 全球公寓爬虫训练：58 站点 Benchmark（NYC/JC 为主）、多 LLM Provider Fallback（火山引擎/Kimi/DeepSeek） | ✅ 完成   |
 
-**当前里程碑**：P0 基础设施 + P1 全部核心功能 + P1 国际化模块 + P2 AI 管线增强 + Applications/Suppliers 模块重设计 + Building 详情页 + 供应商流程重设计 + Invite 页面重设计 + Sprint 1 安全审计均已完成（697 Vitest 用例 + 126 E2E 用例）。P3 爬虫质量提升进行中（四层提取管线、扩展链接发现、CSS 选择器层、智能截断、分层 Prompt）。
+**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量三轮优化完成。58 个公寓网站 Benchmark（最新一轮 2026-03-18）：成功率 84%（49/58），平均 8.5 字段/站，TOP 站点可达 19 字段。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。196 Vitest 用例 + 126 E2E 用例。提取报告：`docs/extraction-results-2026-03-18.html`。
 
 ## 基础设施与选型
 

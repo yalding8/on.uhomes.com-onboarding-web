@@ -41,7 +41,7 @@ import type { ExtractedFields } from "../../src/types.js";
 
 /* ── Types ─────────────────────────────────────── */
 
-type CrawlStrategy = "lightweight" | "standard" | "stealth" | "skip";
+type CrawlStrategy = "lightweight" | "standard" | "stealth" | "skip" | "unknown";
 
 interface SiteFixture {
   id: string;
@@ -177,7 +177,7 @@ async function testSingleUrl(
     // 2. Strategy routing
     const strategy = selectStrategy(profile);
     result.actualStrategy = strategy;
-    result.strategyMatch = strategy === site.expectedStrategy;
+    result.strategyMatch = site.expectedStrategy === "unknown" || strategy === site.expectedStrategy;
 
     // Skip sites that should be skipped
     if (strategy === "skip") {

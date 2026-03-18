@@ -13,7 +13,7 @@ import {
 } from "../llm/prompts/website-fields.js";
 import type { ExtractedFields } from "../types.js";
 
-const MAX_TEXT_LENGTH = 60_000;
+const MAX_TEXT_LENGTH = 80_000;
 
 /** 含关键公寓信息的段落优先保留（多语言） */
 const PRIORITY_KEYWORDS =

@@ -13,6 +13,9 @@ import {
   waitForContentReady,
   triggerLazyImages,
 } from "./page-helpers.js";
+import { shouldBlockRequest } from "./request-blocker.js";
+import { isApartmentData, mapApiResponse } from "../extractors/api-interceptor.js";
+import type { ExtractedFields } from "../types.js";
 import type { SiteProfile } from "./site-probe.js";
 
 export interface ScrapedContent {
@@ -30,6 +33,8 @@ export interface ScrapedContent {
   contactText: string;
   /** Twitter Card / meta 等补充标签 */
   metaTags: Record<string, string>;
+  /** 从 XHR/fetch JSON API 响应中捕获的字段 */
+  apiFields: ExtractedFields;
 }
 
 interface ScrapeOptions {
@@ -60,7 +65,36 @@ export async function scrapePage(
     page = await browser.newPage();
   }
 
+  // API 响应捕获
+  const capturedApiFields: ExtractedFields = {};
+  page.on("response", async (response) => {
+    try {
+      const contentType = response.headers()["content-type"] ?? "";
+      if (!contentType.includes("application/json")) return;
+      if (response.status() < 200 || response.status() >= 300) return;
+
+      const body = await response.text();
+      if (!isApartmentData(body)) return;
+
+      const json = JSON.parse(body) as unknown;
+      const fields = mapApiResponse(json);
+      // 合并（后到的覆盖前面的）
+      Object.assign(capturedApiFields, fields);
+    } catch {
+      // 非 JSON 或解析失败，静默忽略
+    }
+  });
+
   try {
+    // 屏蔽无用请求（analytics/ads/fonts）
+    await page.route("**/*", (route) => {
+      const req = route.request();
+      if (shouldBlockRequest(req.url(), req.resourceType())) {
+        return route.abort();
+      }
+      return route.continue();
+    });
+
     if (signal) {
       signal.addEventListener(
         "abort",
@@ -87,6 +121,13 @@ export async function scrapePage(
       await triggerLazyImages(page);
     }
 
+    // DOM 裁剪：移除 boilerplate（cookie banner、广告、低密度导航区）
+    try {
+      await page.evaluate(pruneBoilerplateInBrowser);
+    } catch {
+      // 裁剪失败不阻塞主流程
+    }
+
     const content = await page.evaluate(extractPageContent);
 
     let markdown = "";
@@ -96,7 +137,7 @@ export async function scrapePage(
       markdown = content.bodyText;
     }
 
-    return { ...content, markdown };
+    return { ...content, markdown, apiFields: capturedApiFields };
   } finally {
     await page.close().catch(() => {});
     if (stealthContext) await stealthContext.close().catch(() => {});
@@ -109,6 +150,9 @@ function extractPageContent() {
   const title = document.title || "";
 
   // 正文文本
+  if (!document.body) {
+    return { title: document.title || "", bodyText: "", imageUrls: [], jsonLd: [], openGraph: {}, navLinks: [], contactText: "", metaTags: {} };
+  }
   const clone = document.body.cloneNode(true) as HTMLElement;
   for (const sel of ["script", "style", "noscript", "iframe"]) {
     clone.querySelectorAll(sel).forEach((el) => el.remove());
@@ -230,6 +274,56 @@ function extractPageContent() {
     contactText,
     metaTags,
   };
+}
+
+/** 浏览器端 DOM 裁剪 — 移除 boilerplate 元素（安全：不会清空 body） */
+function pruneBoilerplateInBrowser() {
+  if (!document.body) return;
+  const BOILERPLATE = [
+    "[class*='cookie']", "[id*='cookie']", "[class*='consent']",
+    "[class*='ad-']", "[class*='ad_']", "[class*='ads-']",
+    "[class*='popup']", "[class*='modal']",
+    "[class*='sidebar']", "[class*='widget']",
+    "[role='banner']", "[role='navigation']", "[role='complementary']",
+    "[class*='newsletter']", "[class*='subscribe']",
+    "[class*='social-']", "[class*='share-']",
+  ];
+
+  for (const sel of BOILERPLATE) {
+    try {
+      document.querySelectorAll(sel).forEach((el) => el.remove());
+    } catch { /* invalid selector in some DOMs */ }
+  }
+
+  // 文本密度裁剪：移除低密度 + 高链接密度的块
+  const blocks = document.querySelectorAll("body > div, body > section, body > aside");
+  for (const el of blocks) {
+    const htmlEl = el as HTMLElement;
+    if (htmlEl.querySelector("table")) continue; // 保护表格
+    const text = htmlEl.innerText || "";
+    const html = htmlEl.outerHTML || "";
+    if (html.length < 100) continue;
+
+    const textLen = text.replace(/\s+/g, " ").trim().length;
+    const htmlLen = html.length;
+    const density = htmlLen > 0 ? textLen / htmlLen : 0;
+
+    const links = htmlEl.querySelectorAll("a");
+    let linkTextLen = 0;
+    links.forEach((a) => { linkTextLen += (a.innerText || "").length; });
+    const linkDensity = textLen > 0 ? linkTextLen / textLen : 0;
+
+    if (density < 0.25 && linkDensity > 0.5) {
+      htmlEl.remove();
+    }
+  }
+
+  // 安全检查：如果裁剪后 body 几乎为空，恢复原始内容
+  const remainingText = (document.body.innerText || "").trim();
+  if (remainingText.length < 50) {
+    // body 被过度裁剪，刷新页面不现实，但至少确保 body 非 null
+    // 后续 extractPageContent 会处理空 body
+  }
 }
 
 /**

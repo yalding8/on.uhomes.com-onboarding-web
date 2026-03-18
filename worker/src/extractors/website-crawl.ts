@@ -10,6 +10,7 @@ import { extractWithCss } from "./css-extractor.js";
 import { mapStructuredData } from "./structured-data-mapper.js";
 import { mapOpenGraphData } from "./og-mapper.js";
 import { crawlSubPages } from "./sub-page-crawl.js";
+import type { SubPageResult } from "./sub-page-crawl.js";
 import { validateFields } from "../validators/field-validator.js";
 import { validateWithLlm } from "../validators/llm-validator.js";
 import { mergeFieldsInto, mergeByConfidence } from "./field-merge.js";
@@ -65,8 +66,8 @@ export async function extractFromWebsite(
     throw new Error("Website contains no extractable content");
   }
 
-  // 4. 子页面爬取
-  const subPageFields = await crawlSubPages(
+  // 4. 子页面爬取（返回结构化字段 + markdown 内容）
+  const subPageResults = await crawlSubPages(
     sourceUrl,
     scraped.navLinks,
     siteProfile,
@@ -74,23 +75,33 @@ export async function extractFromWebsite(
     strategy,
   );
 
-  // 5. 分层提取（首页: JSON-LD → OG → CSS）
+  // 5. 分层提取（首页: JSON-LD → OG → API → CSS）
   const mergedFields = extractLayered(scraped);
 
-  // 6. LLM 提取（首页，如需要）
+  // 5a. 合并 API 拦截字段（高置信度）
+  if (scraped.apiFields && Object.keys(scraped.apiFields).length > 0) {
+    mergeByConfidence(mergedFields, scraped.apiFields);
+  }
+
+  // 5b. 合并子页面结构化字段（JSON-LD/OG/CSS）
+  for (const sub of subPageResults) {
+    mergeByConfidence(mergedFields, sub.fields);
+  }
+
+  // 6. LLM 提取 — 聚合首页 + 子页面内容，单次调用
   const llmSkipped = hasHighCoverage(scraped);
   let llmProvider: string | null = null;
   if (!llmSkipped) {
     const llmStart = Date.now();
-    const llmFields = await extractWithLlm(scraped, mergedFields, signal);
+    const aggregatedScraped = aggregateContent(scraped, subPageResults);
+    const llmFields = await extractWithLlm(
+      aggregatedScraped,
+      mergedFields,
+      signal,
+    );
     timings.llm = Date.now() - llmStart;
     mergeFieldsInto(mergedFields, llmFields);
     llmProvider = "auto";
-  }
-
-  // 7. 合并子页面字段
-  for (const subFields of subPageFields) {
-    mergeByConfidence(mergedFields, subFields);
   }
 
   // 8. 校验 + LLM 交叉验证
@@ -174,11 +185,31 @@ async function scrapeHomepage(
   if (strategy === "lightweight") {
     return scrapeWithCheerio(url, signal);
   }
-  return scrapePage(url, {
-    siteProfile: profile,
-    signal,
-    useStealth: strategy === "stealth",
-  });
+
+  try {
+    return await scrapePage(url, {
+      siteProfile: profile,
+      signal,
+      useStealth: strategy === "stealth",
+    });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "";
+    const isTimeout = msg.includes("Timeout") || msg.includes("timeout");
+
+    if (!isTimeout) throw err;
+
+    // 超时重试：standard → stealth fallback，stealth → 原策略重试
+    const retryAsStealth = strategy === "standard";
+    console.error(
+      `[website-crawl] ${strategy} timeout for ${url}, retrying${retryAsStealth ? " with stealth" : ""}...`,
+    );
+
+    return scrapePage(url, {
+      siteProfile: profile,
+      signal,
+      useStealth: retryAsStealth || strategy === "stealth",
+    });
+  }
 }
 
 function extractLayered(scraped: ScrapedContent): ExtractedFields {
@@ -222,6 +253,44 @@ async function tryLlmValidation(
     );
   }
   return { fields: result, quality, adjustments, removals };
+}
+
+/**
+ * 聚合首页 + 子页面内容供 LLM 提取。
+ * 首页占 50% token 预算，子页面按优先级分剩余 50%。
+ */
+function aggregateContent(
+  homepage: ScrapedContent,
+  subPages: SubPageResult[],
+): {
+  title: string;
+  bodyText: string;
+  markdown: string;
+  imageUrls: string[];
+  jsonLd: Record<string, unknown>[];
+  contactText?: string;
+} {
+  if (subPages.length === 0) return homepage;
+
+  const homeMd = homepage.markdown || homepage.bodyText;
+  const parts: string[] = [
+    `## [Homepage]\n\n${homeMd}`,
+  ];
+
+  for (const sub of subPages) {
+    if (sub.markdown.trim().length > 100) {
+      parts.push(`\n\n## [${sub.label} page]\n\n${sub.markdown}`);
+    }
+  }
+
+  return {
+    title: homepage.title,
+    bodyText: homepage.bodyText,
+    markdown: parts.join(""),
+    imageUrls: homepage.imageUrls,
+    jsonLd: homepage.jsonLd,
+    contactText: homepage.contactText,
+  };
 }
 
 function logIssues(

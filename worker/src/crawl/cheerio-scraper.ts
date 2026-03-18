@@ -7,6 +7,7 @@
 
 import * as cheerio from "cheerio";
 import { simpleHtmlToMarkdown } from "./html-to-markdown.js";
+import { pruneBoilerplate } from "./dom-pruner.js";
 import type { ScrapedContent } from "./scraper.js";
 
 const FETCH_TIMEOUT_MS = 15_000;
@@ -65,8 +66,9 @@ export function parseHtml(html: string): ScrapedContent {
   // 导航栏链接
   const navLinks = extractNavLinks($);
 
-  // Markdown 转换
-  const markdown = simpleHtmlToMarkdown(html);
+  // DOM 裁剪 + Markdown 转换
+  const prunedHtml = pruneBoilerplate(html);
+  const markdown = simpleHtmlToMarkdown(prunedHtml);
 
   // 联系信息 + 补充 meta
   const contactText = extractContactText($);
@@ -82,6 +84,7 @@ export function parseHtml(html: string): ScrapedContent {
     navLinks,
     contactText,
     metaTags,
+    apiFields: {},
   };
 }
 

@@ -12,13 +12,13 @@ export function getTimeouts(profile?: SiteProfile) {
     case "static":
       return { navigation: 15_000, contentWait: 2_000 };
     case "wordpress":
-      return { navigation: 20_000, contentWait: 3_000 };
+      return { navigation: 30_000, contentWait: 4_000 };
     case "spa":
-      return { navigation: 30_000, contentWait: 8_000 };
+      return { navigation: 45_000, contentWait: 8_000 };
     case "platform_template":
-      return { navigation: 25_000, contentWait: 5_000 };
+      return { navigation: 40_000, contentWait: 6_000 };
     default:
-      return { navigation: 30_000, contentWait: 5_000 };
+      return { navigation: 45_000, contentWait: 8_000 };
   }
 }
 
