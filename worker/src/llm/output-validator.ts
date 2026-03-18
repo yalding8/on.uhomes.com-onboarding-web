@@ -32,9 +32,18 @@ function tryRecoverJson(text: string): Record<string, unknown> | null {
   let esc = false;
   for (let i = 0; i < text.length; i++) {
     const ch = text[i];
-    if (esc) { esc = false; continue; }
-    if (ch === "\\") { esc = true; continue; }
-    if (ch === '"') { inStr = !inStr; continue; }
+    if (esc) {
+      esc = false;
+      continue;
+    }
+    if (ch === "\\") {
+      esc = true;
+      continue;
+    }
+    if (ch === '"') {
+      inStr = !inStr;
+      continue;
+    }
     if (inStr) continue;
     if (ch === "{" || ch === "[") depth++;
     if (ch === "}" || ch === "]") depth--;
@@ -42,7 +51,10 @@ function tryRecoverJson(text: string): Record<string, unknown> | null {
   }
   if (lastComma <= 0) return null;
   try {
-    return JSON.parse(text.slice(0, lastComma) + "}") as Record<string, unknown>;
+    return JSON.parse(text.slice(0, lastComma) + "}") as Record<
+      string,
+      unknown
+    >;
   } catch {
     return null;
   }
@@ -70,13 +82,19 @@ function coerceBoolean(v: unknown): boolean | undefined {
 function coerceStringArray(v: unknown): string[] | undefined {
   if (Array.isArray(v)) return v.map(String);
   if (typeof v === "string" && v.includes(",")) {
-    return v.split(",").map((s) => s.trim()).filter(Boolean);
+    return v
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   return undefined;
 }
 
 /** 允许的字段 schema（宽松模式：接受后修复） */
-const FIELD_TYPES: Record<string, "string" | "number" | "boolean" | "string[]" | "url[]"> = {
+const FIELD_TYPES: Record<
+  string,
+  "string" | "number" | "boolean" | "string[]" | "url[]"
+> = {
   building_name: "string",
   building_address: "string",
   city: "string",
@@ -116,7 +134,10 @@ const FIELD_TYPES: Record<string, "string" | "number" | "boolean" | "string[]" |
   commission_structure: "string",
 };
 
-export type ValidatedOutput = Record<string, string | number | boolean | string[]>;
+export type ValidatedOutput = Record<
+  string,
+  string | number | boolean | string[]
+>;
 
 /**
  * 验证并修复 LLM 输出

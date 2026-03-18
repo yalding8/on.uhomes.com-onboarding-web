@@ -3,19 +3,22 @@ import { pruneBoilerplate, computeTextDensity } from "./dom-pruner.js";
 
 describe("computeTextDensity", () => {
   it("should return high density for text-heavy elements", () => {
-    const html = "<p>This is a long paragraph with lots of useful content about apartment amenities and pricing.</p>";
+    const html =
+      "<p>This is a long paragraph with lots of useful content about apartment amenities and pricing.</p>";
     const density = computeTextDensity(html);
     expect(density.textDensity).toBeGreaterThan(0.5);
   });
 
   it("should return low density for tag-heavy elements", () => {
-    const html = '<div class="nav"><ul><li><a href="/a">A</a></li><li><a href="/b">B</a></li><li><a href="/c">C</a></li></ul></div>';
+    const html =
+      '<div class="nav"><ul><li><a href="/a">A</a></li><li><a href="/b">B</a></li><li><a href="/c">C</a></li></ul></div>';
     const density = computeTextDensity(html);
     expect(density.textDensity).toBeLessThan(0.3);
   });
 
   it("should detect high link density for navigation", () => {
-    const html = '<div><a href="/a">Link1</a> <a href="/b">Link2</a> <a href="/c">Link3</a></div>';
+    const html =
+      '<div><a href="/a">Link1</a> <a href="/b">Link2</a> <a href="/c">Link3</a></div>';
     const density = computeTextDensity(html);
     expect(density.linkDensity).toBeGreaterThan(0.5);
   });
@@ -23,7 +26,8 @@ describe("computeTextDensity", () => {
 
 describe("pruneBoilerplate", () => {
   it("should remove cookie banners", () => {
-    const html = '<body><div class="content"><p>Great apartments with pools</p></div><div class="cookie-banner">We use cookies</div></body>';
+    const html =
+      '<body><div class="content"><p>Great apartments with pools</p></div><div class="cookie-banner">We use cookies</div></body>';
     const result = pruneBoilerplate(html);
     expect(result).toContain("Great apartments");
     expect(result).not.toContain("cookie");
@@ -64,7 +68,8 @@ describe("pruneBoilerplate", () => {
   });
 
   it("should return content unchanged if no boilerplate detected", () => {
-    const html = "<body><div><p>Pure content about apartments with many details about pricing and amenities.</p></div></body>";
+    const html =
+      "<body><div><p>Pure content about apartments with many details about pricing and amenities.</p></div></body>";
     const result = pruneBoilerplate(html);
     expect(result).toContain("Pure content");
   });

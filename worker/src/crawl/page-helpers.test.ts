@@ -2,9 +2,7 @@ import { describe, it, expect } from "vitest";
 import { getTimeouts } from "./page-helpers.js";
 import type { SiteProfile } from "./site-probe.js";
 
-function makeProfile(
-  overrides: Partial<SiteProfile> = {},
-): SiteProfile {
+function makeProfile(overrides: Partial<SiteProfile> = {}): SiteProfile {
   return {
     type: "unknown",
     framework: "unknown",

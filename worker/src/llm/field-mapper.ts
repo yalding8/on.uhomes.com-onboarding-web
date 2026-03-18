@@ -128,9 +128,7 @@ function checkTypeMismatch(fieldType: string, value: unknown): boolean {
  * 尝试从截断的 JSON 中恢复已完成的键值对。
  * 策略：找到最后一个完整的 "key":value, 截断其后内容并闭合 JSON。
  */
-function tryRecoverTruncatedJson(
-  text: string,
-): Record<string, unknown> | null {
+function tryRecoverTruncatedJson(text: string): Record<string, unknown> | null {
   if (!text.trimStart().startsWith("{")) return null;
 
   // 从尾部逐步截断，直到找到最后一个完整的 key:value 对

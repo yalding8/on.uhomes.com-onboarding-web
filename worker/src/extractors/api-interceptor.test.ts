@@ -8,7 +8,10 @@ describe("isApartmentData", () => {
   });
 
   it("should detect amenities data", () => {
-    const json = { amenities: ["Gym", "Pool", "Parking"], buildingName: "Test Tower" };
+    const json = {
+      amenities: ["Gym", "Pool", "Parking"],
+      buildingName: "Test Tower",
+    };
     expect(isApartmentData(JSON.stringify(json))).toBe(true);
   });
 
@@ -18,7 +21,11 @@ describe("isApartmentData", () => {
   });
 
   it("should reject auth/session JSON", () => {
-    const json = { access_token: "jwt...", refresh_token: "...", expires_in: 3600 };
+    const json = {
+      access_token: "jwt...",
+      refresh_token: "...",
+      expires_in: 3600,
+    };
     expect(isApartmentData(JSON.stringify(json))).toBe(false);
   });
 

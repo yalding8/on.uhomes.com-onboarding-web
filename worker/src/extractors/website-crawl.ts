@@ -273,9 +273,7 @@ function aggregateContent(
   if (subPages.length === 0) return homepage;
 
   const homeMd = homepage.markdown || homepage.bodyText;
-  const parts: string[] = [
-    `## [Homepage]\n\n${homeMd}`,
-  ];
+  const parts: string[] = [`## [Homepage]\n\n${homeMd}`];
 
   for (const sub of subPages) {
     if (sub.markdown.trim().length > 100) {

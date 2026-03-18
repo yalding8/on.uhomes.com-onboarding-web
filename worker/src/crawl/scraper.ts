@@ -14,7 +14,10 @@ import {
   triggerLazyImages,
 } from "./page-helpers.js";
 import { shouldBlockRequest } from "./request-blocker.js";
-import { isApartmentData, mapApiResponse } from "../extractors/api-interceptor.js";
+import {
+  isApartmentData,
+  mapApiResponse,
+} from "../extractors/api-interceptor.js";
 import type { ExtractedFields } from "../types.js";
 import type { SiteProfile } from "./site-probe.js";
 
@@ -151,7 +154,16 @@ function extractPageContent() {
 
   // 正文文本
   if (!document.body) {
-    return { title: document.title || "", bodyText: "", imageUrls: [], jsonLd: [], openGraph: {}, navLinks: [], contactText: "", metaTags: {} };
+    return {
+      title: document.title || "",
+      bodyText: "",
+      imageUrls: [],
+      jsonLd: [],
+      openGraph: {},
+      navLinks: [],
+      contactText: "",
+      metaTags: {},
+    };
   }
   const clone = document.body.cloneNode(true) as HTMLElement;
   for (const sel of ["script", "style", "noscript", "iframe"]) {
@@ -280,23 +292,37 @@ function extractPageContent() {
 function pruneBoilerplateInBrowser() {
   if (!document.body) return;
   const BOILERPLATE = [
-    "[class*='cookie']", "[id*='cookie']", "[class*='consent']",
-    "[class*='ad-']", "[class*='ad_']", "[class*='ads-']",
-    "[class*='popup']", "[class*='modal']",
-    "[class*='sidebar']", "[class*='widget']",
-    "[role='banner']", "[role='navigation']", "[role='complementary']",
-    "[class*='newsletter']", "[class*='subscribe']",
-    "[class*='social-']", "[class*='share-']",
+    "[class*='cookie']",
+    "[id*='cookie']",
+    "[class*='consent']",
+    "[class*='ad-']",
+    "[class*='ad_']",
+    "[class*='ads-']",
+    "[class*='popup']",
+    "[class*='modal']",
+    "[class*='sidebar']",
+    "[class*='widget']",
+    "[role='banner']",
+    "[role='navigation']",
+    "[role='complementary']",
+    "[class*='newsletter']",
+    "[class*='subscribe']",
+    "[class*='social-']",
+    "[class*='share-']",
   ];
 
   for (const sel of BOILERPLATE) {
     try {
       document.querySelectorAll(sel).forEach((el) => el.remove());
-    } catch { /* invalid selector in some DOMs */ }
+    } catch {
+      /* invalid selector in some DOMs */
+    }
   }
 
   // 文本密度裁剪：移除低密度 + 高链接密度的块
-  const blocks = document.querySelectorAll("body > div, body > section, body > aside");
+  const blocks = document.querySelectorAll(
+    "body > div, body > section, body > aside",
+  );
   for (const el of blocks) {
     const htmlEl = el as HTMLElement;
     if (htmlEl.querySelector("table")) continue; // 保护表格
@@ -310,7 +336,9 @@ function pruneBoilerplateInBrowser() {
 
     const links = htmlEl.querySelectorAll("a");
     let linkTextLen = 0;
-    links.forEach((a) => { linkTextLen += (a.innerText || "").length; });
+    links.forEach((a) => {
+      linkTextLen += (a.innerText || "").length;
+    });
     const linkDensity = textLen > 0 ? linkTextLen / textLen : 0;
 
     if (density < 0.25 && linkDensity > 0.5) {

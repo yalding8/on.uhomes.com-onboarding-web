@@ -97,16 +97,12 @@ const CONFIDENCE: Confidence = "high";
  * 从 API JSON 响应中映射公寓字段
  * 递归搜索嵌套对象，模糊匹配字段名
  */
-export function mapApiResponse(
-  json: unknown,
-): ExtractedFields {
+export function mapApiResponse(json: unknown): ExtractedFields {
   const fields: ExtractedFields = {};
 
   // GraphQL unwrap
   const data =
-    isObject(json) && "data" in json && isObject(json.data)
-      ? json.data
-      : json;
+    isObject(json) && "data" in json && isObject(json.data) ? json.data : json;
 
   collectFields(data, fields, 0);
 
@@ -205,7 +201,9 @@ function extractUnitTypes(obj: unknown): string | null {
   for (const [key, value] of Object.entries(obj)) {
     const k = key.toLowerCase();
     if (
-      (k.includes("unit") || k.includes("floorplan") || k.includes("floor_plan")) &&
+      (k.includes("unit") ||
+        k.includes("floorplan") ||
+        k.includes("floor_plan")) &&
       Array.isArray(value) &&
       value.length > 0
     ) {

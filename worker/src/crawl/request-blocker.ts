@@ -31,20 +31,14 @@ export const BLOCKED_DOMAINS: string[] = [
 ];
 
 /** 被屏蔽的资源类型 */
-export const BLOCKED_RESOURCE_TYPES: string[] = [
-  "font",
-  "media",
-];
+export const BLOCKED_RESOURCE_TYPES: string[] = ["font", "media"];
 
 /**
  * 判断是否应该屏蔽该请求
  * @param url 请求 URL
  * @param resourceType Playwright 的 resourceType
  */
-export function shouldBlockRequest(
-  url: string,
-  resourceType: string,
-): boolean {
+export function shouldBlockRequest(url: string, resourceType: string): boolean {
   if (BLOCKED_RESOURCE_TYPES.includes(resourceType)) return true;
 
   for (const domain of BLOCKED_DOMAINS) {

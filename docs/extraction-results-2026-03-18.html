@@ -1,45 +1,2304 @@
-<!DOCTYPE html>
-<html><head>
-<meta charset="utf-8">
-<title>Extraction Results - 2026-03-18</title>
-<style>
-body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 20px; background: #f5f5f5; }
-h1 { color: #222; }
-.summary { background: white; padding: 16px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-.summary span { margin-right: 24px; }
-.num { font-size: 24px; font-weight: bold; color: #FF5A5F; }
-table { border-collapse: collapse; width: 100%; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); font-size: 12px; }
-th { background: #222; color: white; padding: 8px 6px; text-align: left; font-size: 11px; position: sticky; top: 0; z-index: 10; }
-td { padding: 5px 6px; border-bottom: 1px solid #eee; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-tr:hover td { background: #fff8f8; }
-.high { background: #e8f5e9; color: #2e7d32; }
-.medium { background: #fff3e0; color: #e65100; }
-.low { background: #fce4ec; color: #c62828; }
-.empty { color: #ccc; text-align: center; }
-.fh { writing-mode: vertical-lr; transform: rotate(180deg); min-height: 100px; font-size: 10px; }
-.cov { font-size: 9px; color: #aaa; display: block; }
-a { color: #1976d2; text-decoration: none; }
-a:hover { text-decoration: underline; }
-</style>
-</head><body>
-<h1>Apartment Website Extraction Results</h1>
-<div class="summary">
-<span>Sites: <span class="num">43</span></span>
-<span>Avg Fields: <span class="num">9.8</span></span>
-<span>Provider: <span class="num">deepseek-volc (V3)</span></span>
-<span>Date: <span class="num">2026-03-18</span></span>
-</div>
-<table>
-<thead><tr>
-<th>#</th><th>Property</th><th>URL</th><th>N</th><th><div class="fh">building_name<span class="cov">40/43 (93%)</span></div></th><th><div class="fh">building_address<span class="cov">18/43 (42%)</span></div></th><th><div class="fh">city<span class="cov">36/43 (84%)</span></div></th><th><div class="fh">country<span class="cov">23/43 (53%)</span></div></th><th><div class="fh">postal_code<span class="cov">12/43 (28%)</span></div></th><th><div class="fh">price_min<span class="cov">5/43 (12%)</span></div></th><th><div class="fh">price_max<span class="cov">5/43 (12%)</span></div></th><th><div class="fh">currency<span class="cov">5/43 (12%)</span></div></th><th><div class="fh">key_amenities<span class="cov">42/43 (98%)</span></div></th><th><div class="fh">unit_types_summary<span class="cov">27/43 (63%)</span></div></th><th><div class="fh">total_units<span class="cov">4/43 (9%)</span></div></th><th><div class="fh">cover_image<span class="cov">39/43 (91%)</span></div></th><th><div class="fh">images<span class="cov">42/43 (98%)</span></div></th><th><div class="fh">application_link<span class="cov">33/43 (77%)</span></div></th><th><div class="fh">application_method<span class="cov">16/43 (37%)</span></div></th><th><div class="fh">description<span class="cov">42/43 (98%)</span></div></th><th><div class="fh">number_of_floors<span class="cov">7/43 (16%)</span></div></th><th><div class="fh">year_built<span class="cov">0/43 (0%)</span></div></th><th><div class="fh">elevator_available<span class="cov">1/43 (2%)</span></div></th><th><div class="fh">furnished_options<span class="cov">2/43 (5%)</span></div></th><th><div class="fh">utilities_included<span class="cov">4/43 (9%)</span></div></th></tr></thead><tbody><tr><td>1</td><td><b>The Max | Midtown West | No...</b></td><td><a href="https://tfc.com/residential/606w57/new-york-luxury-no-fee-apartments" target="_blank">the-max-606w57</a></td><td><b>27</b></td><td class="medium" title="The Max | Midtown West | No Fee Apartments and ...">The Max | Midtown West | No Fee Apartments and ...</td><td class="high" title="606 W 57th St">606 W 57th St</td><td class="high" title="New York">New York</td><td class="high" title="USA">USA</td><td class="medium" title="NY">NY</td><td class="low" title="3415">3415</td><td class="low" title="7505">7505</td><td class="high" title="USD">USD</td><td class="medium" title="Gym, Laundry, Parking, Study Room +6">Gym, Laundry, Parking, Study Room +6</td><td class="medium" title="Studio, 1BR, 2BR, 3BR">Studio, 1BR, 2BR, 3BR</td><td class="medium" title="1028">1028</td><td class="medium" title="https://tfc.com/img/tfc-logo-200x200.jpg">https://tfc.com/img/tfc-logo-200x200.jpg</td><td class="low" title="https://tfc.com/img/tfc-logo-200x200.jpg">https://tfc.com/img/tfc-logo-200x200.jpg</td><td class="low" title="/new-york-luxury-no-fee-apartments/606w57-rentals">/new-york-luxury-no-fee-apartments/606w57-rentals</td><td class="medium" title="Offline">Offline</td><td class="medium" title="The Max at 606 West 57th St offers modern renta...">The Max at 606 West 57th St offers modern renta...</td><td class="medium" title="44">44</td><td class="empty">—</td><td class="medium" title="True">True</td><td class="medium" title="Furnished options description not found">Furnished options description not found</td><td class="medium" title="WiFi">WiFi</td></tr><tr><td>2</td><td><b>555 Ten</b></td><td><a href="https://555ten.com/" target="_blank">555ten</a></td><td><b>17</b></td><td class="high" title="555 Ten">555 Ten</td><td class="high" title="555 10th Avenue">555 10th Avenue</td><td class="high" title="New York">New York</td><td class="high" title="United States">United States</td><td class="empty">—</td><td class="low" title="4200">4200</td><td class="low" title="9000">9000</td><td class="high" title="USD">USD</td><td class="medium" title="Gym, Pool, Laundry, Parking +6">Gym, Pool, Laundry, Parking +6</td><td class="medium" title="Studio, 1 Bedroom, 2 Bedroom, 3 Bedroom, Loft">Studio, 1 Bedroom, 2 Bedroom, 3 Bedroom, Loft</td><td class="empty">—</td><td class="medium" title="https://555ten.com/wp-content/uploads/2019/07/b...">https://555ten.com/wp-content/uploads/2019/07/b...</td><td class="medium" title="https://555ten.com/wp-content/uploads/2019/07/b...">https://555ten.com/wp-content/uploads/2019/07/b...</td><td class="medium" title="https://555ten.com">https://555ten.com</td><td class="medium" title="Online">Online</td><td class="high" title="555TEN offers new luxury Midtown Manhattan apar...">555TEN offers new luxury Midtown Manhattan apar...</td><td class="medium" title="56">56</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>3</td><td><b>Bisby at Newport</b></td><td><a href="https://www.bisby.com/" target="_blank">bisby-newport</a></td><td><b>16</b></td><td class="high" title="Bisby at Newport">Bisby at Newport</td><td class="high" title="30 Park Lane North">30 Park Lane North</td><td class="high" title="Jersey City">Jersey City</td><td class="high" title="{'@type': 'country', 'name': 'USA', 'openingHou...">{'@type': 'country', 'name': 'USA', 'openingHou...</td><td class="high" title="07310">07310</td><td class="low" title="3430">3430</td><td class="low" title="4521">4521</td><td class="high" title="USD">USD</td><td class="low" title="Lounge, Lobby, Co-working Space, golf-simulator +5">Lounge, Lobby, Co-working Space, golf-simulator +5</td><td class="medium" title="Studio, 1 BR, 2 BR, 3 BR, 4 BR">Studio, 1 BR, 2 BR, 3 BR, 4 BR</td><td class="low" title="1234">1234</td><td class="medium" title="https://sxxweb7cdn.cachefly.net/img/thumbnail.a...">https://sxxweb7cdn.cachefly.net/img/thumbnail.a...</td><td class="low" title="https://sxxweb7cdn.cachefly.net/img/thumbnail.a...">https://sxxweb7cdn.cachefly.net/img/thumbnail.a...</td><td class="medium" title="https://www.bisby.com">https://www.bisby.com</td><td class="empty">—</td><td class="high" title="Head Line Goes here
-Body and SEO copy goes here...">Head Line Goes here
-Body and SEO copy goes here...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>4</td><td><b>Hudson Yards New Apartments...</b></td><td><a href="https://themaybury.com/" target="_blank">maybury</a></td><td><b>13</b></td><td class="medium" title="Hudson Yards New Apartments for Rent | The Maybury">Hudson Yards New Apartments for Rent | The Maybury</td><td class="high" title="550 Tenth Avenue">550 Tenth Avenue</td><td class="high" title="New York City">New York City</td><td class="high" title="USA">USA</td><td class="empty">—</td><td class="low" title="3570">3570</td><td class="low" title="8072">8072</td><td class="high" title="USD">USD</td><td class="medium" title="Rooftop, Gym">Rooftop, Gym</td><td class="medium" title="Studio, 1 Bedroom, 2 Bedroom">Studio, 1 Bedroom, 2 Bedroom</td><td class="empty">—</td><td class="medium" title="https://themaybury.com/wp-content/uploads/2024/...">https://themaybury.com/wp-content/uploads/2024/...</td><td class="low" title="https://themaybury.com/wp-content/uploads/2024/...">https://themaybury.com/wp-content/uploads/2024/...</td><td class="low" title="/availability/">/availability/</td><td class="empty">—</td><td class="medium" title="Studio to two-bedroom new luxury rental apartme...">Studio to two-bedroom new luxury rental apartme...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>5</td><td><b>One Ten</b></td><td><a href="https://www.onetenjc.com/" target="_blank">one-ten-jc</a></td><td><b>13</b></td><td class="high" title="One Ten">One Ten</td><td class="high" title="110 Hoboken Ave">110 Hoboken Ave</td><td class="high" title="Jersey City">Jersey City</td><td class="high" title="US">US</td><td class="high" title="07310">07310</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Laundry, Pet Friendly">Gym, Laundry, Pet Friendly</td><td class="medium" title="Studio, 1BR, 2BR">Studio, 1BR, 2BR</td><td class="empty">—</td><td class="high" title="https://resource.rentcafe.com/image/upload/q_au...">https://resource.rentcafe.com/image/upload/q_au...</td><td class="high" title="https://resource.rentcafe.com/image/upload/q_au...">https://resource.rentcafe.com/image/upload/q_au...</td><td class="medium" title="https://www.onetenjc.com/">https://www.onetenjc.com/</td><td class="empty">—</td><td class="high" title="&lt;h2>Luxury Apartments in Jersey City, NJ&lt;/h2>
-&lt;...">&lt;h2>Luxury Apartments in Jersey City, NJ&lt;/h2>
-&lt;...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>6</td><td><b>The Axel</b></td><td><a href="https://the-axel.com/" target="_blank">the-axel</a></td><td><b>13</b></td><td class="high" title="The Axel">The Axel</td><td class="high" title="545 Vanderbilt Ave">545 Vanderbilt Ave</td><td class="high" title="Brooklyn">Brooklyn</td><td class="high" title="USA">USA</td><td class="high" title="11238">11238</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Pool, Laundry, Parking +8">Gym, Pool, Laundry, Parking +8</td><td class="medium" title="Studio to 3 Bedrooms">Studio to 3 Bedrooms</td><td class="empty">—</td><td class="high" title="https://the-axel.com/images/logo-new.svg">https://the-axel.com/images/logo-new.svg</td><td class="high" title="https://the-axel.com/images/logo-new.svg">https://the-axel.com/images/logo-new.svg</td><td class="medium" title="https://the-axel.com/">https://the-axel.com/</td><td class="empty">—</td><td class="medium" title="From its perch at the intersection of three leg...">From its perch at the intersection of three leg...</td><td class="medium" title="30">30</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>7</td><td><b>New York Apartments For Ren...</b></td><td><a href="https://www.1440amsterdam.com/" target="_blank">1440-amsterdam</a></td><td><b>12</b></td><td class="medium" title="New York Apartments For Rent | 1440 Amsterdam Ave">New York Apartments For Rent | 1440 Amsterdam Ave</td><td class="high" title="1440 Amsterdam Ave">1440 Amsterdam Ave</td><td class="high" title="New York">New York</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Game Room, Rooftop">Gym, Game Room, Rooftop</td><td class="medium" title="Studio - 3 bedroom">Studio - 3 bedroom</td><td class="medium" title="490">490</td><td class="medium" title="https://cdn.prod.website-files.com/682f9a815065...">https://cdn.prod.website-files.com/682f9a815065...</td><td class="low" title="https://cdn.prod.website-files.com/682f9a815065...">https://cdn.prod.website-files.com/682f9a815065...</td><td class="medium" title="https://hello.rello.co/?invite_hash=M0sNCyQMGAk...">https://hello.rello.co/?invite_hash=M0sNCyQMGAk...</td><td class="medium" title="Online">Online</td><td class="medium" title="The largest residentail building in Upper Manha...">The largest residentail building in Upper Manha...</td><td class="medium" title="27">27</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>8</td><td><b>Vista65</b></td><td><a href="https://vista65.com/" target="_blank">vista-65</a></td><td><b>12</b></td><td class="medium" title="Vista65">Vista65</td><td class="high" title="97-12 65TH ROAD">97-12 65TH ROAD</td><td class="high" title="Rego Park">Rego Park</td><td class="high" title="USA">USA</td><td class="high" title="11374">11374</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Parking, Bike Storage">Gym, Parking, Bike Storage</td><td class="medium" title="Studio, 1-bedroom, 2-bedroom">Studio, 1-bedroom, 2-bedroom</td><td class="empty">—</td><td class="low" title="//via.placeholder.com/1">//via.placeholder.com/1</td><td class="high" title="//via.placeholder.com/1">//via.placeholder.com/1</td><td class="medium" title="https://vista65.weblium.site/application">https://vista65.weblium.site/application</td><td class="empty">—</td><td class="medium" title="Rising 22 stories over the prime nexus of Fores...">Rising 22 stories over the prime nexus of Fores...</td><td class="medium" title="22">22</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>9</td><td><b>Fiat House</b></td><td><a href="https://www.fiathouse.com/" target="_blank">fiat-house</a></td><td><b>12</b></td><td class="high" title="Fiat House">Fiat House</td><td class="high" title="2100 NORTH CENTRAL ROAD">2100 NORTH CENTRAL ROAD</td><td class="high" title="Fort Lee">Fort Lee</td><td class="high" title="USA">USA</td><td class="high" title="07024">07024</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="Studio, 1 and 2 Bedroom">Studio, 1 and 2 Bedroom</td><td class="empty">—</td><td class="low" title="/_next/image?url=%2Fimages%2FWoman_Home_Res.png...">/_next/image?url=%2Fimages%2FWoman_Home_Res.png...</td><td class="medium" title="/_next/image?url=%2Fimages%2Fupdate3.27.24%2FFi...">/_next/image?url=%2Fimages%2Fupdate3.27.24%2FFi...</td><td class="medium" title="https://fiathouse.securecafe.com/onlineleasing/...">https://fiathouse.securecafe.com/onlineleasing/...</td><td class="medium" title="Online">Online</td><td class="medium" title="AN INSPIRED COLLECTION OF BRAND NEW STUDIO, 1 A...">AN INSPIRED COLLECTION OF BRAND NEW STUDIO, 1 A...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>10</td><td><b>The Enclave</b></td><td><a href="https://www.theenclavejc.com/" target="_blank">the-enclave-jc</a></td><td><b>12</b></td><td class="high" title="The Enclave">The Enclave</td><td class="high" title="675 Monmouth Street">675 Monmouth Street</td><td class="high" title="Jersey City">Jersey City</td><td class="high" title="US">US</td><td class="high" title="07310">07310</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Pool, Laundry, Rooftop +1">Gym, Pool, Laundry, Rooftop +1</td><td class="medium" title="Studio, one, and two-bedroom">Studio, one, and two-bedroom</td><td class="empty">—</td><td class="high" title="https://resource.rentcafe.com/image/upload/q_au...">https://resource.rentcafe.com/image/upload/q_au...</td><td class="high" title="https://resource.rentcafe.com/image/upload/q_au...">https://resource.rentcafe.com/image/upload/q_au...</td><td class="medium" title="https://www.theenclavejc.com/">https://www.theenclavejc.com/</td><td class="empty">—</td><td class="high" title="&lt;h2 class=&quot;text-white pb-2&quot;>Luxury Apartments i...">&lt;h2 class=&quot;text-white pb-2&quot;>Luxury Apartments i...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>11</td><td><b>Journal Square Urby | Luxur...</b></td><td><a href="https://www.urby.com/location/journal-square" target="_blank">journal-square-urby</a></td><td><b>12</b></td><td class="medium" title="Journal Square Urby | Luxury Jersey City Apartm...">Journal Square Urby | Luxury Jersey City Apartm...</td><td class="empty">—</td><td class="high" title="Jersey City">Jersey City</td><td class="high" title="USA">USA</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Rooftop">Gym, Rooftop</td><td class="medium" title="Studio, 1BR, 2BR, 3BR">Studio, 1BR, 2BR, 3BR</td><td class="empty">—</td><td class="medium" title="https://urby.com/urby-twitter-logo.png">https://urby.com/urby-twitter-logo.png</td><td class="low" title="https://urby.com/urby-twitter-logo.png">https://urby.com/urby-twitter-logo.png</td><td class="medium" title="https://www.urby.com/location/journal-square">https://www.urby.com/location/journal-square</td><td class="medium" title="Online">Online</td><td class="medium" title="Journal Square Urby luxury apartments for rent ...">Journal Square Urby luxury apartments for rent ...</td><td class="medium" title="25">25</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Fully-furnished luxury apartments available on ...">Fully-furnished luxury apartments available on ...</td><td class="empty">—</td></tr><tr><td>12</td><td><b>485 Marin</b></td><td><a href="https://www.485marin.com/" target="_blank">485-marin</a></td><td><b>11</b></td><td class="high" title="485 Marin">485 Marin</td><td class="high" title="485 Marin Blvd">485 Marin Blvd</td><td class="high" title="Jersey City">Jersey City</td><td class="high" title="US">US</td><td class="high" title="07302">07302</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Pet Friendly">Pet Friendly</td><td class="empty">—</td><td class="empty">—</td><td class="high" title="https://resource.rentcafe.com/image/upload/q_au...">https://resource.rentcafe.com/image/upload/q_au...</td><td class="high" title="https://resource.rentcafe.com/image/upload/q_au...">https://resource.rentcafe.com/image/upload/q_au...</td><td class="medium" title="https://www.485marin.com/">https://www.485marin.com/</td><td class="empty">—</td><td class="high" title="&lt;div style=&quot;text-align: center&quot;>Welcome to life...">&lt;div style=&quot;text-align: center&quot;>Welcome to life...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>13</td><td><b>The Hendrix | Jersey City L...</b></td><td><a href="https://thehendrixjc.com/" target="_blank">the-hendrix-jc</a></td><td><b>11</b></td><td class="medium" title="The Hendrix | Jersey City Luxury Rentals | Stud...">The Hendrix | Jersey City Luxury Rentals | Stud...</td><td class="high" title="180 Morgan Street">180 Morgan Street</td><td class="high" title="Jersey City">Jersey City</td><td class="high" title="USA">USA</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="Studio - 3 Bedroom Residences">Studio - 3 Bedroom Residences</td><td class="empty">—</td><td class="medium" title="https://www.thehendrixjc.com/images/CA1_5482.webp">https://www.thehendrixjc.com/images/CA1_5482.webp</td><td class="low" title="https://www.thehendrixjc.com/images/CA1_5482.webp">https://www.thehendrixjc.com/images/CA1_5482.webp</td><td class="medium" title="https://arch.app/thehendrixjc/tours/book/?advis...">https://arch.app/thehendrixjc/tours/book/?advis...</td><td class="medium" title="Online">Online</td><td class="medium" title="Culture, arts, & amenities moments from the PAT...">Culture, arts, & amenities moments from the PAT...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>14</td><td><b>Explore Our Hell's Kitchen ...</b></td><td><a href="https://hudson-landing.com/" target="_blank">hudson-landing</a></td><td><b>11</b></td><td class="medium" title="Explore Our Hell's Kitchen Apartments | Hudson ...">Explore Our Hell's Kitchen Apartments | Hudson ...</td><td class="high" title="561 Tenth Ave">561 Tenth Ave</td><td class="high" title="New York">New York</td><td class="medium" title="US">US</td><td class="high" title="10036">10036</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Rooftop, Laundry, Parking">Gym, Rooftop, Laundry, Parking</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://hudson-landing.com/assets/images/cache/...">https://hudson-landing.com/assets/images/cache/...</td><td class="low" title="https://hudson-landing.com/assets/images/cache/...">https://hudson-landing.com/assets/images/cache/...</td><td class="low" title="/schedule-a-tour/">/schedule-a-tour/</td><td class="medium" title="Online">Online</td><td class="medium" title="Find your home at Hudson Landing with modern He...">Find your home at Hudson Landing with modern He...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>15</td><td><b>The Brook</b></td><td><a href="https://brookbk.com/" target="_blank">the-brook-bk</a></td><td><b>11</b></td><td class="high" title="The Brook">The Brook</td><td class="high" title="567 Fulton St">567 Fulton St</td><td class="high" title="Brooklyn">Brooklyn</td><td class="high" title="United States">United States</td><td class="high" title="11201">11201</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Pool, Game Room, Rooftop">Gym, Pool, Game Room, Rooftop</td><td class="medium" title="Studio to two-bedroom">Studio to two-bedroom</td><td class="empty">—</td><td class="medium" title="https://brookbk.com/images/share-image.jpg">https://brookbk.com/images/share-image.jpg</td><td class="low" title="https://brookbk.com/images/share-image.jpg">https://brookbk.com/images/share-image.jpg</td><td class="medium" title="https://brookbk.com">https://brookbk.com</td><td class="empty">—</td><td class="high" title="Beautifully-designed studio to two-bedroom rent...">Beautifully-designed studio to two-bedroom rent...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>16</td><td><b>housing4u-ca</b></td><td><a href="https://housing4u.ca" target="_blank">housing4u-ca</a></td><td><b>10</b></td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="high" title="Canada">Canada</td><td class="empty">—</td><td class="low" title="1200">1200</td><td class="low" title="1450">1450</td><td class="empty">—</td><td class="medium" title="WiFi">WiFi</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://res.cloudinary.com/dhigd2c1x/image/uplo...">https://res.cloudinary.com/dhigd2c1x/image/uplo...</td><td class="medium" title="https://res.cloudinary.com/dhigd2c1x/image/uplo...">https://res.cloudinary.com/dhigd2c1x/image/uplo...</td><td class="low" title="/rooms">/rooms</td><td class="medium" title="Online">Online</td><td class="medium" title="Discover comfortable and affordable rooms in th...">Discover comfortable and affordable rooms in th...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>17</td><td><b>Newark Urby | Brand New Lux...</b></td><td><a href="https://www.urby.com/location/newark" target="_blank">newark-urby</a></td><td><b>10</b></td><td class="medium" title="Newark Urby | Brand New Luxury Apartments in Ne...">Newark Urby | Brand New Luxury Apartments in Ne...</td><td class="empty">—</td><td class="high" title="Newark">Newark</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Rooftop, Study Room, Pet Friendly">Gym, Rooftop, Study Room, Pet Friendly</td><td class="medium" title="Studio, 1BR, 2BR, 3BR">Studio, 1BR, 2BR, 3BR</td><td class="empty">—</td><td class="medium" title="https://urby.com/urby-twitter-logo.png">https://urby.com/urby-twitter-logo.png</td><td class="low" title="https://urby.com/urby-twitter-logo.png">https://urby.com/urby-twitter-logo.png</td><td class="medium" title="https://www.urby.com/location/newark">https://www.urby.com/location/newark</td><td class="medium" title="Online">Online</td><td class="medium" title="Newark Urby luxury apartments for rent have eve...">Newark Urby luxury apartments for rent have eve...</td><td class="medium" title="16">16</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>18</td><td><b>224 West 124th - Apartments...</b></td><td><a href="https://www.224w124.com/" target="_blank">224w124</a></td><td><b>10</b></td><td class="high" title="224 West 124th - Apartments in Harlem, NY">224 West 124th - Apartments in Harlem, NY</td><td class="high" title="224 West 124th Street">224 West 124th Street</td><td class="high" title="New York">New York</td><td class="high" title="United States">United States</td><td class="high" title="10027">10027</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="empty">—</td><td class="empty">—</td><td class="low" title="//images.squarespace-cdn.com/content/v1/62bace6...">//images.squarespace-cdn.com/content/v1/62bace6...</td><td class="high" title="//images.squarespace-cdn.com/content/v1/62bace6...">//images.squarespace-cdn.com/content/v1/62bace6...</td><td class="medium" title="https://www.224w124.com">https://www.224w124.com</td><td class="empty">—</td><td class="medium" title="Luxury apartments for rent in Harlem, NY. We of...">Luxury apartments for rent in Harlem, NY. We of...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>19</td><td><b>unite-students</b></td><td><a href="https://www.unitestudents.com/" target="_blank">unite-students</a></td><td><b>9</b></td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="high" title="United Kingdom">United Kingdom</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="high" title="GBP">GBP</td><td class="medium" title="Gym, Laundry, Study Room, Game Room +1">Gym, Laundry, Study Room, Game Room +1</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://www.storylink.us/cdn-cgi/image/w=3840,q...">https://www.storylink.us/cdn-cgi/image/w=3840,q...</td><td class="medium" title="https://www.storylink.us/cdn-cgi/image/w=3840,q...">https://www.storylink.us/cdn-cgi/image/w=3840,q...</td><td class="low" title="/property-search?return=true&filtersOpen=true">/property-search?return=true&filtersOpen=true</td><td class="medium" title="Online">Online</td><td class="medium" title="The UK's leading student accommodation provider...">The UK's leading student accommodation provider...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="All bills included">All bills included</td></tr><tr><td>20</td><td><b>The Biltmore is a pet-frien...</b></td><td><a href="https://thebiltmoreny.com/" target="_blank">the-biltmore-ny</a></td><td><b>9</b></td><td class="medium" title="The Biltmore is a pet-friendly apartment commun...">The Biltmore is a pet-friendly apartment commun...</td><td class="empty">—</td><td class="high" title="New York">New York</td><td class="high" title="USA">USA</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Pet Friendly">Pet Friendly</td><td class="medium" title="Studio, 1BR, 2BR">Studio, 1BR, 2BR</td><td class="empty">—</td><td class="medium" title="https://thebiltmoreny.com/assets/images/cache/o...">https://thebiltmoreny.com/assets/images/cache/o...</td><td class="low" title="https://thebiltmoreny.com/assets/images/cache/o...">https://thebiltmoreny.com/assets/images/cache/o...</td><td class="low" title="/floorplans/">/floorplans/</td><td class="empty">—</td><td class="medium" title="City living has turned luxe lifestyle with newl...">City living has turned luxe lifestyle with newl...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>21</td><td><b>Kips Bay Court</b></td><td><a href="https://www.kipsbaycourt.com/" target="_blank">kipsbay-court</a></td><td><b>9</b></td><td class="medium" title="Kips Bay Court">Kips Bay Court</td><td class="empty">—</td><td class="high" title="Kips Bay">Kips Bay</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Pet Friendly, Security">Gym, Pet Friendly, Security</td><td class="medium" title="Studio, 1BR, 2BR, 3BR, 4BR">Studio, 1BR, 2BR, 3BR, 4BR</td><td class="empty">—</td><td class="medium" title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...">https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...</td><td class="low" title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...">https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...</td><td class="medium" title="https://www.kipsbaycourt.com/book-a-tour">https://www.kipsbaycourt.com/book-a-tour</td><td class="medium" title="Online">Online</td><td class="medium" title="Welcome to the Kips Bay Court Site">Welcome to the Kips Bay Court Site</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>22</td><td><b>Parker Towers</b></td><td><a href="https://www.parkertowers.com/" target="_blank">parker-towers</a></td><td><b>9</b></td><td class="medium" title="Parker Towers">Parker Towers</td><td class="empty">—</td><td class="high" title="Forest Hills">Forest Hills</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Pet Friendly">Pet Friendly</td><td class="medium" title="Studio, 1BR, 2BR, 3BR, 4BR">Studio, 1BR, 2BR, 3BR, 4BR</td><td class="empty">—</td><td class="medium" title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...">https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...</td><td class="low" title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...">https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...</td><td class="medium" title="https://www.parkertowers.com/book-a-tour">https://www.parkertowers.com/book-a-tour</td><td class="medium" title="Online">Online</td><td class="medium" title="Welcome to the Parker Towers Site">Welcome to the Parker Towers Site</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>23</td><td><b>Long Island City New Apartm...</b></td><td><a href="https://gothampoint.com/" target="_blank">gotham-point</a></td><td><b>9</b></td><td class="medium" title="Long Island City New Apartments for Rent | Goth...">Long Island City New Apartments for Rent | Goth...</td><td class="high" title="1-15 57th Avenue, Long Island City, New York">1-15 57th Avenue, Long Island City, New York</td><td class="high" title="Long Island City">Long Island City</td><td class="high" title="United States">United States</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="Studio to 3-bedroom">Studio to 3-bedroom</td><td class="empty">—</td><td class="medium" title="https://gothampoint.com/wp-content/uploads/2024...">https://gothampoint.com/wp-content/uploads/2024...</td><td class="medium" title="https://gothampoint.com/wp-content/uploads/2024...">https://gothampoint.com/wp-content/uploads/2024...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Brand new studio to 3-bedroom luxury apartments...">Brand new studio to 3-bedroom luxury apartments...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>24</td><td><b>Brooklyn Tower</b></td><td><a href="https://thebrooklyntower.com/" target="_blank">brooklyn-tower</a></td><td><b>9</b></td><td class="medium" title="Brooklyn Tower">Brooklyn Tower</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="Studio, 1BR, 2BR, 3BR, 4BR">Studio, 1BR, 2BR, 3BR, 4BR</td><td class="medium" title="421">421</td><td class="medium" title="https://thebrooklyntower.com/app/uploads/2025/0...">https://thebrooklyntower.com/app/uploads/2025/0...</td><td class="medium" title=""></td><td class="medium" title="https://www.brooklyntowerrentals.com/">https://www.brooklyntowerrentals.com/</td><td class="medium" title="Online">Online</td><td class="medium" title="Silverstein Properties presents Brooklyn Tower....">Silverstein Properties presents Brooklyn Tower....</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>25</td><td><b>22 Chapel</b></td><td><a href="https://22chapel.com/" target="_blank">22-chapel</a></td><td><b>9</b></td><td class="high" title="22 Chapel">22 Chapel</td><td class="high" title="22 Chapel Street">22 Chapel Street</td><td class="high" title="Brooklyn">Brooklyn</td><td class="high" title="USA">USA</td><td class="high" title="11201">11201</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Game Room, Rooftop">Gym, Game Room, Rooftop</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://22chapel.com/site/images/uploaded/9f52e...">https://22chapel.com/site/images/uploaded/9f52e...</td><td class="medium" title="https://22chapel.com/site/images/uploaded/850bc...">https://22chapel.com/site/images/uploaded/850bc...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="With its striking faceted façade by esteemed ar...">With its striking faceted façade by esteemed ar...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>26</td><td><b>The Collective</b></td><td><a href="https://www.thecollective.com/" target="_blank">the-collective-london</a></td><td><b>8</b></td><td class="high" title="The Collective">The Collective</td><td class="empty">—</td><td class="high" title="West London">West London</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, WiFi, Laundry, Game Room">Gym, WiFi, Laundry, Game Room</td><td class="medium" title="Studio">Studio</td><td class="empty">—</td><td class="medium" title="https://assets-us-01.kc-usercontent.com:443/9a1...">https://assets-us-01.kc-usercontent.com:443/9a1...</td><td class="medium" title="https://assets-us-01.kc-usercontent.com:443/9a1...">https://assets-us-01.kc-usercontent.com:443/9a1...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Discover a better way of living. Enjoy your own...">Discover a better way of living. Enjoy your own...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="All inclusive bill">All inclusive bill</td></tr><tr><td>27</td><td><b>iq-student</b></td><td><a href="https://www.iqstudentaccommodation.com/" target="_blank">iq-student</a></td><td><b>8</b></td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="UK">UK</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, WiFi, Security, Bike Storage">Gym, WiFi, Security, Bike Storage</td><td class="empty">—</td><td class="empty">—</td><td class="low" title="/sites/default/files/styles/large_5_2/public/20...">/sites/default/files/styles/large_5_2/public/20...</td><td class="medium" title="/sites/default/files/styles/large_5_2/public/20...">/sites/default/files/styles/large_5_2/public/20...</td><td class="medium" title="https://www.iqstudentaccommodation.com/city-guides">https://www.iqstudentaccommodation.com/city-guides</td><td class="medium" title="Online">Online</td><td class="medium" title="Find Your Perfect Student Accommodation in the UK">Find Your Perfect Student Accommodation in the UK</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="rent and all bills - including superfast WiFi, ...">rent and all bills - including superfast WiFi, ...</td></tr><tr><td>28</td><td><b>Estelle New Haven | Modern ...</b></td><td><a href="https://www.estellenewhaven.com/" target="_blank">estelle-new-haven</a></td><td><b>8</b></td><td class="medium" title="Estelle New Haven | Modern Living Redefined">Estelle New Haven | Modern Living Redefined</td><td class="high" title="19 Elm Street">19 Elm Street</td><td class="high" title="New Haven">New Haven</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym">Gym</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://estellenewhaven.com/og-image.jpg">https://estellenewhaven.com/og-image.jpg</td><td class="low" title="https://estellenewhaven.com/og-image.jpg">https://estellenewhaven.com/og-image.jpg</td><td class="low" title="/contact">/contact</td><td class="empty">—</td><td class="medium" title="Discover your dream home in our exclusive colle...">Discover your dream home in our exclusive colle...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>29</td><td><b>The Journal</b></td><td><a href="https://www.journaljc.com/" target="_blank">journal-jc</a></td><td><b>8</b></td><td class="high" title="The Journal">The Journal</td><td class="empty">—</td><td class="high" title="Jersey City">Jersey City</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="studio, 1, 2 and 3 bedroom">studio, 1, 2 and 3 bedroom</td><td class="empty">—</td><td class="low" title="/images/home/shutterstock_2435721719.jpg">/images/home/shutterstock_2435721719.jpg</td><td class="medium" title="/images/home/shutterstock_2435721719.jpg, /imag...">/images/home/shutterstock_2435721719.jpg, /imag...</td><td class="low" title="/availability">/availability</td><td class="empty">—</td><td class="medium" title="Sophisticated living in the heart of Jersey Cit...">Sophisticated living in the heart of Jersey Cit...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>30</td><td><b>7 Seventy House</b></td><td><a href="https://7seventyhouse.com/" target="_blank">7-seventy-house</a></td><td><b>8</b></td><td class="high" title="7 Seventy House">7 Seventy House</td><td class="empty">—</td><td class="high" title="Hoboken">Hoboken</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Pool, Rooftop, Pet Friendly">Gym, Pool, Rooftop, Pet Friendly</td><td class="medium" title="Studio, One, Two and Three Bedroom Homes">Studio, One, Two and Three Bedroom Homes</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://7seventyhouse.com/images/7SeventyHouse5...">https://7seventyhouse.com/images/7SeventyHouse5...</td><td class="medium" title="https://7seventyhouse.com/availability">https://7seventyhouse.com/availability</td><td class="empty">—</td><td class="medium" title="We invite you to experience Hoboken living as y...">We invite you to experience Hoboken living as y...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>31</td><td><b>Forty Six Fifty</b></td><td><a href="https://www.fortysixfifty.com/" target="_blank">4650-broadway</a></td><td><b>8</b></td><td class="high" title="Forty Six Fifty">Forty Six Fifty</td><td class="empty">—</td><td class="high" title="Uptown Manhattan">Uptown Manhattan</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="Studio, 1BR, 2BR">Studio, 1BR, 2BR</td><td class="empty">—</td><td class="medium" title="https://www.fortysixfifty.com/_next/image?url=%...">https://www.fortysixfifty.com/_next/image?url=%...</td><td class="medium" title="https://www.fortysixfifty.com/_next/image?url=%...">https://www.fortysixfifty.com/_next/image?url=%...</td><td class="low" title="/availability">/availability</td><td class="empty">—</td><td class="medium" title="Discover a stunning collection of brand new stu...">Discover a stunning collection of brand new stu...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>32</td><td><b>5pointz</b></td><td><a href="https://www.5pointzlic.com/" target="_blank">5-pointz-lic</a></td><td><b>8</b></td><td class="high" title="5pointz">5pointz</td><td class="empty">—</td><td class="high" title="Long Island City">Long Island City</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Security">Security</td><td class="medium" title="Studio-3 Bed">Studio-3 Bed</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="low" title="/availability">/availability</td><td class="medium" title="Online">Online</td><td class="medium" title="5 Pointz is located in the heart of Long Island...">5 Pointz is located in the heart of Long Island...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>33</td><td><b>Ray Harlem</b></td><td><a href="https://www.rayharlem.place/" target="_blank">ray-harlem</a></td><td><b>8</b></td><td class="medium" title="Ray Harlem">Ray Harlem</td><td class="empty">—</td><td class="high" title="Harlem">Harlem</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Bike Storage, Rooftop, Gym, Study Room">Bike Storage, Rooftop, Gym, Study Room</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://cdn.sanity.io/images/khr5ki08/productio...">https://cdn.sanity.io/images/khr5ki08/productio...</td><td class="low" title="https://cdn.sanity.io/images/khr5ki08/productio...">https://cdn.sanity.io/images/khr5ki08/productio...</td><td class="low" title="/apartments#floorplans">/apartments#floorplans</td><td class="empty">—</td><td class="medium" title="Ray Harlem combines art, architecture, and desi...">Ray Harlem combines art, architecture, and desi...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>34</td><td><b>Home - The Bexley</b></td><td><a href="https://www.livebexley.com/" target="_blank">the-bexley</a></td><td><b>8</b></td><td class="medium" title="Home - The Bexley">Home - The Bexley</td><td class="empty">—</td><td class="high" title="Hoboken">Hoboken</td><td class="high" title="USA">USA</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="https://www.livebexley.com/contact/">https://www.livebexley.com/contact/</td><td class="medium" title="Online">Online</td><td class="medium" title="The Bexley offers modern apartment homes in the...">The Bexley offers modern apartment homes in the...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>35</td><td><b>The Devan | Apartments in J...</b></td><td><a href="https://thedevan.com/" target="_blank">the-devan</a></td><td><b>8</b></td><td class="medium" title="The Devan | Apartments in Jersey City">The Devan | Apartments in Jersey City</td><td class="empty">—</td><td class="high" title="Jersey City">Jersey City</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Pool, Rooftop, Pet Friendly">Gym, Pool, Rooftop, Pet Friendly</td><td class="medium" title="Studio, 1BR, 2BR, 3BR">Studio, 1BR, 2BR, 3BR</td><td class="empty">—</td><td class="medium" title="https://thedevanstg.wpenginepowered.com/wp-cont...">https://thedevanstg.wpenginepowered.com/wp-cont...</td><td class="low" title="https://thedevanstg.wpenginepowered.com/wp-cont...">https://thedevanstg.wpenginepowered.com/wp-cont...</td><td class="medium" title="https://thedevan.com/availability/">https://thedevan.com/availability/</td><td class="empty">—</td><td class="medium" title="With distinguished design, state-of-the-art ame...">With distinguished design, state-of-the-art ame...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>36</td><td><b>180 Franklin is a pet-frien...</b></td><td><a href="https://180franklin.com/" target="_blank">180-franklin</a></td><td><b>7</b></td><td class="medium" title="180 Franklin is a pet-friendly apartment commun...">180 Franklin is a pet-friendly apartment commun...</td><td class="empty">—</td><td class="high" title="Brooklyn">Brooklyn</td><td class="high" title="USA">USA</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Pet Friendly">Pet Friendly</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://180franklin.com/assets/images/cache/og_...">https://180franklin.com/assets/images/cache/og_...</td><td class="low" title="https://180franklin.com/assets/images/cache/og_...">https://180franklin.com/assets/images/cache/og_...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Bordering Brooklyn's trendy Clinton Hill and hi...">Bordering Brooklyn's trendy Clinton Hill and hi...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>37</td><td><b>Stuytown</b></td><td><a href="https://www.stuytown.com/" target="_blank">stuytown-pcv</a></td><td><b>7</b></td><td class="medium" title="Stuytown">Stuytown</td><td class="empty">—</td><td class="high" title="Manhattan">Manhattan</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Gym, Parking, Study Room">Gym, Parking, Study Room</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...">https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...</td><td class="low" title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...">https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...</td><td class="medium" title="https://www.stuytown.com/nyc-apartments-for-rent">https://www.stuytown.com/nyc-apartments-for-rent</td><td class="empty">—</td><td class="medium" title="StuyTown’s unique community gives residents the...">StuyTown’s unique community gives residents the...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>38</td><td><b>New York apartments for ren...</b></td><td><a href="https://liveriversideblvd.com/" target="_blank">riverside-blvd</a></td><td><b>7</b></td><td class="medium" title="New York apartments for rent | Riverside Boulevard">New York apartments for rent | Riverside Boulevard</td><td class="empty">—</td><td class="high" title="New York">New York</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="medium" title="Studio, 1BR, 2BR, 3BR">Studio, 1BR, 2BR, 3BR</td><td class="empty">—</td><td class="medium" title="https://liveriversideblvd.com/assets/images/cac...">https://liveriversideblvd.com/assets/images/cac...</td><td class="low" title="https://liveriversideblvd.com/assets/images/cac...">https://liveriversideblvd.com/assets/images/cac...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Riverside Boulevard in New York, NY offers Stud...">Riverside Boulevard in New York, NY offers Stud...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>39</td><td><b>New rental building Inwood,...</b></td><td><a href="https://rentmiramar.com/" target="_blank">miramar</a></td><td><b>6</b></td><td class="medium" title="New rental building Inwood, Manhattan | Miramar">New rental building Inwood, Manhattan | Miramar</td><td class="empty">—</td><td class="high" title="Manhattan">Manhattan</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Rooftop">Rooftop</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://rentmiramar.com/wp-content/uploads/2025...">https://rentmiramar.com/wp-content/uploads/2025...</td><td class="low" title="https://rentmiramar.com/wp-content/uploads/2025...">https://rentmiramar.com/wp-content/uploads/2025...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="A brilliant new development nestled along the H...">A brilliant new development nestled along the H...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>40</td><td><b>SOLA Woodside</b></td><td><a href="https://solawoodside.com/" target="_blank">sola-woodside</a></td><td><b>6</b></td><td class="high" title="SOLA Woodside">SOLA Woodside</td><td class="empty">—</td><td class="high" title="Woodside, Queens">Woodside, Queens</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Parking, Bike Storage, Game Room">Parking, Bike Storage, Game Room</td><td class="medium" title="Studio to three-bedroom apartments">Studio to three-bedroom apartments</td><td class="empty">—</td><td class="low" title="/images/home/building.jpg">/images/home/building.jpg</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Discover luxury urban living at SOLA, where con...">Discover luxury urban living at SOLA, where con...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>41</td><td><b>Campus Living Villages: Stu...</b></td><td><a href="https://www.campuslivingvillages.com/" target="_blank">campus-living-villages</a></td><td><b>5</b></td><td class="medium" title="Campus Living Villages: Student Accommodation |...">Campus Living Villages: Student Accommodation |...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://cdn.campuslivingvillages.com/public/Hom...">https://cdn.campuslivingvillages.com/public/Hom...</td><td class="low" title="https://cdn.campuslivingvillages.com/public/Hom...">https://cdn.campuslivingvillages.com/public/Hom...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Find your ideal student home with Campus Living...">Find your ideal student home with Campus Living...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>42</td><td><b>Collegiate AC Award-winning...</b></td><td><a href="https://www.collegiate-ac.com/" target="_blank">collegiate-ac</a></td><td><b>4</b></td><td class="medium" title="Collegiate AC Award-winning Student Accommodati...">Collegiate AC Award-winning Student Accommodati...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="https://www.collegiate-ac.com/propeller/uploads...">https://www.collegiate-ac.com/propeller/uploads...</td><td class="low" title="https://www.collegiate-ac.com/propeller/uploads...">https://www.collegiate-ac.com/propeller/uploads...</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title="Collegiate AC provides award-winning student ac...">Collegiate AC provides award-winning student ac...</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr><tr><td>43</td><td><b>Terra</b></td><td><a href="https://www.terralic.com/" target="_blank">terra-lic</a></td><td><b>3</b></td><td class="high" title="Terra">Terra</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="medium" title=""></td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr></tbody></table>
-<p style="color:#999;margin-top:20px;font-size:12px;">
-Legend: <span style="background:#e8f5e9;padding:2px 8px;">high confidence</span>
-<span style="background:#fff3e0;padding:2px 8px;">medium confidence</span>
-<span style="background:#fce4ec;padding:2px 8px;">low confidence</span>
-<span style="color:#ccc;">— = not extracted</span>
-</p>
-</body></html>
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Extraction Results - 2026-03-18</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+      }
+      h1 {
+        color: #222;
+      }
+      .summary {
+        background: white;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+      .summary span {
+        margin-right: 24px;
+      }
+      .num {
+        font-size: 24px;
+        font-weight: bold;
+        color: #ff5a5f;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        font-size: 12px;
+      }
+      th {
+        background: #222;
+        color: white;
+        padding: 8px 6px;
+        text-align: left;
+        font-size: 11px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      td {
+        padding: 5px 6px;
+        border-bottom: 1px solid #eee;
+        max-width: 180px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      tr:hover td {
+        background: #fff8f8;
+      }
+      .high {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .medium {
+        background: #fff3e0;
+        color: #e65100;
+      }
+      .low {
+        background: #fce4ec;
+        color: #c62828;
+      }
+      .empty {
+        color: #ccc;
+        text-align: center;
+      }
+      .fh {
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+        min-height: 100px;
+        font-size: 10px;
+      }
+      .cov {
+        font-size: 9px;
+        color: #aaa;
+        display: block;
+      }
+      a {
+        color: #1976d2;
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Apartment Website Extraction Results</h1>
+    <div class="summary">
+      <span>Sites: <span class="num">43</span></span>
+      <span>Avg Fields: <span class="num">9.8</span></span>
+      <span>Provider: <span class="num">deepseek-volc (V3)</span></span>
+      <span>Date: <span class="num">2026-03-18</span></span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Property</th>
+          <th>URL</th>
+          <th>N</th>
+          <th>
+            <div class="fh">
+              building_name<span class="cov">40/43 (93%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">
+              building_address<span class="cov">18/43 (42%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">city<span class="cov">36/43 (84%)</span></div>
+          </th>
+          <th>
+            <div class="fh">country<span class="cov">23/43 (53%)</span></div>
+          </th>
+          <th>
+            <div class="fh">
+              postal_code<span class="cov">12/43 (28%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">price_min<span class="cov">5/43 (12%)</span></div>
+          </th>
+          <th>
+            <div class="fh">price_max<span class="cov">5/43 (12%)</span></div>
+          </th>
+          <th>
+            <div class="fh">currency<span class="cov">5/43 (12%)</span></div>
+          </th>
+          <th>
+            <div class="fh">
+              key_amenities<span class="cov">42/43 (98%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">
+              unit_types_summary<span class="cov">27/43 (63%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">total_units<span class="cov">4/43 (9%)</span></div>
+          </th>
+          <th>
+            <div class="fh">
+              cover_image<span class="cov">39/43 (91%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">images<span class="cov">42/43 (98%)</span></div>
+          </th>
+          <th>
+            <div class="fh">
+              application_link<span class="cov">33/43 (77%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">
+              application_method<span class="cov">16/43 (37%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">
+              description<span class="cov">42/43 (98%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">
+              number_of_floors<span class="cov">7/43 (16%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">year_built<span class="cov">0/43 (0%)</span></div>
+          </th>
+          <th>
+            <div class="fh">
+              elevator_available<span class="cov">1/43 (2%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">
+              furnished_options<span class="cov">2/43 (5%)</span>
+            </div>
+          </th>
+          <th>
+            <div class="fh">
+              utilities_included<span class="cov">4/43 (9%)</span>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><b>The Max | Midtown West | No...</b></td>
+          <td>
+            <a
+              href="https://tfc.com/residential/606w57/new-york-luxury-no-fee-apartments"
+              target="_blank"
+              >the-max-606w57</a
+            >
+          </td>
+          <td><b>27</b></td>
+          <td
+            class="medium"
+            title="The Max | Midtown West | No Fee Apartments and ..."
+          >
+            The Max | Midtown West | No Fee Apartments and ...
+          </td>
+          <td class="high" title="606 W 57th St">606 W 57th St</td>
+          <td class="high" title="New York">New York</td>
+          <td class="high" title="USA">USA</td>
+          <td class="medium" title="NY">NY</td>
+          <td class="low" title="3415">3415</td>
+          <td class="low" title="7505">7505</td>
+          <td class="high" title="USD">USD</td>
+          <td class="medium" title="Gym, Laundry, Parking, Study Room +6">
+            Gym, Laundry, Parking, Study Room +6
+          </td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR">
+            Studio, 1BR, 2BR, 3BR
+          </td>
+          <td class="medium" title="1028">1028</td>
+          <td class="medium" title="https://tfc.com/img/tfc-logo-200x200.jpg">
+            https://tfc.com/img/tfc-logo-200x200.jpg
+          </td>
+          <td class="low" title="https://tfc.com/img/tfc-logo-200x200.jpg">
+            https://tfc.com/img/tfc-logo-200x200.jpg
+          </td>
+          <td
+            class="low"
+            title="/new-york-luxury-no-fee-apartments/606w57-rentals"
+          >
+            /new-york-luxury-no-fee-apartments/606w57-rentals
+          </td>
+          <td class="medium" title="Offline">Offline</td>
+          <td
+            class="medium"
+            title="The Max at 606 West 57th St offers modern renta..."
+          >
+            The Max at 606 West 57th St offers modern renta...
+          </td>
+          <td class="medium" title="44">44</td>
+          <td class="empty">—</td>
+          <td class="medium" title="True">True</td>
+          <td class="medium" title="Furnished options description not found">
+            Furnished options description not found
+          </td>
+          <td class="medium" title="WiFi">WiFi</td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td><b>555 Ten</b></td>
+          <td><a href="https://555ten.com/" target="_blank">555ten</a></td>
+          <td><b>17</b></td>
+          <td class="high" title="555 Ten">555 Ten</td>
+          <td class="high" title="555 10th Avenue">555 10th Avenue</td>
+          <td class="high" title="New York">New York</td>
+          <td class="high" title="United States">United States</td>
+          <td class="empty">—</td>
+          <td class="low" title="4200">4200</td>
+          <td class="low" title="9000">9000</td>
+          <td class="high" title="USD">USD</td>
+          <td class="medium" title="Gym, Pool, Laundry, Parking +6">
+            Gym, Pool, Laundry, Parking +6
+          </td>
+          <td
+            class="medium"
+            title="Studio, 1 Bedroom, 2 Bedroom, 3 Bedroom, Loft"
+          >
+            Studio, 1 Bedroom, 2 Bedroom, 3 Bedroom, Loft
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://555ten.com/wp-content/uploads/2019/07/b..."
+          >
+            https://555ten.com/wp-content/uploads/2019/07/b...
+          </td>
+          <td
+            class="medium"
+            title="https://555ten.com/wp-content/uploads/2019/07/b..."
+          >
+            https://555ten.com/wp-content/uploads/2019/07/b...
+          </td>
+          <td class="medium" title="https://555ten.com">https://555ten.com</td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="high"
+            title="555TEN offers new luxury Midtown Manhattan apar..."
+          >
+            555TEN offers new luxury Midtown Manhattan apar...
+          </td>
+          <td class="medium" title="56">56</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><b>Bisby at Newport</b></td>
+          <td>
+            <a href="https://www.bisby.com/" target="_blank">bisby-newport</a>
+          </td>
+          <td><b>16</b></td>
+          <td class="high" title="Bisby at Newport">Bisby at Newport</td>
+          <td class="high" title="30 Park Lane North">30 Park Lane North</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td
+            class="high"
+            title="{'@type': 'country', 'name': 'USA', 'openingHou..."
+          >
+            {'@type': 'country', 'name': 'USA', 'openingHou...
+          </td>
+          <td class="high" title="07310">07310</td>
+          <td class="low" title="3430">3430</td>
+          <td class="low" title="4521">4521</td>
+          <td class="high" title="USD">USD</td>
+          <td
+            class="low"
+            title="Lounge, Lobby, Co-working Space, golf-simulator +5"
+          >
+            Lounge, Lobby, Co-working Space, golf-simulator +5
+          </td>
+          <td class="medium" title="Studio, 1 BR, 2 BR, 3 BR, 4 BR">
+            Studio, 1 BR, 2 BR, 3 BR, 4 BR
+          </td>
+          <td class="low" title="1234">1234</td>
+          <td
+            class="medium"
+            title="https://sxxweb7cdn.cachefly.net/img/thumbnail.a..."
+          >
+            https://sxxweb7cdn.cachefly.net/img/thumbnail.a...
+          </td>
+          <td
+            class="low"
+            title="https://sxxweb7cdn.cachefly.net/img/thumbnail.a..."
+          >
+            https://sxxweb7cdn.cachefly.net/img/thumbnail.a...
+          </td>
+          <td class="medium" title="https://www.bisby.com">
+            https://www.bisby.com
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title="Head Line Goes here
+Body and SEO copy goes here..."
+          >
+            Head Line Goes here Body and SEO copy goes here...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td><b>Hudson Yards New Apartments...</b></td>
+          <td><a href="https://themaybury.com/" target="_blank">maybury</a></td>
+          <td><b>13</b></td>
+          <td
+            class="medium"
+            title="Hudson Yards New Apartments for Rent | The Maybury"
+          >
+            Hudson Yards New Apartments for Rent | The Maybury
+          </td>
+          <td class="high" title="550 Tenth Avenue">550 Tenth Avenue</td>
+          <td class="high" title="New York City">New York City</td>
+          <td class="high" title="USA">USA</td>
+          <td class="empty">—</td>
+          <td class="low" title="3570">3570</td>
+          <td class="low" title="8072">8072</td>
+          <td class="high" title="USD">USD</td>
+          <td class="medium" title="Rooftop, Gym">Rooftop, Gym</td>
+          <td class="medium" title="Studio, 1 Bedroom, 2 Bedroom">
+            Studio, 1 Bedroom, 2 Bedroom
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://themaybury.com/wp-content/uploads/2024/..."
+          >
+            https://themaybury.com/wp-content/uploads/2024/...
+          </td>
+          <td
+            class="low"
+            title="https://themaybury.com/wp-content/uploads/2024/..."
+          >
+            https://themaybury.com/wp-content/uploads/2024/...
+          </td>
+          <td class="low" title="/availability/">/availability/</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Studio to two-bedroom new luxury rental apartme..."
+          >
+            Studio to two-bedroom new luxury rental apartme...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td><b>One Ten</b></td>
+          <td>
+            <a href="https://www.onetenjc.com/" target="_blank">one-ten-jc</a>
+          </td>
+          <td><b>13</b></td>
+          <td class="high" title="One Ten">One Ten</td>
+          <td class="high" title="110 Hoboken Ave">110 Hoboken Ave</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td class="high" title="US">US</td>
+          <td class="high" title="07310">07310</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Laundry, Pet Friendly">
+            Gym, Laundry, Pet Friendly
+          </td>
+          <td class="medium" title="Studio, 1BR, 2BR">Studio, 1BR, 2BR</td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title="https://resource.rentcafe.com/image/upload/q_au..."
+          >
+            https://resource.rentcafe.com/image/upload/q_au...
+          </td>
+          <td
+            class="high"
+            title="https://resource.rentcafe.com/image/upload/q_au..."
+          >
+            https://resource.rentcafe.com/image/upload/q_au...
+          </td>
+          <td class="medium" title="https://www.onetenjc.com/">
+            https://www.onetenjc.com/
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title="&lt;h2>Luxury Apartments in Jersey City, NJ&lt;/h2>
+&lt;..."
+          >
+            &lt;h2>Luxury Apartments in Jersey City, NJ&lt;/h2> &lt;...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td><b>The Axel</b></td>
+          <td><a href="https://the-axel.com/" target="_blank">the-axel</a></td>
+          <td><b>13</b></td>
+          <td class="high" title="The Axel">The Axel</td>
+          <td class="high" title="545 Vanderbilt Ave">545 Vanderbilt Ave</td>
+          <td class="high" title="Brooklyn">Brooklyn</td>
+          <td class="high" title="USA">USA</td>
+          <td class="high" title="11238">11238</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Pool, Laundry, Parking +8">
+            Gym, Pool, Laundry, Parking +8
+          </td>
+          <td class="medium" title="Studio to 3 Bedrooms">
+            Studio to 3 Bedrooms
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="https://the-axel.com/images/logo-new.svg">
+            https://the-axel.com/images/logo-new.svg
+          </td>
+          <td class="high" title="https://the-axel.com/images/logo-new.svg">
+            https://the-axel.com/images/logo-new.svg
+          </td>
+          <td class="medium" title="https://the-axel.com/">
+            https://the-axel.com/
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="From its perch at the intersection of three leg..."
+          >
+            From its perch at the intersection of three leg...
+          </td>
+          <td class="medium" title="30">30</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td><b>New York Apartments For Ren...</b></td>
+          <td>
+            <a href="https://www.1440amsterdam.com/" target="_blank"
+              >1440-amsterdam</a
+            >
+          </td>
+          <td><b>12</b></td>
+          <td
+            class="medium"
+            title="New York Apartments For Rent | 1440 Amsterdam Ave"
+          >
+            New York Apartments For Rent | 1440 Amsterdam Ave
+          </td>
+          <td class="high" title="1440 Amsterdam Ave">1440 Amsterdam Ave</td>
+          <td class="high" title="New York">New York</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Game Room, Rooftop">
+            Gym, Game Room, Rooftop
+          </td>
+          <td class="medium" title="Studio - 3 bedroom">Studio - 3 bedroom</td>
+          <td class="medium" title="490">490</td>
+          <td
+            class="medium"
+            title="https://cdn.prod.website-files.com/682f9a815065..."
+          >
+            https://cdn.prod.website-files.com/682f9a815065...
+          </td>
+          <td
+            class="low"
+            title="https://cdn.prod.website-files.com/682f9a815065..."
+          >
+            https://cdn.prod.website-files.com/682f9a815065...
+          </td>
+          <td
+            class="medium"
+            title="https://hello.rello.co/?invite_hash=M0sNCyQMGAk..."
+          >
+            https://hello.rello.co/?invite_hash=M0sNCyQMGAk...
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="The largest residentail building in Upper Manha..."
+          >
+            The largest residentail building in Upper Manha...
+          </td>
+          <td class="medium" title="27">27</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td><b>Vista65</b></td>
+          <td><a href="https://vista65.com/" target="_blank">vista-65</a></td>
+          <td><b>12</b></td>
+          <td class="medium" title="Vista65">Vista65</td>
+          <td class="high" title="97-12 65TH ROAD">97-12 65TH ROAD</td>
+          <td class="high" title="Rego Park">Rego Park</td>
+          <td class="high" title="USA">USA</td>
+          <td class="high" title="11374">11374</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Parking, Bike Storage">
+            Gym, Parking, Bike Storage
+          </td>
+          <td class="medium" title="Studio, 1-bedroom, 2-bedroom">
+            Studio, 1-bedroom, 2-bedroom
+          </td>
+          <td class="empty">—</td>
+          <td class="low" title="//via.placeholder.com/1">
+            //via.placeholder.com/1
+          </td>
+          <td class="high" title="//via.placeholder.com/1">
+            //via.placeholder.com/1
+          </td>
+          <td class="medium" title="https://vista65.weblium.site/application">
+            https://vista65.weblium.site/application
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Rising 22 stories over the prime nexus of Fores..."
+          >
+            Rising 22 stories over the prime nexus of Fores...
+          </td>
+          <td class="medium" title="22">22</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td><b>Fiat House</b></td>
+          <td>
+            <a href="https://www.fiathouse.com/" target="_blank">fiat-house</a>
+          </td>
+          <td><b>12</b></td>
+          <td class="high" title="Fiat House">Fiat House</td>
+          <td class="high" title="2100 NORTH CENTRAL ROAD">
+            2100 NORTH CENTRAL ROAD
+          </td>
+          <td class="high" title="Fort Lee">Fort Lee</td>
+          <td class="high" title="USA">USA</td>
+          <td class="high" title="07024">07024</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="Studio, 1 and 2 Bedroom">
+            Studio, 1 and 2 Bedroom
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="low"
+            title="/_next/image?url=%2Fimages%2FWoman_Home_Res.png..."
+          >
+            /_next/image?url=%2Fimages%2FWoman_Home_Res.png...
+          </td>
+          <td
+            class="medium"
+            title="/_next/image?url=%2Fimages%2Fupdate3.27.24%2FFi..."
+          >
+            /_next/image?url=%2Fimages%2Fupdate3.27.24%2FFi...
+          </td>
+          <td
+            class="medium"
+            title="https://fiathouse.securecafe.com/onlineleasing/..."
+          >
+            https://fiathouse.securecafe.com/onlineleasing/...
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="AN INSPIRED COLLECTION OF BRAND NEW STUDIO, 1 A..."
+          >
+            AN INSPIRED COLLECTION OF BRAND NEW STUDIO, 1 A...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td><b>The Enclave</b></td>
+          <td>
+            <a href="https://www.theenclavejc.com/" target="_blank"
+              >the-enclave-jc</a
+            >
+          </td>
+          <td><b>12</b></td>
+          <td class="high" title="The Enclave">The Enclave</td>
+          <td class="high" title="675 Monmouth Street">675 Monmouth Street</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td class="high" title="US">US</td>
+          <td class="high" title="07310">07310</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Pool, Laundry, Rooftop +1">
+            Gym, Pool, Laundry, Rooftop +1
+          </td>
+          <td class="medium" title="Studio, one, and two-bedroom">
+            Studio, one, and two-bedroom
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title="https://resource.rentcafe.com/image/upload/q_au..."
+          >
+            https://resource.rentcafe.com/image/upload/q_au...
+          </td>
+          <td
+            class="high"
+            title="https://resource.rentcafe.com/image/upload/q_au..."
+          >
+            https://resource.rentcafe.com/image/upload/q_au...
+          </td>
+          <td class="medium" title="https://www.theenclavejc.com/">
+            https://www.theenclavejc.com/
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title='&lt;h2 class="text-white pb-2">Luxury Apartments i...'
+          >
+            &lt;h2 class=&quot;text-white pb-2&quot;>Luxury Apartments i...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>11</td>
+          <td><b>Journal Square Urby | Luxur...</b></td>
+          <td>
+            <a
+              href="https://www.urby.com/location/journal-square"
+              target="_blank"
+              >journal-square-urby</a
+            >
+          </td>
+          <td><b>12</b></td>
+          <td
+            class="medium"
+            title="Journal Square Urby | Luxury Jersey City Apartm..."
+          >
+            Journal Square Urby | Luxury Jersey City Apartm...
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td class="high" title="USA">USA</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Rooftop">Gym, Rooftop</td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR">
+            Studio, 1BR, 2BR, 3BR
+          </td>
+          <td class="empty">—</td>
+          <td class="medium" title="https://urby.com/urby-twitter-logo.png">
+            https://urby.com/urby-twitter-logo.png
+          </td>
+          <td class="low" title="https://urby.com/urby-twitter-logo.png">
+            https://urby.com/urby-twitter-logo.png
+          </td>
+          <td
+            class="medium"
+            title="https://www.urby.com/location/journal-square"
+          >
+            https://www.urby.com/location/journal-square
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="Journal Square Urby luxury apartments for rent ..."
+          >
+            Journal Square Urby luxury apartments for rent ...
+          </td>
+          <td class="medium" title="25">25</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Fully-furnished luxury apartments available on ..."
+          >
+            Fully-furnished luxury apartments available on ...
+          </td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>12</td>
+          <td><b>485 Marin</b></td>
+          <td>
+            <a href="https://www.485marin.com/" target="_blank">485-marin</a>
+          </td>
+          <td><b>11</b></td>
+          <td class="high" title="485 Marin">485 Marin</td>
+          <td class="high" title="485 Marin Blvd">485 Marin Blvd</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td class="high" title="US">US</td>
+          <td class="high" title="07302">07302</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Pet Friendly">Pet Friendly</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title="https://resource.rentcafe.com/image/upload/q_au..."
+          >
+            https://resource.rentcafe.com/image/upload/q_au...
+          </td>
+          <td
+            class="high"
+            title="https://resource.rentcafe.com/image/upload/q_au..."
+          >
+            https://resource.rentcafe.com/image/upload/q_au...
+          </td>
+          <td class="medium" title="https://www.485marin.com/">
+            https://www.485marin.com/
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title='&lt;div style="text-align: center">Welcome to life...'
+          >
+            &lt;div style=&quot;text-align: center&quot;>Welcome to life...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>13</td>
+          <td><b>The Hendrix | Jersey City L...</b></td>
+          <td>
+            <a href="https://thehendrixjc.com/" target="_blank"
+              >the-hendrix-jc</a
+            >
+          </td>
+          <td><b>11</b></td>
+          <td
+            class="medium"
+            title="The Hendrix | Jersey City Luxury Rentals | Stud..."
+          >
+            The Hendrix | Jersey City Luxury Rentals | Stud...
+          </td>
+          <td class="high" title="180 Morgan Street">180 Morgan Street</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td class="high" title="USA">USA</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="Studio - 3 Bedroom Residences">
+            Studio - 3 Bedroom Residences
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://www.thehendrixjc.com/images/CA1_5482.webp"
+          >
+            https://www.thehendrixjc.com/images/CA1_5482.webp
+          </td>
+          <td
+            class="low"
+            title="https://www.thehendrixjc.com/images/CA1_5482.webp"
+          >
+            https://www.thehendrixjc.com/images/CA1_5482.webp
+          </td>
+          <td
+            class="medium"
+            title="https://arch.app/thehendrixjc/tours/book/?advis..."
+          >
+            https://arch.app/thehendrixjc/tours/book/?advis...
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="Culture, arts, & amenities moments from the PAT..."
+          >
+            Culture, arts, & amenities moments from the PAT...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>14</td>
+          <td><b>Explore Our Hell's Kitchen ...</b></td>
+          <td>
+            <a href="https://hudson-landing.com/" target="_blank"
+              >hudson-landing</a
+            >
+          </td>
+          <td><b>11</b></td>
+          <td
+            class="medium"
+            title="Explore Our Hell's Kitchen Apartments | Hudson ..."
+          >
+            Explore Our Hell's Kitchen Apartments | Hudson ...
+          </td>
+          <td class="high" title="561 Tenth Ave">561 Tenth Ave</td>
+          <td class="high" title="New York">New York</td>
+          <td class="medium" title="US">US</td>
+          <td class="high" title="10036">10036</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Rooftop, Laundry, Parking">
+            Gym, Rooftop, Laundry, Parking
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://hudson-landing.com/assets/images/cache/..."
+          >
+            https://hudson-landing.com/assets/images/cache/...
+          </td>
+          <td
+            class="low"
+            title="https://hudson-landing.com/assets/images/cache/..."
+          >
+            https://hudson-landing.com/assets/images/cache/...
+          </td>
+          <td class="low" title="/schedule-a-tour/">/schedule-a-tour/</td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="Find your home at Hudson Landing with modern He..."
+          >
+            Find your home at Hudson Landing with modern He...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>15</td>
+          <td><b>The Brook</b></td>
+          <td>
+            <a href="https://brookbk.com/" target="_blank">the-brook-bk</a>
+          </td>
+          <td><b>11</b></td>
+          <td class="high" title="The Brook">The Brook</td>
+          <td class="high" title="567 Fulton St">567 Fulton St</td>
+          <td class="high" title="Brooklyn">Brooklyn</td>
+          <td class="high" title="United States">United States</td>
+          <td class="high" title="11201">11201</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Pool, Game Room, Rooftop">
+            Gym, Pool, Game Room, Rooftop
+          </td>
+          <td class="medium" title="Studio to two-bedroom">
+            Studio to two-bedroom
+          </td>
+          <td class="empty">—</td>
+          <td class="medium" title="https://brookbk.com/images/share-image.jpg">
+            https://brookbk.com/images/share-image.jpg
+          </td>
+          <td class="low" title="https://brookbk.com/images/share-image.jpg">
+            https://brookbk.com/images/share-image.jpg
+          </td>
+          <td class="medium" title="https://brookbk.com">
+            https://brookbk.com
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="high"
+            title="Beautifully-designed studio to two-bedroom rent..."
+          >
+            Beautifully-designed studio to two-bedroom rent...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>16</td>
+          <td><b>housing4u-ca</b></td>
+          <td>
+            <a href="https://housing4u.ca" target="_blank">housing4u-ca</a>
+          </td>
+          <td><b>10</b></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="high" title="Canada">Canada</td>
+          <td class="empty">—</td>
+          <td class="low" title="1200">1200</td>
+          <td class="low" title="1450">1450</td>
+          <td class="empty">—</td>
+          <td class="medium" title="WiFi">WiFi</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://res.cloudinary.com/dhigd2c1x/image/uplo..."
+          >
+            https://res.cloudinary.com/dhigd2c1x/image/uplo...
+          </td>
+          <td
+            class="medium"
+            title="https://res.cloudinary.com/dhigd2c1x/image/uplo..."
+          >
+            https://res.cloudinary.com/dhigd2c1x/image/uplo...
+          </td>
+          <td class="low" title="/rooms">/rooms</td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="Discover comfortable and affordable rooms in th..."
+          >
+            Discover comfortable and affordable rooms in th...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>17</td>
+          <td><b>Newark Urby | Brand New Lux...</b></td>
+          <td>
+            <a href="https://www.urby.com/location/newark" target="_blank"
+              >newark-urby</a
+            >
+          </td>
+          <td><b>10</b></td>
+          <td
+            class="medium"
+            title="Newark Urby | Brand New Luxury Apartments in Ne..."
+          >
+            Newark Urby | Brand New Luxury Apartments in Ne...
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="Newark">Newark</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Rooftop, Study Room, Pet Friendly">
+            Gym, Rooftop, Study Room, Pet Friendly
+          </td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR">
+            Studio, 1BR, 2BR, 3BR
+          </td>
+          <td class="empty">—</td>
+          <td class="medium" title="https://urby.com/urby-twitter-logo.png">
+            https://urby.com/urby-twitter-logo.png
+          </td>
+          <td class="low" title="https://urby.com/urby-twitter-logo.png">
+            https://urby.com/urby-twitter-logo.png
+          </td>
+          <td class="medium" title="https://www.urby.com/location/newark">
+            https://www.urby.com/location/newark
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="Newark Urby luxury apartments for rent have eve..."
+          >
+            Newark Urby luxury apartments for rent have eve...
+          </td>
+          <td class="medium" title="16">16</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>18</td>
+          <td><b>224 West 124th - Apartments...</b></td>
+          <td>
+            <a href="https://www.224w124.com/" target="_blank">224w124</a>
+          </td>
+          <td><b>10</b></td>
+          <td class="high" title="224 West 124th - Apartments in Harlem, NY">
+            224 West 124th - Apartments in Harlem, NY
+          </td>
+          <td class="high" title="224 West 124th Street">
+            224 West 124th Street
+          </td>
+          <td class="high" title="New York">New York</td>
+          <td class="high" title="United States">United States</td>
+          <td class="high" title="10027">10027</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="low"
+            title="//images.squarespace-cdn.com/content/v1/62bace6..."
+          >
+            //images.squarespace-cdn.com/content/v1/62bace6...
+          </td>
+          <td
+            class="high"
+            title="//images.squarespace-cdn.com/content/v1/62bace6..."
+          >
+            //images.squarespace-cdn.com/content/v1/62bace6...
+          </td>
+          <td class="medium" title="https://www.224w124.com">
+            https://www.224w124.com
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Luxury apartments for rent in Harlem, NY. We of..."
+          >
+            Luxury apartments for rent in Harlem, NY. We of...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>19</td>
+          <td><b>unite-students</b></td>
+          <td>
+            <a href="https://www.unitestudents.com/" target="_blank"
+              >unite-students</a
+            >
+          </td>
+          <td><b>9</b></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="high" title="United Kingdom">United Kingdom</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="high" title="GBP">GBP</td>
+          <td class="medium" title="Gym, Laundry, Study Room, Game Room +1">
+            Gym, Laundry, Study Room, Game Room +1
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://www.storylink.us/cdn-cgi/image/w=3840,q..."
+          >
+            https://www.storylink.us/cdn-cgi/image/w=3840,q...
+          </td>
+          <td
+            class="medium"
+            title="https://www.storylink.us/cdn-cgi/image/w=3840,q..."
+          >
+            https://www.storylink.us/cdn-cgi/image/w=3840,q...
+          </td>
+          <td class="low" title="/property-search?return=true&filtersOpen=true">
+            /property-search?return=true&filtersOpen=true
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="The UK's leading student accommodation provider..."
+          >
+            The UK's leading student accommodation provider...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="All bills included">All bills included</td>
+        </tr>
+        <tr>
+          <td>20</td>
+          <td><b>The Biltmore is a pet-frien...</b></td>
+          <td>
+            <a href="https://thebiltmoreny.com/" target="_blank"
+              >the-biltmore-ny</a
+            >
+          </td>
+          <td><b>9</b></td>
+          <td
+            class="medium"
+            title="The Biltmore is a pet-friendly apartment commun..."
+          >
+            The Biltmore is a pet-friendly apartment commun...
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="New York">New York</td>
+          <td class="high" title="USA">USA</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Pet Friendly">Pet Friendly</td>
+          <td class="medium" title="Studio, 1BR, 2BR">Studio, 1BR, 2BR</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://thebiltmoreny.com/assets/images/cache/o..."
+          >
+            https://thebiltmoreny.com/assets/images/cache/o...
+          </td>
+          <td
+            class="low"
+            title="https://thebiltmoreny.com/assets/images/cache/o..."
+          >
+            https://thebiltmoreny.com/assets/images/cache/o...
+          </td>
+          <td class="low" title="/floorplans/">/floorplans/</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="City living has turned luxe lifestyle with newl..."
+          >
+            City living has turned luxe lifestyle with newl...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>21</td>
+          <td><b>Kips Bay Court</b></td>
+          <td>
+            <a href="https://www.kipsbaycourt.com/" target="_blank"
+              >kipsbay-court</a
+            >
+          </td>
+          <td><b>9</b></td>
+          <td class="medium" title="Kips Bay Court">Kips Bay Court</td>
+          <td class="empty">—</td>
+          <td class="high" title="Kips Bay">Kips Bay</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Pet Friendly, Security">
+            Gym, Pet Friendly, Security
+          </td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR, 4BR">
+            Studio, 1BR, 2BR, 3BR, 4BR
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd..."
+          >
+            https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...
+          </td>
+          <td
+            class="low"
+            title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd..."
+          >
+            https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...
+          </td>
+          <td class="medium" title="https://www.kipsbaycourt.com/book-a-tour">
+            https://www.kipsbaycourt.com/book-a-tour
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td class="medium" title="Welcome to the Kips Bay Court Site">
+            Welcome to the Kips Bay Court Site
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>22</td>
+          <td><b>Parker Towers</b></td>
+          <td>
+            <a href="https://www.parkertowers.com/" target="_blank"
+              >parker-towers</a
+            >
+          </td>
+          <td><b>9</b></td>
+          <td class="medium" title="Parker Towers">Parker Towers</td>
+          <td class="empty">—</td>
+          <td class="high" title="Forest Hills">Forest Hills</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Pet Friendly">Pet Friendly</td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR, 4BR">
+            Studio, 1BR, 2BR, 3BR, 4BR
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd..."
+          >
+            https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...
+          </td>
+          <td
+            class="low"
+            title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd..."
+          >
+            https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...
+          </td>
+          <td class="medium" title="https://www.parkertowers.com/book-a-tour">
+            https://www.parkertowers.com/book-a-tour
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td class="medium" title="Welcome to the Parker Towers Site">
+            Welcome to the Parker Towers Site
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>23</td>
+          <td><b>Long Island City New Apartm...</b></td>
+          <td>
+            <a href="https://gothampoint.com/" target="_blank">gotham-point</a>
+          </td>
+          <td><b>9</b></td>
+          <td
+            class="medium"
+            title="Long Island City New Apartments for Rent | Goth..."
+          >
+            Long Island City New Apartments for Rent | Goth...
+          </td>
+          <td class="high" title="1-15 57th Avenue, Long Island City, New York">
+            1-15 57th Avenue, Long Island City, New York
+          </td>
+          <td class="high" title="Long Island City">Long Island City</td>
+          <td class="high" title="United States">United States</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="Studio to 3-bedroom">
+            Studio to 3-bedroom
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://gothampoint.com/wp-content/uploads/2024..."
+          >
+            https://gothampoint.com/wp-content/uploads/2024...
+          </td>
+          <td
+            class="medium"
+            title="https://gothampoint.com/wp-content/uploads/2024..."
+          >
+            https://gothampoint.com/wp-content/uploads/2024...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Brand new studio to 3-bedroom luxury apartments..."
+          >
+            Brand new studio to 3-bedroom luxury apartments...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>24</td>
+          <td><b>Brooklyn Tower</b></td>
+          <td>
+            <a href="https://thebrooklyntower.com/" target="_blank"
+              >brooklyn-tower</a
+            >
+          </td>
+          <td><b>9</b></td>
+          <td class="medium" title="Brooklyn Tower">Brooklyn Tower</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR, 4BR">
+            Studio, 1BR, 2BR, 3BR, 4BR
+          </td>
+          <td class="medium" title="421">421</td>
+          <td
+            class="medium"
+            title="https://thebrooklyntower.com/app/uploads/2025/0..."
+          >
+            https://thebrooklyntower.com/app/uploads/2025/0...
+          </td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="https://www.brooklyntowerrentals.com/">
+            https://www.brooklyntowerrentals.com/
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="Silverstein Properties presents Brooklyn Tower...."
+          >
+            Silverstein Properties presents Brooklyn Tower....
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>25</td>
+          <td><b>22 Chapel</b></td>
+          <td><a href="https://22chapel.com/" target="_blank">22-chapel</a></td>
+          <td><b>9</b></td>
+          <td class="high" title="22 Chapel">22 Chapel</td>
+          <td class="high" title="22 Chapel Street">22 Chapel Street</td>
+          <td class="high" title="Brooklyn">Brooklyn</td>
+          <td class="high" title="USA">USA</td>
+          <td class="high" title="11201">11201</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Game Room, Rooftop">
+            Gym, Game Room, Rooftop
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://22chapel.com/site/images/uploaded/9f52e..."
+          >
+            https://22chapel.com/site/images/uploaded/9f52e...
+          </td>
+          <td
+            class="medium"
+            title="https://22chapel.com/site/images/uploaded/850bc..."
+          >
+            https://22chapel.com/site/images/uploaded/850bc...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="With its striking faceted façade by esteemed ar..."
+          >
+            With its striking faceted façade by esteemed ar...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>26</td>
+          <td><b>The Collective</b></td>
+          <td>
+            <a href="https://www.thecollective.com/" target="_blank"
+              >the-collective-london</a
+            >
+          </td>
+          <td><b>8</b></td>
+          <td class="high" title="The Collective">The Collective</td>
+          <td class="empty">—</td>
+          <td class="high" title="West London">West London</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, WiFi, Laundry, Game Room">
+            Gym, WiFi, Laundry, Game Room
+          </td>
+          <td class="medium" title="Studio">Studio</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://assets-us-01.kc-usercontent.com:443/9a1..."
+          >
+            https://assets-us-01.kc-usercontent.com:443/9a1...
+          </td>
+          <td
+            class="medium"
+            title="https://assets-us-01.kc-usercontent.com:443/9a1..."
+          >
+            https://assets-us-01.kc-usercontent.com:443/9a1...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Discover a better way of living. Enjoy your own..."
+          >
+            Discover a better way of living. Enjoy your own...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="All inclusive bill">All inclusive bill</td>
+        </tr>
+        <tr>
+          <td>27</td>
+          <td><b>iq-student</b></td>
+          <td>
+            <a href="https://www.iqstudentaccommodation.com/" target="_blank"
+              >iq-student</a
+            >
+          </td>
+          <td><b>8</b></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="UK">UK</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, WiFi, Security, Bike Storage">
+            Gym, WiFi, Security, Bike Storage
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="low"
+            title="/sites/default/files/styles/large_5_2/public/20..."
+          >
+            /sites/default/files/styles/large_5_2/public/20...
+          </td>
+          <td
+            class="medium"
+            title="/sites/default/files/styles/large_5_2/public/20..."
+          >
+            /sites/default/files/styles/large_5_2/public/20...
+          </td>
+          <td
+            class="medium"
+            title="https://www.iqstudentaccommodation.com/city-guides"
+          >
+            https://www.iqstudentaccommodation.com/city-guides
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="Find Your Perfect Student Accommodation in the UK"
+          >
+            Find Your Perfect Student Accommodation in the UK
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="rent and all bills - including superfast WiFi, ..."
+          >
+            rent and all bills - including superfast WiFi, ...
+          </td>
+        </tr>
+        <tr>
+          <td>28</td>
+          <td><b>Estelle New Haven | Modern ...</b></td>
+          <td>
+            <a href="https://www.estellenewhaven.com/" target="_blank"
+              >estelle-new-haven</a
+            >
+          </td>
+          <td><b>8</b></td>
+          <td
+            class="medium"
+            title="Estelle New Haven | Modern Living Redefined"
+          >
+            Estelle New Haven | Modern Living Redefined
+          </td>
+          <td class="high" title="19 Elm Street">19 Elm Street</td>
+          <td class="high" title="New Haven">New Haven</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym">Gym</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="https://estellenewhaven.com/og-image.jpg">
+            https://estellenewhaven.com/og-image.jpg
+          </td>
+          <td class="low" title="https://estellenewhaven.com/og-image.jpg">
+            https://estellenewhaven.com/og-image.jpg
+          </td>
+          <td class="low" title="/contact">/contact</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Discover your dream home in our exclusive colle..."
+          >
+            Discover your dream home in our exclusive colle...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>29</td>
+          <td><b>The Journal</b></td>
+          <td>
+            <a href="https://www.journaljc.com/" target="_blank">journal-jc</a>
+          </td>
+          <td><b>8</b></td>
+          <td class="high" title="The Journal">The Journal</td>
+          <td class="empty">—</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="studio, 1, 2 and 3 bedroom">
+            studio, 1, 2 and 3 bedroom
+          </td>
+          <td class="empty">—</td>
+          <td class="low" title="/images/home/shutterstock_2435721719.jpg">
+            /images/home/shutterstock_2435721719.jpg
+          </td>
+          <td
+            class="medium"
+            title="/images/home/shutterstock_2435721719.jpg, /imag..."
+          >
+            /images/home/shutterstock_2435721719.jpg, /imag...
+          </td>
+          <td class="low" title="/availability">/availability</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Sophisticated living in the heart of Jersey Cit..."
+          >
+            Sophisticated living in the heart of Jersey Cit...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>30</td>
+          <td><b>7 Seventy House</b></td>
+          <td>
+            <a href="https://7seventyhouse.com/" target="_blank"
+              >7-seventy-house</a
+            >
+          </td>
+          <td><b>8</b></td>
+          <td class="high" title="7 Seventy House">7 Seventy House</td>
+          <td class="empty">—</td>
+          <td class="high" title="Hoboken">Hoboken</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Pool, Rooftop, Pet Friendly">
+            Gym, Pool, Rooftop, Pet Friendly
+          </td>
+          <td class="medium" title="Studio, One, Two and Three Bedroom Homes">
+            Studio, One, Two and Three Bedroom Homes
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://7seventyhouse.com/images/7SeventyHouse5..."
+          >
+            https://7seventyhouse.com/images/7SeventyHouse5...
+          </td>
+          <td class="medium" title="https://7seventyhouse.com/availability">
+            https://7seventyhouse.com/availability
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="We invite you to experience Hoboken living as y..."
+          >
+            We invite you to experience Hoboken living as y...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>31</td>
+          <td><b>Forty Six Fifty</b></td>
+          <td>
+            <a href="https://www.fortysixfifty.com/" target="_blank"
+              >4650-broadway</a
+            >
+          </td>
+          <td><b>8</b></td>
+          <td class="high" title="Forty Six Fifty">Forty Six Fifty</td>
+          <td class="empty">—</td>
+          <td class="high" title="Uptown Manhattan">Uptown Manhattan</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="Studio, 1BR, 2BR">Studio, 1BR, 2BR</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://www.fortysixfifty.com/_next/image?url=%..."
+          >
+            https://www.fortysixfifty.com/_next/image?url=%...
+          </td>
+          <td
+            class="medium"
+            title="https://www.fortysixfifty.com/_next/image?url=%..."
+          >
+            https://www.fortysixfifty.com/_next/image?url=%...
+          </td>
+          <td class="low" title="/availability">/availability</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Discover a stunning collection of brand new stu..."
+          >
+            Discover a stunning collection of brand new stu...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>32</td>
+          <td><b>5pointz</b></td>
+          <td>
+            <a href="https://www.5pointzlic.com/" target="_blank"
+              >5-pointz-lic</a
+            >
+          </td>
+          <td><b>8</b></td>
+          <td class="high" title="5pointz">5pointz</td>
+          <td class="empty">—</td>
+          <td class="high" title="Long Island City">Long Island City</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Security">Security</td>
+          <td class="medium" title="Studio-3 Bed">Studio-3 Bed</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="low" title="/availability">/availability</td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="5 Pointz is located in the heart of Long Island..."
+          >
+            5 Pointz is located in the heart of Long Island...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>33</td>
+          <td><b>Ray Harlem</b></td>
+          <td>
+            <a href="https://www.rayharlem.place/" target="_blank"
+              >ray-harlem</a
+            >
+          </td>
+          <td><b>8</b></td>
+          <td class="medium" title="Ray Harlem">Ray Harlem</td>
+          <td class="empty">—</td>
+          <td class="high" title="Harlem">Harlem</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Bike Storage, Rooftop, Gym, Study Room">
+            Bike Storage, Rooftop, Gym, Study Room
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://cdn.sanity.io/images/khr5ki08/productio..."
+          >
+            https://cdn.sanity.io/images/khr5ki08/productio...
+          </td>
+          <td
+            class="low"
+            title="https://cdn.sanity.io/images/khr5ki08/productio..."
+          >
+            https://cdn.sanity.io/images/khr5ki08/productio...
+          </td>
+          <td class="low" title="/apartments#floorplans">
+            /apartments#floorplans
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Ray Harlem combines art, architecture, and desi..."
+          >
+            Ray Harlem combines art, architecture, and desi...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>34</td>
+          <td><b>Home - The Bexley</b></td>
+          <td>
+            <a href="https://www.livebexley.com/" target="_blank">the-bexley</a>
+          </td>
+          <td><b>8</b></td>
+          <td class="medium" title="Home - The Bexley">Home - The Bexley</td>
+          <td class="empty">—</td>
+          <td class="high" title="Hoboken">Hoboken</td>
+          <td class="high" title="USA">USA</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="https://www.livebexley.com/contact/">
+            https://www.livebexley.com/contact/
+          </td>
+          <td class="medium" title="Online">Online</td>
+          <td
+            class="medium"
+            title="The Bexley offers modern apartment homes in the..."
+          >
+            The Bexley offers modern apartment homes in the...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>35</td>
+          <td><b>The Devan | Apartments in J...</b></td>
+          <td><a href="https://thedevan.com/" target="_blank">the-devan</a></td>
+          <td><b>8</b></td>
+          <td class="medium" title="The Devan | Apartments in Jersey City">
+            The Devan | Apartments in Jersey City
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="Jersey City">Jersey City</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Pool, Rooftop, Pet Friendly">
+            Gym, Pool, Rooftop, Pet Friendly
+          </td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR">
+            Studio, 1BR, 2BR, 3BR
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://thedevanstg.wpenginepowered.com/wp-cont..."
+          >
+            https://thedevanstg.wpenginepowered.com/wp-cont...
+          </td>
+          <td
+            class="low"
+            title="https://thedevanstg.wpenginepowered.com/wp-cont..."
+          >
+            https://thedevanstg.wpenginepowered.com/wp-cont...
+          </td>
+          <td class="medium" title="https://thedevan.com/availability/">
+            https://thedevan.com/availability/
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="With distinguished design, state-of-the-art ame..."
+          >
+            With distinguished design, state-of-the-art ame...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>36</td>
+          <td><b>180 Franklin is a pet-frien...</b></td>
+          <td>
+            <a href="https://180franklin.com/" target="_blank">180-franklin</a>
+          </td>
+          <td><b>7</b></td>
+          <td
+            class="medium"
+            title="180 Franklin is a pet-friendly apartment commun..."
+          >
+            180 Franklin is a pet-friendly apartment commun...
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="Brooklyn">Brooklyn</td>
+          <td class="high" title="USA">USA</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Pet Friendly">Pet Friendly</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://180franklin.com/assets/images/cache/og_..."
+          >
+            https://180franklin.com/assets/images/cache/og_...
+          </td>
+          <td
+            class="low"
+            title="https://180franklin.com/assets/images/cache/og_..."
+          >
+            https://180franklin.com/assets/images/cache/og_...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Bordering Brooklyn's trendy Clinton Hill and hi..."
+          >
+            Bordering Brooklyn's trendy Clinton Hill and hi...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>37</td>
+          <td><b>Stuytown</b></td>
+          <td>
+            <a href="https://www.stuytown.com/" target="_blank">stuytown-pcv</a>
+          </td>
+          <td><b>7</b></td>
+          <td class="medium" title="Stuytown">Stuytown</td>
+          <td class="empty">—</td>
+          <td class="high" title="Manhattan">Manhattan</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Gym, Parking, Study Room">
+            Gym, Parking, Study Room
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd..."
+          >
+            https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...
+          </td>
+          <td
+            class="low"
+            title="https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd..."
+          >
+            https://uxp-pd-cms-gmfqdagrdcdrd0gk.a02.azurefd...
+          </td>
+          <td
+            class="medium"
+            title="https://www.stuytown.com/nyc-apartments-for-rent"
+          >
+            https://www.stuytown.com/nyc-apartments-for-rent
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="StuyTown’s unique community gives residents the..."
+          >
+            StuyTown’s unique community gives residents the...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>38</td>
+          <td><b>New York apartments for ren...</b></td>
+          <td>
+            <a href="https://liveriversideblvd.com/" target="_blank"
+              >riverside-blvd</a
+            >
+          </td>
+          <td><b>7</b></td>
+          <td
+            class="medium"
+            title="New York apartments for rent | Riverside Boulevard"
+          >
+            New York apartments for rent | Riverside Boulevard
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="New York">New York</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="medium" title="Studio, 1BR, 2BR, 3BR">
+            Studio, 1BR, 2BR, 3BR
+          </td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://liveriversideblvd.com/assets/images/cac..."
+          >
+            https://liveriversideblvd.com/assets/images/cac...
+          </td>
+          <td
+            class="low"
+            title="https://liveriversideblvd.com/assets/images/cac..."
+          >
+            https://liveriversideblvd.com/assets/images/cac...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Riverside Boulevard in New York, NY offers Stud..."
+          >
+            Riverside Boulevard in New York, NY offers Stud...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>39</td>
+          <td><b>New rental building Inwood,...</b></td>
+          <td>
+            <a href="https://rentmiramar.com/" target="_blank">miramar</a>
+          </td>
+          <td><b>6</b></td>
+          <td
+            class="medium"
+            title="New rental building Inwood, Manhattan | Miramar"
+          >
+            New rental building Inwood, Manhattan | Miramar
+          </td>
+          <td class="empty">—</td>
+          <td class="high" title="Manhattan">Manhattan</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Rooftop">Rooftop</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://rentmiramar.com/wp-content/uploads/2025..."
+          >
+            https://rentmiramar.com/wp-content/uploads/2025...
+          </td>
+          <td
+            class="low"
+            title="https://rentmiramar.com/wp-content/uploads/2025..."
+          >
+            https://rentmiramar.com/wp-content/uploads/2025...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="A brilliant new development nestled along the H..."
+          >
+            A brilliant new development nestled along the H...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>40</td>
+          <td><b>SOLA Woodside</b></td>
+          <td>
+            <a href="https://solawoodside.com/" target="_blank"
+              >sola-woodside</a
+            >
+          </td>
+          <td><b>6</b></td>
+          <td class="high" title="SOLA Woodside">SOLA Woodside</td>
+          <td class="empty">—</td>
+          <td class="high" title="Woodside, Queens">Woodside, Queens</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title="Parking, Bike Storage, Game Room">
+            Parking, Bike Storage, Game Room
+          </td>
+          <td class="medium" title="Studio to three-bedroom apartments">
+            Studio to three-bedroom apartments
+          </td>
+          <td class="empty">—</td>
+          <td class="low" title="/images/home/building.jpg">
+            /images/home/building.jpg
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Discover luxury urban living at SOLA, where con..."
+          >
+            Discover luxury urban living at SOLA, where con...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>41</td>
+          <td><b>Campus Living Villages: Stu...</b></td>
+          <td>
+            <a href="https://www.campuslivingvillages.com/" target="_blank"
+              >campus-living-villages</a
+            >
+          </td>
+          <td><b>5</b></td>
+          <td
+            class="medium"
+            title="Campus Living Villages: Student Accommodation |..."
+          >
+            Campus Living Villages: Student Accommodation |...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://cdn.campuslivingvillages.com/public/Hom..."
+          >
+            https://cdn.campuslivingvillages.com/public/Hom...
+          </td>
+          <td
+            class="low"
+            title="https://cdn.campuslivingvillages.com/public/Hom..."
+          >
+            https://cdn.campuslivingvillages.com/public/Hom...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Find your ideal student home with Campus Living..."
+          >
+            Find your ideal student home with Campus Living...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>42</td>
+          <td><b>Collegiate AC Award-winning...</b></td>
+          <td>
+            <a href="https://www.collegiate-ac.com/" target="_blank"
+              >collegiate-ac</a
+            >
+          </td>
+          <td><b>4</b></td>
+          <td
+            class="medium"
+            title="Collegiate AC Award-winning Student Accommodati..."
+          >
+            Collegiate AC Award-winning Student Accommodati...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="https://www.collegiate-ac.com/propeller/uploads..."
+          >
+            https://www.collegiate-ac.com/propeller/uploads...
+          </td>
+          <td
+            class="low"
+            title="https://www.collegiate-ac.com/propeller/uploads..."
+          >
+            https://www.collegiate-ac.com/propeller/uploads...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td
+            class="medium"
+            title="Collegiate AC provides award-winning student ac..."
+          >
+            Collegiate AC provides award-winning student ac...
+          </td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+        <tr>
+          <td>43</td>
+          <td><b>Terra</b></td>
+          <td>
+            <a href="https://www.terralic.com/" target="_blank">terra-lic</a>
+          </td>
+          <td><b>3</b></td>
+          <td class="high" title="Terra">Terra</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="medium" title=""></td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+          <td class="empty">—</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="color: #999; margin-top: 20px; font-size: 12px">
+      Legend:
+      <span style="background: #e8f5e9; padding: 2px 8px">high confidence</span>
+      <span style="background: #fff3e0; padding: 2px 8px"
+        >medium confidence</span
+      >
+      <span style="background: #fce4ec; padding: 2px 8px">low confidence</span>
+      <span style="color: #ccc">— = not extracted</span>
+    </p>
+  </body>
+</html>

@@ -22,7 +22,10 @@ describe("validateAndRepairOutput", () => {
   });
 
   it("should coerce string booleans", () => {
-    const raw = JSON.stringify({ elevator_available: "Yes", in_unit_washer_dryer: "false" });
+    const raw = JSON.stringify({
+      elevator_available: "Yes",
+      in_unit_washer_dryer: "false",
+    });
     const result = validateAndRepairOutput(raw);
     expect(result.elevator_available).toBe(true);
     expect(result.in_unit_washer_dryer).toBe(false);
@@ -35,14 +38,21 @@ describe("validateAndRepairOutput", () => {
   });
 
   it("should strip unknown fields", () => {
-    const raw = JSON.stringify({ building_name: "Test", unknown_field: "junk" });
+    const raw = JSON.stringify({
+      building_name: "Test",
+      unknown_field: "junk",
+    });
     const result = validateAndRepairOutput(raw);
     expect(result.building_name).toBe("Test");
     expect((result as Record<string, unknown>).unknown_field).toBeUndefined();
   });
 
   it("should strip null and empty values", () => {
-    const raw = JSON.stringify({ building_name: "Test", city: null, country: "" });
+    const raw = JSON.stringify({
+      building_name: "Test",
+      city: null,
+      country: "",
+    });
     const result = validateAndRepairOutput(raw);
     expect(result.building_name).toBe("Test");
     expect(result.city).toBeUndefined();
@@ -55,7 +65,8 @@ describe("validateAndRepairOutput", () => {
   });
 
   it("should handle truncated JSON by recovering partial fields", () => {
-    const raw = '{"building_name":"Tower","city":"NYC","key_amenities":["Gym","Po';
+    const raw =
+      '{"building_name":"Tower","city":"NYC","key_amenities":["Gym","Po';
     const result = validateAndRepairOutput(raw);
     expect(result.building_name).toBe("Tower");
     expect(result.city).toBe("NYC");
