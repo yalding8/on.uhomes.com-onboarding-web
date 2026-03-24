@@ -98,15 +98,19 @@ export function buildWebsiteUserPrompt(
   }
 
   // 上下文注入: 告知 LLM 哪些字段已提取，仅要求补充缺失字段
+  // 排除 low confidence 推断字段，避免错误值误导 LLM（如 .com→US 对英国站点）
   if (existingFields && Object.keys(existingFields).length > 0) {
     const alreadyExtracted: Record<string, unknown> = {};
     for (const [key, fieldValue] of Object.entries(existingFields)) {
+      if (fieldValue.confidence === "low") continue;
       alreadyExtracted[key] = fieldValue.value;
     }
-    parts.push(
-      `\nALREADY EXTRACTED (skip these, focus on missing PRIORITY 1 & 2 fields):`,
-      JSON.stringify(alreadyExtracted, null, 2),
-    );
+    if (Object.keys(alreadyExtracted).length > 0) {
+      parts.push(
+        `\nALREADY EXTRACTED (skip these, focus on missing PRIORITY 1 & 2 fields):`,
+        JSON.stringify(alreadyExtracted, null, 2),
+      );
+    }
   }
 
   return parts.join("\n");
