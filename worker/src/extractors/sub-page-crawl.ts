@@ -27,6 +27,7 @@ export interface SubPageResult {
   label: PageLabel;
   fields: ExtractedFields;
   markdown: string;
+  contactText?: string;
 }
 
 /** 子页面分层提取（JSON-LD → OG → CSS） */
@@ -86,7 +87,12 @@ export async function crawlSubPages(
       );
       const markdown = subScraped.markdown || subScraped.bodyText;
 
-      results.push({ label: subPage.label, fields: subFields, markdown });
+      results.push({
+        label: subPage.label,
+        fields: subFields,
+        markdown,
+        contactText: subScraped.contactText || undefined,
+      });
     } catch (err) {
       captureError(err, { subPageUrl: subPage.url, label: subPage.label });
       console.error(

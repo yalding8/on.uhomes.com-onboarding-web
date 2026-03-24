@@ -18,14 +18,41 @@ describe("inferGeoFields", () => {
     expect(result.country?.value).toBe("Canada");
   });
 
-  it("should not infer country from .com TLD", () => {
+  it("should infer US from .com TLD with low confidence", () => {
     const result = inferGeoFields({}, "https://example.com");
-    expect(result.country).toBeUndefined();
+    expect(result.country?.value).toBe("United States");
+    expect(result.country?.confidence).toBe("low");
   });
 
-  it("should infer US from known US city", () => {
+  it("should infer US from known US city (medium confidence)", () => {
     const fields = {
       city: { value: "Jersey City", confidence: "high" as const },
+    };
+    const result = inferGeoFields(fields, "https://example.com");
+    expect(result.country?.value).toBe("United States");
+    expect(result.country?.confidence).toBe("medium");
+  });
+
+  it("should infer US from expanded city list (Austin)", () => {
+    const fields = {
+      city: { value: "Austin", confidence: "high" as const },
+    };
+    const result = inferGeoFields(fields, "https://example.com");
+    expect(result.country?.value).toBe("United States");
+    expect(result.country?.confidence).toBe("medium");
+  });
+
+  it("should infer US from expanded city list (Chicago)", () => {
+    const fields = {
+      city: { value: "Chicago", confidence: "high" as const },
+    };
+    const result = inferGeoFields(fields, "https://example.com");
+    expect(result.country?.value).toBe("United States");
+  });
+
+  it("should infer US from expanded city list (Los Angeles)", () => {
+    const fields = {
+      city: { value: "Los Angeles", confidence: "medium" as const },
     };
     const result = inferGeoFields(fields, "https://example.com");
     expect(result.country?.value).toBe("United States");

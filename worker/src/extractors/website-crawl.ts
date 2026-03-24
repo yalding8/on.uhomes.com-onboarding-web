@@ -15,6 +15,7 @@ import { validateFields } from "../validators/field-validator.js";
 import { validateWithLlm } from "../validators/llm-validator.js";
 import { mergeFieldsInto, mergeByConfidence } from "./field-merge.js";
 import { inferGeoFields } from "./geo-inferrer.js";
+import { postprocessFields } from "./field-postprocessor.js";
 import { buildResult } from "./result-builder.js";
 import type { ExtractionResult } from "./index.js";
 import type { ExtractedFields, DomainHints } from "../types.js";
@@ -93,7 +94,7 @@ export async function extractFromWebsite(
   mergeFieldsInto(mergedFields, inferGeoFields(mergedFields, sourceUrl));
 
   // 6. LLM 提取 — 聚合首页 + 子页面内容，单次调用
-  const llmSkipped = hasHighCoverage(scraped);
+  const llmSkipped = hasHighCoverage(mergedFields);
   let llmProvider: string | null = null;
   if (!llmSkipped) {
     const llmStart = Date.now();
@@ -107,6 +108,9 @@ export async function extractFromWebsite(
     mergeFieldsInto(mergedFields, llmFields);
     llmProvider = "auto";
   }
+
+  // 7. 后处理：清洗字段数据
+  postprocessFields(mergedFields, sourceUrl);
 
   // 8. 校验 + LLM 交叉验证
   const validated = validateFields(mergedFields);
@@ -236,9 +240,12 @@ function extractLayered(
   return fields;
 }
 
-function hasHighCoverage(scraped: ScrapedContent): boolean {
-  if (scraped.jsonLd.length === 0) return false;
-  return mapStructuredData(scraped.jsonLd).coverageRatio >= SKIP_LLM_COVERAGE;
+/** Tier A+B 字段总数 ≈ 32。仅当已提取字段数足够多时才跳过 LLM。 */
+const TIER_AB_FIELD_COUNT = 32;
+
+function hasHighCoverage(mergedFields: ExtractedFields): boolean {
+  const fieldCount = Object.keys(mergedFields).length;
+  return fieldCount >= TIER_AB_FIELD_COUNT * SKIP_LLM_COVERAGE;
 }
 
 async function tryLlmValidation(
@@ -303,13 +310,22 @@ function aggregateContent(
     }
   }
 
+  // 聚合首页 + 子页面的 contactText
+  const contactParts: string[] = [];
+  if (homepage.contactText) contactParts.push(homepage.contactText);
+  for (const sub of subPages) {
+    if (sub.contactText && !contactParts.includes(sub.contactText)) {
+      contactParts.push(sub.contactText);
+    }
+  }
+
   return {
     title: homepage.title,
     bodyText: homepage.bodyText,
     markdown: parts.join(""),
     imageUrls: homepage.imageUrls,
     jsonLd: homepage.jsonLd,
-    contactText: homepage.contactText,
+    contactText: contactParts.join("\n") || undefined,
   };
 }
 

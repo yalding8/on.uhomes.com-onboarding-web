@@ -292,4 +292,78 @@ describe("mapStructuredData", () => {
     expect(result.fields.price_max?.value).toBe(5000);
     expect(result.fields.currency?.value).toBe("CAD");
   });
+
+  // ── OPT-F: @id 引用解析测试 ──
+
+  it("should resolve @id references for image", () => {
+    const jsonLd = [
+      {
+        "@graph": [
+          {
+            "@id": "https://example.com/#primaryimage",
+            "@type": "ImageObject",
+            url: "https://example.com/hero.jpg",
+          },
+          {
+            "@type": "ApartmentComplex",
+            name: "ID Ref Apartments",
+            image: { "@id": "https://example.com/#primaryimage" },
+          },
+        ],
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.building_name?.value).toBe("ID Ref Apartments");
+    // image resolves through @id to ImageObject, then image.url maps
+    expect(result.fields.cover_image).toBeDefined();
+  });
+
+  it("should resolve nested @id references for address", () => {
+    const jsonLd = [
+      {
+        "@graph": [
+          {
+            "@id": "https://example.com/#address",
+            "@type": "PostalAddress",
+            streetAddress: "100 Park Ave",
+            addressLocality: "Boston",
+            addressCountry: "US",
+          },
+          {
+            "@type": "ApartmentComplex",
+            name: "Ref Address",
+            address: { "@id": "https://example.com/#address" },
+          },
+        ],
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.building_address?.value).toBe("100 Park Ave");
+    expect(result.fields.city?.value).toBe("Boston");
+  });
+
+  it("should not crash on unresolvable @id reference", () => {
+    const jsonLd = [
+      {
+        "@type": "ApartmentComplex",
+        name: "Missing Ref",
+        image: { "@id": "https://example.com/#nonexistent" },
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.building_name?.value).toBe("Missing Ref");
+    // image with unresolvable @id should not crash, just skip
+  });
+
+  it("should not resolve numberOfRooms to total_units (OPT-D)", () => {
+    const jsonLd = [
+      {
+        "@type": "Apartment",
+        name: "Test",
+        numberOfBedrooms: 3,
+      },
+    ];
+    const result = mapStructuredData(jsonLd);
+    expect(result.fields.total_units).toBeUndefined();
+  });
 });

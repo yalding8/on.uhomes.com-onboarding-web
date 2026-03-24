@@ -129,6 +129,9 @@ export async function scrapePage(
     // 在 DOM 裁剪前捕获原始 HTML（供 CSS 选择器提取 itemprop/tel/mailto 等）
     const rawHtml = await page.content();
 
+    // 在 DOM 裁剪前提取 nav 链接（pruner 会删除 [role='navigation']、header 等）
+    const preNavLinks = await page.evaluate(extractNavLinksBeforePrune);
+
     // DOM 裁剪：移除 boilerplate（cookie banner、广告、低密度导航区）
     try {
       await page.evaluate(pruneBoilerplateInBrowser);
@@ -137,6 +140,15 @@ export async function scrapePage(
     }
 
     const content = await page.evaluate(extractPageContent);
+
+    // 合并：pruning 前的 nav 链接 + pruning 后残留的 nav 链接（去重）
+    const mergedHrefs = new Set(content.navLinks.map((l) => l.href));
+    for (const link of preNavLinks) {
+      if (!mergedHrefs.has(link.href)) {
+        mergedHrefs.add(link.href);
+        content.navLinks.push(link);
+      }
+    }
 
     let markdown = "";
     try {
@@ -291,6 +303,33 @@ function extractPageContent() {
     contactText,
     metaTags,
   };
+}
+
+/** 在 DOM pruning 前提取导航链接（避免 pruner 删除 nav/header 后丢失链接） */
+function extractNavLinksBeforePrune(): Array<{ href: string; text: string }> {
+  const sels = [
+    "nav a[href]",
+    '[role="navigation"] a[href]',
+    "header a[href]",
+    ".nav a[href]",
+    ".navbar a[href]",
+    ".navigation a[href]",
+    ".menu a[href]",
+    "#menu a[href]",
+  ];
+  const seen = new Set<string>();
+  const links: Array<{ href: string; text: string }> = [];
+  for (const sel of sels) {
+    for (const a of document.querySelectorAll(sel)) {
+      const href = a.getAttribute("href") || "";
+      const text = (a.textContent || "").trim();
+      if (href && text && !seen.has(href)) {
+        seen.add(href);
+        links.push({ href, text });
+      }
+    }
+  }
+  return links;
 }
 
 /** 浏览器端 DOM 裁剪 — 移除 boilerplate 元素（安全：不会清空 body） */

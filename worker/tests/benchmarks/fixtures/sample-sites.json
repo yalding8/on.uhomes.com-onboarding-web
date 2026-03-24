@@ -1,5 +1,5 @@
 {
-  "description": "基准测试 fixture — 公寓商自有官网（非平台），按实际探测结果标注预期策略（2026-03-18 验证，含 51 个纽约/泽西城公寓）",
+  "description": "基准测试 fixture — 公寓商自有官网（非平台），按实际探测结果标注预期策略（2026-03-18 验证，56 个站点）",
   "sites": [
     {
       "id": "the-collective-london",
@@ -120,15 +120,6 @@
       "description": "Maybury — 美国公寓官网",
       "expectedStrategy": "standard",
       "expectedSiteType": "wordpress"
-    },
-    {
-      "id": "soma-nyc",
-      "category": "spa",
-      "url": "https://somanyc.com/",
-      "description": "Soma — 纽约公寓官网",
-      "expectedStrategy": "standard",
-      "expectedSiteType": "unknown",
-      "note": "HTTPS/HTTP both unreachable (2026-03-18), domain may be defunct"
     },
     {
       "id": "kipsbay-court",
@@ -466,15 +457,6 @@
       "expectedStrategy": "stealth",
       "expectedSiteType": "wordpress",
       "note": "Timeout - may need longer timeout or different strategy"
-    },
-    {
-      "id": "riverside-blvd",
-      "category": "static",
-      "url": "https://liveriversideblvd.com/",
-      "description": "Riverside — 美国公寓官网",
-      "expectedStrategy": "lightweight",
-      "expectedSiteType": "static",
-      "note": "HTTPS/HTTP both unreachable (2026-03-18), domain may be defunct"
     }
   ]
 }

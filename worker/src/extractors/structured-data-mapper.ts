@@ -45,8 +45,7 @@ const MAPPING_RULES: MappingRule[] = [
   { jsonLdPath: "priceRange", fieldKey: "price_min", confidence: "medium", transform: extractMinPrice },
   // 设施
   { jsonLdPath: "amenityFeature", fieldKey: "key_amenities", confidence: "medium", transform: extractAmenityNames },
-  { jsonLdPath: "numberOfRooms", fieldKey: "total_units", confidence: "medium", transform: parseNumeric },
-  { jsonLdPath: "floorSize.value", fieldKey: "total_units", confidence: "low", transform: parseNumeric },
+  { jsonLdPath: "numberOfRooms", fieldKey: "total_units", confidence: "low", transform: parseNumeric },
   // URL
   { jsonLdPath: "url", fieldKey: "application_link", confidence: "medium" },
   // 扩展: 地址变体（location.address 嵌套 + 扁平）
@@ -60,7 +59,7 @@ const MAPPING_RULES: MappingRule[] = [
   // 扩展: 价格/联系/详情变体
   { jsonLdPath: "offers.price", fieldKey: "price_min", confidence: "high", transform: parseNumeric },
   { jsonLdPath: "contactPoint.name", fieldKey: "primary_contact_name", confidence: "medium" },
-  { jsonLdPath: "numberOfBedrooms", fieldKey: "total_units", confidence: "low", transform: parseNumeric },
+  // numberOfBedrooms 是单元内卧室数，不是总单元数，已移除错误映射
   { jsonLdPath: "yearBuilt", fieldKey: "year_built", confidence: "high", transform: parseNumeric },
   { jsonLdPath: "petsAllowed", fieldKey: "key_amenities", confidence: "medium", transform: petToAmenity },
   { jsonLdPath: "photos", fieldKey: "images", confidence: "high", transform: extractImageArray },
@@ -127,12 +126,28 @@ function extractImageArray(v: unknown): string[] {
   return [];
 }
 
-/** 从嵌套对象中按 dot path 取值（支持数组索引） */
-function getByPath(obj: Record<string, unknown>, path: string): unknown {
+/** 从嵌套对象中按 dot path 取值（支持数组索引 + @id 引用解析） */
+function getByPath(
+  obj: Record<string, unknown>,
+  path: string,
+  idIndex?: Map<string, Record<string, unknown>>,
+): unknown {
   const parts = path.split(".");
   let current: unknown = obj;
   for (const part of parts) {
     if (current === null || current === undefined) return undefined;
+    // 解析 @id 引用：{"@id": "https://.../#something"}
+    if (idIndex && typeof current === "object" && !Array.isArray(current)) {
+      const idRef = (current as Record<string, unknown>)["@id"];
+      if (
+        idRef &&
+        typeof idRef === "string" &&
+        Object.keys(current as object).length <= 2
+      ) {
+        const resolved = idIndex.get(idRef);
+        if (resolved) current = resolved;
+      }
+    }
     if (Array.isArray(current)) {
       const idx = parseInt(part, 10);
       current = isNaN(idx) ? undefined : current[idx];
@@ -140,6 +155,23 @@ function getByPath(obj: Record<string, unknown>, path: string): unknown {
       current = (current as Record<string, unknown>)[part];
     } else {
       return undefined;
+    }
+  }
+  // 最终值也可能是 @id 引用
+  if (
+    idIndex &&
+    typeof current === "object" &&
+    current !== null &&
+    !Array.isArray(current)
+  ) {
+    const idRef = (current as Record<string, unknown>)["@id"];
+    if (
+      idRef &&
+      typeof idRef === "string" &&
+      Object.keys(current as object).length <= 2
+    ) {
+      const resolved = idIndex.get(idRef);
+      if (resolved) return resolved;
     }
   }
   return current;
@@ -171,18 +203,24 @@ export interface StructuredDataResult {
 }
 
 /** 展开 @graph 包装（WordPress Yoast/Rank Math 等 SEO 插件常用） */
-function flattenJsonLd(
-  items: Record<string, unknown>[],
-): Record<string, unknown>[] {
+function flattenJsonLd(items: Record<string, unknown>[]): {
+  flat: Record<string, unknown>[];
+  idIndex: Map<string, Record<string, unknown>>;
+} {
   const flat: Record<string, unknown>[] = [];
+  const idIndex = new Map<string, Record<string, unknown>>();
   for (const item of items) {
     if (Array.isArray(item["@graph"])) {
-      flat.push(...(item["@graph"] as Record<string, unknown>[]));
+      for (const node of item["@graph"] as Record<string, unknown>[]) {
+        flat.push(node);
+        if (typeof node["@id"] === "string") idIndex.set(node["@id"], node);
+      }
     } else {
       flat.push(item);
+      if (typeof item["@id"] === "string") idIndex.set(item["@id"], item);
     }
   }
-  return flat;
+  return { flat, idIndex };
 }
 
 /**
@@ -197,8 +235,8 @@ export function mapStructuredData(
   const fields: ExtractedFields = {};
   const coveredKeys = new Set<string>();
 
-  // 展开 @graph 包装后再过滤
-  const flatItems = flattenJsonLd(jsonLdItems);
+  // 展开 @graph 包装后再过滤，同时构建 @id 索引
+  const { flat: flatItems, idIndex } = flattenJsonLd(jsonLdItems);
   const relevantItems = flatItems.filter(isPropertyRelated);
   if (relevantItems.length === 0 && flatItems.length > 0) {
     // If no property-related items, try all items
@@ -210,7 +248,7 @@ export function mapStructuredData(
       // Skip if already mapped with higher confidence
       if (coveredKeys.has(rule.fieldKey)) continue;
 
-      const rawValue = getByPath(item, rule.jsonLdPath);
+      const rawValue = getByPath(item, rule.jsonLdPath, idIndex);
       if (rawValue === null || rawValue === undefined) continue;
       if (typeof rawValue === "string" && rawValue.trim() === "") continue;
 

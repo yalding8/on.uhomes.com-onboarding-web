@@ -57,6 +57,7 @@ interface SiteFixture {
   description: string;
   expectedStrategy: CrawlStrategy;
   expectedSiteType: string;
+  note?: string;
 }
 
 interface PipelineResult {

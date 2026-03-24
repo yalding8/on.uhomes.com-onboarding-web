@@ -46,7 +46,16 @@ Output a valid JSON object using the exact field keys listed below.
 - "bed_included": "Yes - Twin", "Yes - Full", "Yes - Queen", "Yes - Other", or "No"
 - "floor_plans": Floor plan descriptions
 
-NOTE: Contact info (name, email, phone) and commission details are extracted from contracts, NOT from websites. Do NOT attempt to extract them.
+## PRIORITY 3B — Fees & Contacts (extract if clearly visible):
+- "primary_contact_phone": Leasing office phone number
+- "primary_contact_email": Leasing office email
+- "application_fee": Application fee amount (number)
+- "parking_fee": Monthly parking fee description
+- "pet_fee": One-time pet deposit/fee description
+- "pet_rent": Monthly pet rent (number)
+- "guarantor_options": Array from: ["Personal guarantor", "Third-party guarantor", "No guarantor required"]
+- "renters_insurance": Renter's insurance requirement description
+- "utilities_not_included": Utilities NOT included in rent
 
 ## Example
 

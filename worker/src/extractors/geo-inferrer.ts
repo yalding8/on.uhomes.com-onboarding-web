@@ -28,13 +28,32 @@ const COUNTRY_CURRENCY: Record<string, string> = {
   "Japan": "JPY", "China": "CNY", "Hong Kong": "HKD",
 };
 
-/** 常见美国城市（来自爬取样本） — 用于 .com 站点推断 country=US */
+/** Top 80 美国公寓市场城市 — 用于 .com 站点推断 country=US */
 // prettier-ignore
 const US_CITIES = new Set([
+  // NYC metro
   "new york", "brooklyn", "manhattan", "queens", "harlem",
   "jersey city", "hoboken", "fort lee", "long island city",
   "newark", "new haven", "rego park", "forest hills",
-  "woodside", "inwood",
+  "woodside", "inwood", "astoria", "the bronx", "staten island",
+  // Major metros
+  "los angeles", "chicago", "houston", "phoenix", "philadelphia",
+  "san antonio", "san diego", "dallas", "austin", "san jose",
+  "san francisco", "seattle", "denver", "washington", "nashville",
+  "boston", "portland", "las vegas", "atlanta", "miami",
+  "minneapolis", "tampa", "orlando", "charlotte", "raleigh",
+  "pittsburgh", "columbus", "indianapolis", "cincinnati", "cleveland",
+  "detroit", "milwaukee", "kansas city", "st. louis", "salt lake city",
+  // College / student housing markets
+  "ann arbor", "madison", "boulder", "gainesville", "tempe",
+  "tucson", "college station", "ithaca", "chapel hill", "durham",
+  "berkeley", "stanford", "eugene", "tuscaloosa", "state college",
+  "champaign", "bloomington", "tallahassee", "baton rouge",
+  // Sunbelt growth
+  "sacramento", "riverside", "irvine", "scottsdale", "mesa",
+  "plano", "frisco", "arlington", "fort worth", "jacksonville",
+  "savannah", "charleston", "greenville", "richmond", "norfolk",
+  "honolulu", "anchorage", "albuquerque", "el paso", "omaha",
 ]);
 
 function extractTld(url: string): string {
@@ -70,11 +89,19 @@ export function inferGeoFields(
     }
   }
 
-  // 2. .com 站点：从已知 US city 推断 country=US
+  // 2. 从已知 US city 推断 country=US
   if (!fields.country && !inferred.country) {
     const cityVal = fields.city?.value;
     if (typeof cityVal === "string" && US_CITIES.has(cityVal.toLowerCase())) {
       inferred.country = { value: "United States", confidence: "medium" };
+    }
+  }
+
+  // 2b. .com 域名默认推断 US（公寓行业 .com >90% 为美国站点）
+  if (!fields.country && !inferred.country) {
+    const tld = extractTld(sourceUrl);
+    if (tld === "com") {
+      inferred.country = { value: "United States", confidence: "low" };
     }
   }
 
