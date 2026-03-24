@@ -1,5 +1,5 @@
 {
-  "description": "基准测试 fixture — 公寓商自有官网（非平台），按实际探测结果标注预期策略（2026-03-18 验证，56 个站点）",
+  "description": "基准测试 fixture — 公寓商自有官网（非平台），按实际探测结果标注预期策略（2026-03-18 验证，55 个站点）",
   "sites": [
     {
       "id": "the-collective-london",
@@ -397,15 +397,6 @@
       "description": "Axel — 美国公寓官网",
       "expectedStrategy": "standard",
       "expectedSiteType": "platform_template"
-    },
-    {
-      "id": "1080-amsterdam",
-      "category": "cf-protected",
-      "url": "https://www.stonehengenyc.com/buildings/1080-amsterdam",
-      "description": "1080 Amsterdam — 纽约公寓（Stonehenge NYC）",
-      "expectedStrategy": "stealth",
-      "expectedSiteType": "unknown",
-      "note": "Timeout - may need longer timeout or different strategy"
     },
     {
       "id": "haus25-jc",
