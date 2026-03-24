@@ -6,6 +6,7 @@
  */
 
 import * as cheerio from "cheerio";
+import type { AnyNode } from "domhandler";
 import type { ExtractedFields, Confidence } from "../types.js";
 
 interface CssRule {
@@ -20,14 +21,16 @@ interface CssRule {
 const GENERIC_RULES: CssRule[] = [
   { fieldKey: "primary_contact_email", selectors: ['a[href^="mailto:"]'], extract: "href", transform: (h) => h.replace("mailto:", "").split("?")[0], confidence: "medium" },
   { fieldKey: "primary_contact_phone", selectors: ['a[href^="tel:"]'], extract: "href", transform: (h) => h.replace("tel:", ""), confidence: "medium" },
-  { fieldKey: "building_address", selectors: ['[itemprop="streetAddress"]', '[itemprop="address"]', ".property-address"], extract: "text", confidence: "medium" },
+  { fieldKey: "building_address", selectors: ['[itemprop="streetAddress"]', '[itemprop="address"]', ".property-address", "address", '[class*="address"]'], extract: "text", confidence: "medium" },
   { fieldKey: "city", selectors: ['[itemprop="addressLocality"]'], extract: "text", confidence: "medium" },
-  { fieldKey: "postal_code", selectors: ['[itemprop="postalCode"]'], extract: "text", confidence: "medium" },
+  { fieldKey: "postal_code", selectors: ['[itemprop="postalCode"]', '[class*="zip-code"]', '[class*="postal"]'], extract: "text", confidence: "medium" },
   { fieldKey: "country", selectors: ['[itemprop="addressCountry"]'], extract: "text", confidence: "medium" },
   { fieldKey: "price_min", selectors: ["[data-price-min]", ".price-range .min", '[itemprop="lowPrice"]'], extract: "text", transform: extractNumericPrice, confidence: "medium" },
   { fieldKey: "price_max", selectors: ["[data-price-max]", ".price-range .max", '[itemprop="highPrice"]'], extract: "text", transform: extractNumericPrice, confidence: "medium" },
   { fieldKey: "key_amenities", selectors: [".amenities li", ".amenity-list li", ".features li", ".amenity-item"], extract: "list", transform: normalizeAmenities, confidence: "medium" },
   { fieldKey: "images", selectors: [".gallery img", ".carousel img", ".slider img", '[data-gallery] img'], extract: "srcList", confidence: "medium" },
+  { fieldKey: "application_link", selectors: ['a[href*="apply"]', 'a[href*="application"]', 'a[href*="booking"]', ".apply-button", ".apply-now"], extract: "href", confidence: "medium" },
+  { fieldKey: "total_units", selectors: [".unit-count", ".total-units", '[data-units]'], extract: "text", transform: extractNumber, confidence: "medium" },
 ];
 
 // prettier-ignore
@@ -56,6 +59,7 @@ export function extractWithCss(
     applyRules($, PLATFORM_RULES[platform], fields);
   }
   applyRules($, GENERIC_RULES, fields);
+  extractPriceFromText($, fields);
   return fields;
 }
 
@@ -87,7 +91,7 @@ function applyRules(
 
 function extractValue(
   $: cheerio.CheerioAPI,
-  els: cheerio.Cheerio<cheerio.Element>,
+  els: cheerio.Cheerio<AnyNode>,
   mode: CssRule["extract"],
 ): unknown {
   switch (mode) {
@@ -127,18 +131,66 @@ function extractNumber(raw: string): number | null {
   return match ? parseInt(match[0], 10) : null;
 }
 
+/** 从页面正文文本中用正则提取价格（CSS 选择器未命中时的 fallback） */
+function extractPriceFromText(
+  $: cheerio.CheerioAPI,
+  fields: ExtractedFields,
+): void {
+  if (fields.price_min && fields.price_max) return;
+
+  const text = $("body").text();
+  const ranges: number[] = [];
+
+  // "$1,200 - $3,500" or "£150 – £250" or "$1200 to $3500"
+  const rangeRe = /[$£€]\s*([\d,]+)\s*[-–—]\s*[$£€]?\s*([\d,]+)/g;
+  let m;
+  while ((m = rangeRe.exec(text)) !== null) {
+    pushPrice(ranges, m[1]);
+    pushPrice(ranges, m[2]);
+  }
+
+  // "From $1,200" / "Starting at £150"
+  const fromRe = /(?:from|starting\s+at)\s+[$£€]\s*([\d,]+)/gi;
+  while ((m = fromRe.exec(text)) !== null) {
+    pushPrice(ranges, m[1]);
+  }
+
+  if (ranges.length === 0) return;
+  ranges.sort((a, b) => a - b);
+
+  if (!fields.price_min) {
+    fields.price_min = { value: ranges[0], confidence: "low" };
+  }
+  if (!fields.price_max && ranges.length > 1) {
+    fields.price_max = {
+      value: ranges[ranges.length - 1],
+      confidence: "low",
+    };
+  }
+}
+
+function pushPrice(arr: number[], raw: string): void {
+  const num = parseFloat(raw.replace(/,/g, ""));
+  if (!isNaN(num) && num >= 50 && num <= 50_000) arr.push(num);
+}
+
 // prettier-ignore
 const AMENITY_LABEL_MAP: Record<string, string> = {
   gym: "Gym", "fitness center": "Gym", "fitness centre": "Gym",
   pool: "Pool", "swimming pool": "Pool", laundry: "Laundry", parking: "Parking",
   "study room": "Study Room", "study lounge": "Study Room",
-  rooftop: "Rooftop", "roof deck": "Rooftop",
-  "pet friendly": "Pet Friendly", "pets allowed": "Pet Friendly",
+  "co-working": "Study Room", coworking: "Study Room", "business center": "Study Room",
+  rooftop: "Rooftop", "roof deck": "Rooftop", terrace: "Rooftop", patio: "Rooftop",
+  "pet friendly": "Pet Friendly", "pets allowed": "Pet Friendly", "dog park": "Pet Friendly",
   furnished: "Furnished", "fully furnished": "Furnished",
   wifi: "WiFi", "wi-fi": "WiFi", internet: "WiFi",
-  security: "Security", "24/7 security": "Security",
+  security: "Security", "24/7 security": "Security", concierge: "Security", doorman: "Security",
   "bike storage": "Bike Storage", "bicycle storage": "Bike Storage",
   "game room": "Game Room", "games room": "Game Room",
+  "movie room": "Game Room", theater: "Game Room", "screening room": "Game Room",
+  elevator: "Elevator", lift: "Elevator",
+  "ev charging": "EV Charging", "electric vehicle": "EV Charging",
+  "package locker": "Package Room", "package room": "Package Room",
 };
 
 function normalizeAmenities(raw: string): string[] | null {

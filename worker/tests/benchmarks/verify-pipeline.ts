@@ -34,6 +34,8 @@ import {
   WEBSITE_EXTRACTION_SYSTEM_PROMPT,
   buildWebsiteUserPrompt,
 } from "../../src/llm/prompts/website-fields.js";
+import { extractWithCss } from "../../src/extractors/css-extractor.js";
+import { inferGeoFields } from "../../src/extractors/geo-inferrer.js";
 import { validateFields } from "../../src/validators/field-validator.js";
 import { shutdownBrowser } from "../../src/crawl/browser.js";
 import type { SiteProfile } from "../../src/crawl/site-probe.js";
@@ -84,6 +86,8 @@ interface PipelineResult {
   extraction: {
     jsonLdFieldCount: number;
     ogFieldCount: number;
+    cssFieldCount: number;
+    geoFieldCount: number;
     llmFieldCount: number;
     llmProvider: string;
     totalFieldCount: number;
@@ -153,6 +157,8 @@ async function testSingleUrl(
     extraction: {
       jsonLdFieldCount: 0,
       ogFieldCount: 0,
+      cssFieldCount: 0,
+      geoFieldCount: 0,
       llmFieldCount: 0,
       llmProvider: "-",
       totalFieldCount: 0,
@@ -226,6 +232,32 @@ async function testSingleUrl(
       }
     }
     result.extraction.ogFieldCount = ogAdded;
+
+    // 5b. CSS extraction (using raw HTML when available)
+    const htmlSource = scraped.rawHtml || scraped.markdown || scraped.bodyText;
+    if (htmlSource) {
+      const cssFields = extractWithCss(htmlSource, profile.detectedPlatform);
+      let cssAdded = 0;
+      for (const [key, value] of Object.entries(cssFields)) {
+        if (!mergedFields[key]) {
+          mergedFields[key] = value;
+          cssAdded++;
+        }
+      }
+      result.extraction.cssFieldCount = cssAdded;
+    }
+
+    // 5c. Geo inference (country/currency from TLD, city, etc.)
+    const geoFields = inferGeoFields(mergedFields, site.url);
+    let geoAdded = 0;
+    for (const [key, value] of Object.entries(geoFields)) {
+      if (!mergedFields[key]) {
+        mergedFields[key] = value;
+        geoAdded++;
+      }
+    }
+    result.extraction.geoFieldCount = geoAdded;
+
     result.timings.structuredMapMs = Date.now() - mapStart;
 
     // 6. LLM extraction (if enabled and needed)
@@ -344,7 +376,7 @@ function printResult(r: PipelineResult): void {
     `  Detect: JSON-LD=${r.siteProfile.hasJsonLd} OG=${r.siteProfile.hasOpenGraph}`,
   );
   console.log(
-    `  Fields: JSON-LD=${r.extraction.jsonLdFieldCount} OG=${r.extraction.ogFieldCount} LLM=${r.extraction.llmFieldCount} Total=${r.extraction.totalFieldCount}`,
+    `  Fields: JSON-LD=${r.extraction.jsonLdFieldCount} OG=${r.extraction.ogFieldCount} CSS=${r.extraction.cssFieldCount} Geo=${r.extraction.geoFieldCount} LLM=${r.extraction.llmFieldCount} Total=${r.extraction.totalFieldCount}`,
   );
   console.log(
     `  Confidence: H=${r.extraction.confidenceDist.high} M=${r.extraction.confidenceDist.medium} L=${r.extraction.confidenceDist.low}`,
@@ -553,11 +585,11 @@ async function main() {
   );
   if (withLlm) {
     console.log(
-      `Mode: FULL PIPELINE (probe -> strategy -> scrape -> JSON-LD -> OG -> LLM -> validate)`,
+      `Mode: FULL PIPELINE (probe -> strategy -> scrape -> JSON-LD -> OG -> CSS -> Geo -> LLM -> validate)`,
     );
   } else {
     console.log(
-      `Mode: STRUCTURED ONLY (probe -> strategy -> scrape -> JSON-LD -> OG -> validate)`,
+      `Mode: STRUCTURED ONLY (probe -> strategy -> scrape -> JSON-LD -> OG -> CSS -> Geo -> validate)`,
     );
     console.log(`  Tip: use --with-llm to enable LLM extraction`);
   }

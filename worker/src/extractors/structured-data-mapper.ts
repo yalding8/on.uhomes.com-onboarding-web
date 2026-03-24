@@ -170,6 +170,21 @@ export interface StructuredDataResult {
   coverageRatio: number;
 }
 
+/** 展开 @graph 包装（WordPress Yoast/Rank Math 等 SEO 插件常用） */
+function flattenJsonLd(
+  items: Record<string, unknown>[],
+): Record<string, unknown>[] {
+  const flat: Record<string, unknown>[] = [];
+  for (const item of items) {
+    if (Array.isArray(item["@graph"])) {
+      flat.push(...(item["@graph"] as Record<string, unknown>[]));
+    } else {
+      flat.push(item);
+    }
+  }
+  return flat;
+}
+
 /**
  * 从 JSON-LD 数据直接映射到 ExtractedFields
  *
@@ -182,11 +197,12 @@ export function mapStructuredData(
   const fields: ExtractedFields = {};
   const coveredKeys = new Set<string>();
 
-  // Filter to property-related items
-  const relevantItems = jsonLdItems.filter(isPropertyRelated);
-  if (relevantItems.length === 0 && jsonLdItems.length > 0) {
+  // 展开 @graph 包装后再过滤
+  const flatItems = flattenJsonLd(jsonLdItems);
+  const relevantItems = flatItems.filter(isPropertyRelated);
+  if (relevantItems.length === 0 && flatItems.length > 0) {
     // If no property-related items, try all items
-    relevantItems.push(...jsonLdItems);
+    relevantItems.push(...flatItems);
   }
 
   for (const item of relevantItems) {

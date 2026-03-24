@@ -38,6 +38,8 @@ export interface ScrapedContent {
   metaTags: Record<string, string>;
   /** 从 XHR/fetch JSON API 响应中捕获的字段 */
   apiFields: ExtractedFields;
+  /** 原始 HTML（供 CSS 选择器提取，保留 itemprop/href 等属性） */
+  rawHtml?: string;
 }
 
 interface ScrapeOptions {
@@ -124,6 +126,9 @@ export async function scrapePage(
       await triggerLazyImages(page);
     }
 
+    // 在 DOM 裁剪前捕获原始 HTML（供 CSS 选择器提取 itemprop/tel/mailto 等）
+    const rawHtml = await page.content();
+
     // DOM 裁剪：移除 boilerplate（cookie banner、广告、低密度导航区）
     try {
       await page.evaluate(pruneBoilerplateInBrowser);
@@ -140,7 +145,7 @@ export async function scrapePage(
       markdown = content.bodyText;
     }
 
-    return { ...content, markdown, apiFields: capturedApiFields };
+    return { ...content, markdown, apiFields: capturedApiFields, rawHtml };
   } finally {
     await page.close().catch(() => {});
     if (stealthContext) await stealthContext.close().catch(() => {});

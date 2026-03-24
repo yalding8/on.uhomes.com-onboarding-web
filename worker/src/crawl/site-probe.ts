@@ -39,6 +39,8 @@ export interface SiteProfile {
   contentType: string;
   cloudflareProtected: boolean;
   cloudflareLevel: CloudflareLevel;
+  /** 检测到的物管平台名称（entrata/rentcafe/appfolio 等） */
+  detectedPlatform?: string;
 }
 
 const PROBE_TIMEOUT_MS = 8_000;
@@ -141,8 +143,10 @@ function classifySite(html: string, profile: SiteProfile): void {
   profile.framework = detectFramework(lower);
 
   // Site type classification (ordered by specificity)
-  if (isPlatformTemplate(lower)) {
+  const platform = detectPlatform(lower);
+  if (platform) {
     profile.type = "platform_template";
+    profile.detectedPlatform = platform;
     profile.estimatedComplexity = profile.hasJsonLd ? "simple" : "moderate";
   } else if (isWordPress(lower)) {
     profile.type = "wordpress";
@@ -179,8 +183,11 @@ function isWordPress(lower: string): boolean {
   return WP_MARKERS.some((m) => lower.includes(m));
 }
 
-function isPlatformTemplate(lower: string): boolean {
-  return PLATFORM_MARKERS.some((m) => lower.includes(m));
+function detectPlatform(lower: string): string | undefined {
+  for (const marker of PLATFORM_MARKERS) {
+    if (lower.includes(marker)) return marker.split(".")[0];
+  }
+  return undefined;
 }
 
 /** Cloudflare 保护检测 — 通过响应头判断 */
