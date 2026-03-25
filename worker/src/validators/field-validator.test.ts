@@ -99,4 +99,38 @@ describe("validateFields", () => {
     expect(result.fields.year_built?.value).toBe(2020);
     expect(result.issues).toHaveLength(0);
   });
+
+  it("should flag suspiciously low monthly price as likely daily rate", () => {
+    const fields: ExtractedFields = {
+      price_min: { value: 85, confidence: "high" },
+      price_period: { value: "monthly", confidence: "high" },
+    };
+
+    const result = validateFields(fields);
+    expect(result.issues.some((i) => i.fieldKey === "price_period")).toBe(true);
+    expect(result.fields.price_period?.confidence).toBe("low");
+  });
+
+  it("should not flag reasonable monthly price", () => {
+    const fields: ExtractedFields = {
+      price_min: { value: 1200, confidence: "high" },
+      price_period: { value: "monthly", confidence: "high" },
+    };
+
+    const result = validateFields(fields);
+    expect(result.issues.some((i) => i.fieldKey === "price_period")).toBe(
+      false,
+    );
+  });
+
+  it("should flag suspiciously high daily price as likely monthly rate", () => {
+    const fields: ExtractedFields = {
+      price_min: { value: 2500, confidence: "high" },
+      price_period: { value: "daily", confidence: "high" },
+    };
+
+    const result = validateFields(fields);
+    expect(result.issues.some((i) => i.fieldKey === "price_period")).toBe(true);
+    expect(result.fields.price_period?.confidence).toBe("low");
+  });
 });

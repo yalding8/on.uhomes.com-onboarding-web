@@ -24,6 +24,7 @@ For each field, assess whether the extracted value is:
 Also check cross-field consistency:
 - currency should match the country/region (USD for US, GBP for UK, AUD for AU, CAD for CA)
 - price_min should be less than price_max
+- price_period should match the actual pricing shown on the page (look for "/mo", "/month", "/night", "/day", "/week"). If price_period is "monthly" but prices seem too low (<$100), flag as suspect — it may be a daily rate. If price_period is "daily" but prices seem too high (>$1000), flag as suspect — it may be a monthly rate.
 - city + country should be geographically consistent
 - building_address should match city/country
 - total_units and number_of_floors should be reasonable for the building type

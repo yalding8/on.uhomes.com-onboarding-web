@@ -66,6 +66,38 @@ export function validateFields(fields: ExtractedFields): ValidationResult {
     }
   }
 
+  // --- price_period vs price sanity check ---
+  if (result.price_period && result.price_min) {
+    const period = result.price_period.value as string;
+    const price = result.price_min.value as number;
+    if (typeof price === "number") {
+      // Monthly rent < $100 is suspicious — likely a daily rate mislabeled
+      if (period === "monthly" && price < 100) {
+        result.price_period = {
+          value: period,
+          confidence: "low" as Confidence,
+        };
+        issues.push({
+          fieldKey: "price_period",
+          issue: `Monthly price $${price} suspiciously low — may be daily rate`,
+          action: "downgrade",
+        });
+      }
+      // Daily rate > $1000 is suspicious — likely a monthly rate mislabeled
+      if (period === "daily" && price > 1000) {
+        result.price_period = {
+          value: period,
+          confidence: "low" as Confidence,
+        };
+        issues.push({
+          fieldKey: "price_period",
+          issue: `Daily price $${price} suspiciously high — may be monthly rent`,
+          action: "downgrade",
+        });
+      }
+    }
+  }
+
   // --- Per-field validation ---
   for (const [key, fieldValue] of Object.entries(result)) {
     const { value } = fieldValue;

@@ -39,8 +39,9 @@
 | P3-CrawlQ2      | 爬虫提取率提升 Phase 2：多页内容聚合、超时重试、字段 Tier 重分级、field-mapper JSON 修复               | ✅ 完成   |
 | P3-CrawlQ3      | 爬虫提取率提升 Phase 3：Network API 拦截、文本密度 DOM 裁剪、请求屏蔽、Few-Shot Prompt、Zod 验证       | ✅ 完成   |
 | P3-CrawlBench   | 全球公寓爬虫训练：58 站点 Benchmark（NYC/JC 为主）、多 LLM Provider Fallback（火山引擎/Kimi/DeepSeek） | ✅ 完成   |
+| P3-CrawlQ4      | API 拦截器字段扩展 + 价格周期检测（daily/weekly/monthly）+ Guesty Booking SPA 适配                     | ✅ 完成   |
 
-**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量三轮优化完成。58 个公寓网站 Benchmark（最新一轮 2026-03-18）：成功率 84%（49/58），平均 8.5 字段/站，TOP 站点可达 19 字段。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。196 Vitest 用例 + 126 E2E 用例。提取报告：`docs/extraction-results-2026-03-18.html`。
+**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量四轮优化完成。新增 `price_period` 字段区分日/周/月租，API 拦截器扩展 30+ 字段映射（含 Guesty Booking SPA 适配），验证器增加价格-周期交叉校验。Guesty 预订站实测：23 字段 / Tier-A 75% / Tier-B 80%。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。207 Vitest 用例 + 126 E2E 用例。提取报告：`docs/extraction-results-2026-03-18.html`。
 
 ## 基础设施与选型
 
@@ -125,13 +126,14 @@ npm run dev
          - standard: SPA/WordPress → Playwright 爬取
          - stealth: CF 保护站 → 反检测浏览器 + 代理
          - skip: CF enterprise/business → 报错，需人工处理
-      ③ 四层提取（v2）：
+      ③ 五层提取（v3）：
          a. JSON-LD / Schema.org 直接映射（35+ 规则，高置信度）
          b. OpenGraph + Twitter Card 补充（12 字段）
-         c. CSS 选择器提取（mailto:/tel:/microdata/平台模板专用规则）
-         d. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断）
+         c. API 响应拦截（XHR/fetch JSON 捕获，30+ 字段映射，含 Guesty Booking SPA 适配）
+         d. CSS 选择器提取（mailto:/tel:/microdata/平台模板专用规则）
+         e. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断 + price_period 日/周/月识别）
       ④ 多页面爬取 → 扩展链接发现（8 选择器 + fallback）→ 按标签过滤 LLM 调用
-      ⑤ 字段校验（规则引擎）→ 修复/降级/移除不合理字段
+      ⑤ 字段校验（规则引擎）→ 修复/降级/移除不合理字段 + 价格-周期交叉校验
       ⑥ LLM 自校验 → 交叉验证提取结果，调整置信度（correct↑/suspect↓/wrong✗）
   → Worker POST /api/extraction/callback 回调结果 + ExtractionMeta 遥测
   → 主应用融合数据、更新评分、写入 extraction_logs
@@ -257,9 +259,10 @@ cd worker && npx tsx tests/benchmarks/verify-pipeline.ts --with-llm https://exam
 | `PORT`                      | 服务端口（默认 3000）                        |
 | `SUPABASE_SERVICE_ROLE_KEY` | 与主应用相同，用于回调认证                   |
 | `ANTHROPIC_API_KEY`         | Anthropic API Key（首选 LLM，Claude Sonnet） |
-| `DEEPSEEK_API_KEY`          | DeepSeek API Key（备选 LLM）                 |
-| `QWEN_API_KEY`              | 通义千问 API Key（备选 LLM）                 |
-| `KIMI_API_KEY`              | Kimi (Moonshot) API Key（可选）              |
+| `VOLC_API_KEY`              | 火山引擎 API Key（DeepSeek V3，首选备选）    |
+| `KIMI_K2_API_KEY`           | Kimi K2.5 API Key（通义千问通道）            |
+| `DEEPSEEK_API_KEY`          | DeepSeek 官方 API Key（末选备选）            |
+| `QWEN_API_KEY`              | 通义千问 API Key（可选）                     |
 | `MINIMAX_API_KEY`           | MiniMax API Key（可选）                      |
 | `SENTRY_DSN`                | Sentry DSN（可选，未设置则跳过监控）         |
 | `PROXY_ENABLED`             | 代理开关（`true`/`false`，默认 `false`）     |
