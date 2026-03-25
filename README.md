@@ -41,8 +41,9 @@
 | P3-CrawlBench   | 全球公寓爬虫训练：58 站点 Benchmark（NYC/JC 为主）、多 LLM Provider Fallback（火山引擎/Kimi/DeepSeek）            | ✅ 完成   |
 | P3-ExtractQ     | 提取质量优化：JSON-LD @graph 展开、rawHTML CSS 提取、Platform 规则接通、Geo 推断、正则价格、Amenity 归一化        | ✅ 完成   |
 | P3-ExtractQ-P2  | 提取质量 Phase 2：Validator 白名单补全、@id 引用解析、Nav 链接修复、US 城市扩展、后处理管线、hasHighCoverage 修复 | ✅ 完成   |
+| P3-CrawlQ4      | API 拦截器字段扩展 + 价格周期检测（daily/weekly/monthly）+ Guesty Booking SPA 适配                                | ✅ 完成   |
 
-**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量五轮优化完成。55 个公寓网站 Benchmark（最新一轮 2026-03-24）：成功率 100%（55/55），平均 **12.7** 字段/站（+7% vs 上轮 11.9），TOP 站点可达 24 字段（sable-jc）。七层提取管线：JSON-LD → OG → CSS → Geo → LLM → Postprocess → Validate。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。936 Vitest 用例（主应用 703 + Worker 233）+ 126 E2E 用例。
+**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量六轮优化完成。新增 `price_period` 字段区分日/周/月租，API 拦截器扩展 30+ 字段映射（含 Guesty Booking SPA 适配），验证器增加价格-周期交叉校验。Guesty 预订站实测：23 字段 / Tier-A 75% / Tier-B 80%。55 站点 Benchmark 成功率 100%。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。
 
 ## 基础设施与选型
 
@@ -127,16 +128,17 @@ npm run dev
          - standard: SPA/WordPress → Playwright 爬取
          - stealth: CF 保护站 → 反检测浏览器 + 代理
          - skip: CF enterprise/business → 报错，需人工处理
-      ③ 七层提取（v4）：
+      ③ 八层提取（v5）：
          a. JSON-LD / Schema.org 直接映射（35+ 规则，@graph 展开 + @id 引用解析，高置信度）
          b. OpenGraph + Twitter Card 补充（12 字段）
-         c. CSS 选择器提取（原始 HTML，mailto:/tel:/microdata/Entrata/RentCafe/AppFolio 平台专用规则）
-         d. Geo 推断（TLD→国家、80+ US 城市→国家、.com 默认→US、国家→货币、价格符号→货币）
-         e. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断 + 子页面 contactText 聚合）
-         f. 字段后处理（building_name 清洗、相对 URL 解析、HTML 剥离、地址清洗）
-         g. LLM 自校验（交叉验证 + 置信度调整）
+         c. API 响应拦截（XHR/fetch JSON 捕获，30+ 字段映射，含 Guesty Booking SPA 适配 + price_period 推断）
+         d. CSS 选择器提取（原始 HTML，mailto:/tel:/microdata/Entrata/RentCafe/AppFolio 平台专用规则）
+         e. Geo 推断（TLD→国家、80+ US 城市→国家、.com 默认→US、国家→货币、价格符号→货币）
+         f. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断 + price_period 日/周/月识别）
+         g. 字段后处理（building_name 清洗、相对 URL 解析、HTML 剥离、地址清洗）
+         h. LLM 自校验（交叉验证 + 置信度调整 + 价格-周期一致性检查）
       ④ 多页面爬取 → 扩展链接发现（8 选择器 + fallback）→ 按标签过滤 LLM 调用
-      ⑤ 字段校验（规则引擎）→ 修复/降级/移除不合理字段
+      ⑤ 字段校验（规则引擎）→ 修复/降级/移除不合理字段 + 价格-周期交叉校验
       ⑥ LLM 自校验 → 交叉验证提取结果，调整置信度（correct↑/suspect↓/wrong✗）
   → Worker POST /api/extraction/callback 回调结果 + ExtractionMeta 遥测
   → 主应用融合数据、更新评分、写入 extraction_logs
@@ -271,9 +273,10 @@ cd worker && npx tsx tests/benchmarks/verify-pipeline.ts --with-llm https://exam
 | `PORT`                      | 服务端口（默认 3000）                        |
 | `SUPABASE_SERVICE_ROLE_KEY` | 与主应用相同，用于回调认证                   |
 | `ANTHROPIC_API_KEY`         | Anthropic API Key（首选 LLM，Claude Sonnet） |
-| `DEEPSEEK_API_KEY`          | DeepSeek API Key（备选 LLM）                 |
-| `QWEN_API_KEY`              | 通义千问 API Key（备选 LLM）                 |
-| `KIMI_API_KEY`              | Kimi (Moonshot) API Key（可选）              |
+| `VOLC_API_KEY`              | 火山引擎 API Key（DeepSeek V3，首选备选）    |
+| `KIMI_K2_API_KEY`           | Kimi K2.5 API Key（通义千问通道）            |
+| `DEEPSEEK_API_KEY`          | DeepSeek 官方 API Key（末选备选）            |
+| `QWEN_API_KEY`              | 通义千问 API Key（可选）                     |
 | `MINIMAX_API_KEY`           | MiniMax API Key（可选）                      |
 | `SENTRY_DSN`                | Sentry DSN（可选，未设置则跳过监控）         |
 | `PROXY_ENABLED`             | 代理开关（`true`/`false`，默认 `false`）     |

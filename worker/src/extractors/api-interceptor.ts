@@ -17,6 +17,21 @@ export function isApartmentData(jsonStr: string): boolean {
   return APARTMENT_KEYWORDS.test(jsonStr);
 }
 
+/** 价格周期：从 API key 名推断 daily/weekly/monthly */
+type PricePeriod = "daily" | "weekly" | "monthly";
+
+const DAILY_KEYS =
+  /^(daily|nightly|pernight|per_night|rate_per_night|baseprice|base_price)/;
+const WEEKLY_KEYS = /^(weekly|perweek|per_week|rate_per_week)/;
+const MONTHLY_KEYS = /^(monthly|permonth|per_month|monthlyrent|monthly_rent)/;
+
+function inferPricePeriod(normalizedKey: string): PricePeriod | null {
+  if (DAILY_KEYS.test(normalizedKey)) return "daily";
+  if (WEEKLY_KEYS.test(normalizedKey)) return "weekly";
+  if (MONTHLY_KEYS.test(normalizedKey)) return "monthly";
+  return null;
+}
+
 /**
  * 字段名映射表：API JSON key → field definition key
  * 支持模糊匹配（转为小写后匹配）
@@ -35,6 +50,7 @@ const KEY_MAP: Record<string, string> = {
   streetaddress: "building_address",
   street_address: "building_address",
   fulladdress: "building_address",
+  street: "building_address",
   // city
   city: "city",
   // country
@@ -45,6 +61,7 @@ const KEY_MAP: Record<string, string> = {
   zipcode: "postal_code",
   zip_code: "postal_code",
   zip: "postal_code",
+  postcode: "postal_code",
   // price
   minrent: "price_min",
   min_rent: "price_min",
@@ -61,6 +78,19 @@ const KEY_MAP: Record<string, string> = {
   price: "price_min",
   monthlyrent: "price_min",
   monthly_rent: "price_min",
+  // daily/weekly/nightly/base rates → price_min (period inferred separately)
+  baseprice: "price_min",
+  base_price: "price_min",
+  dailyrate: "price_min",
+  daily_rate: "price_min",
+  nightlyrate: "price_min",
+  nightly_rate: "price_min",
+  ratepernight: "price_min",
+  rate_per_night: "price_min",
+  weeklyrate: "price_min",
+  weekly_rate: "price_min",
+  rateperweek: "price_min",
+  rate_per_week: "price_min",
   // description
   description: "description",
   // amenities
@@ -89,6 +119,39 @@ const KEY_MAP: Record<string, string> = {
   application_url: "application_link",
   applyurl: "application_link",
   apply_url: "application_link",
+  // year_built
+  yearbuilt: "year_built",
+  year_built: "year_built",
+  builtyear: "year_built",
+  built_year: "year_built",
+  // number_of_floors
+  floors: "number_of_floors",
+  numberoffloors: "number_of_floors",
+  number_of_floors: "number_of_floors",
+  numfloors: "number_of_floors",
+  stories: "number_of_floors",
+  // currency
+  currency: "currency",
+  currencycode: "currency",
+  currency_code: "currency",
+  // deposit
+  deposit: "deposit_intl",
+  securitydeposit: "deposit_intl",
+  security_deposit: "deposit_intl",
+  // furnished
+  furnished: "furnished_options",
+  furnishing: "furnished_options",
+  furnishedoptions: "furnished_options",
+  furnished_options: "furnished_options",
+  // utilities
+  utilities: "utilities_included",
+  utilitiesincluded: "utilities_included",
+  utilities_included: "utilities_included",
+  // lease
+  leaseterms: "lease_type",
+  lease_terms: "lease_type",
+  leasetype: "lease_type",
+  lease_type: "lease_type",
 };
 
 const CONFIDENCE: Confidence = "high";
@@ -99,12 +162,13 @@ const CONFIDENCE: Confidence = "high";
  */
 export function mapApiResponse(json: unknown): ExtractedFields {
   const fields: ExtractedFields = {};
+  const ctx: CollectContext = { pricePeriod: null };
 
   // GraphQL unwrap
   const data =
     isObject(json) && "data" in json && isObject(json.data) ? json.data : json;
 
-  collectFields(data, fields, 0);
+  collectFields(data, fields, 0, ctx);
 
   // 从 units/floorplans 数组推断 unit_types_summary
   if (!fields.unit_types_summary) {
@@ -114,13 +178,24 @@ export function mapApiResponse(json: unknown): ExtractedFields {
     }
   }
 
+  // 价格周期：仅当有价格字段时才输出，无明确周期时默认 monthly
+  if (fields.price_min || fields.price_max) {
+    const period = ctx.pricePeriod ?? "monthly";
+    fields.price_period = { value: period, confidence: CONFIDENCE };
+  }
+
   return fields;
+}
+
+interface CollectContext {
+  pricePeriod: PricePeriod | null;
 }
 
 function collectFields(
   obj: unknown,
   fields: ExtractedFields,
   depth: number,
+  ctx: CollectContext,
 ): void {
   if (depth > 5 || !isObject(obj)) return;
 
@@ -134,17 +209,28 @@ function collectFields(
       const mapped = mapValue(fieldKey, value);
       if (mapped !== null) {
         fields[fieldKey] = { value: mapped, confidence: CONFIDENCE };
+
+        // 从 key 名推断价格周期（首次遇到的价格 key 决定周期）
+        if (
+          (fieldKey === "price_min" || fieldKey === "price_max") &&
+          !ctx.pricePeriod
+        ) {
+          const period = inferPricePeriod(normalizedKey);
+          if (period) {
+            ctx.pricePeriod = period;
+          }
+        }
       }
     }
 
     // 递归搜索嵌套对象
     if (isObject(value)) {
-      collectFields(value, fields, depth + 1);
+      collectFields(value, fields, depth + 1, ctx);
     }
 
     // 搜索数组中的第一个对象
     if (Array.isArray(value) && value.length > 0 && isObject(value[0])) {
-      collectFields(value[0], fields, depth + 1);
+      collectFields(value[0], fields, depth + 1, ctx);
     }
   }
 }
@@ -178,7 +264,10 @@ function mapValue(fieldKey: string, value: unknown): unknown {
   if (
     fieldKey === "price_min" ||
     fieldKey === "price_max" ||
-    fieldKey === "total_units"
+    fieldKey === "total_units" ||
+    fieldKey === "year_built" ||
+    fieldKey === "number_of_floors" ||
+    fieldKey === "deposit_intl"
   ) {
     if (typeof value === "number") return value;
     if (typeof value === "string") {

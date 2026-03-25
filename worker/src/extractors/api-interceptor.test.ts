@@ -93,4 +93,121 @@ describe("mapApiResponse", () => {
       expect(field.confidence).toBe("high");
     }
   });
+
+  it("should map building detail fields (yearBuilt, floors, currency)", () => {
+    const json = {
+      propertyName: "Detail Tower",
+      yearBuilt: 2019,
+      floors: 12,
+      currencyCode: "GBP",
+    };
+    const fields = mapApiResponse(json);
+    expect(fields.building_name?.value).toBe("Detail Tower");
+    expect(fields.year_built?.value).toBe(2019);
+    expect(fields.number_of_floors?.value).toBe(12);
+    expect(fields.currency?.value).toBe("GBP");
+  });
+
+  it("should map fee/policy fields (deposit, furnished, utilities)", () => {
+    const json = {
+      name: "Fee Tower",
+      securityDeposit: 1500,
+      furnished: "Fully Furnished",
+      utilities: "Water, Gas, Internet included",
+    };
+    const fields = mapApiResponse(json);
+    expect(fields.deposit_intl?.value).toBe(1500);
+    expect(fields.furnished_options?.value).toBe("Fully Furnished");
+    expect(fields.utilities_included?.value).toBe(
+      "Water, Gas, Internet included",
+    );
+  });
+
+  it("should detect daily price period from API key names", () => {
+    const json = {
+      name: "Daily Tower",
+      dailyRate: 150,
+      nightlyRate: 180,
+    };
+    const fields = mapApiResponse(json);
+    expect(fields.price_min?.value).toBe(150);
+    expect(fields.price_period?.value).toBe("daily");
+  });
+
+  it("should detect weekly price period from API key names", () => {
+    const json = {
+      name: "Weekly Tower",
+      weeklyRate: 900,
+    };
+    const fields = mapApiResponse(json);
+    expect(fields.price_min?.value).toBe(900);
+    expect(fields.price_period?.value).toBe("weekly");
+  });
+
+  it("should default to monthly for rent/monthlyRent keys", () => {
+    const json = {
+      name: "Monthly Tower",
+      monthlyRent: 2500,
+    };
+    const fields = mapApiResponse(json);
+    expect(fields.price_min?.value).toBe(2500);
+    expect(fields.price_period?.value).toBe("monthly");
+  });
+
+  it("should not set price_period when no price fields found", () => {
+    const json = { name: "No Price Tower", city: "NYC" };
+    const fields = mapApiResponse(json);
+    expect(fields.price_period).toBeUndefined();
+  });
+
+  it("should map Guesty booking API response", () => {
+    const json = {
+      platform: "GUESTY",
+      title: "CN Views at the Nobu",
+      address: {
+        full: "15 Mercer St, Toronto, ON M5V 1H2, Canada",
+        street: "Mercer Street 15",
+        city: "Toronto",
+        country: "Canada",
+        zipcode: "M5V 1H2",
+      },
+      prices: {
+        basePrice: 170,
+        currency: "CAD",
+        cleaningFee: 200,
+      },
+      terms: {
+        minNights: 31,
+        maxNights: 730,
+      },
+      bedrooms: 2,
+      bathrooms: 2,
+      areaSquareFeet: 750,
+      propertyType: "Condominium",
+      amenities: ["Gym", "Elevator", "Washer", "Dryer"],
+    };
+    const fields = mapApiResponse(json);
+    expect(fields.building_name?.value).toBe("CN Views at the Nobu");
+    expect(fields.building_address?.value).toBe("Mercer Street 15");
+    expect(fields.city?.value).toBe("Toronto");
+    expect(fields.postal_code?.value).toBe("M5V 1H2");
+    expect(fields.price_min?.value).toBe(170);
+    expect(fields.currency?.value).toBe("CAD");
+    // basePrice in Guesty is a nightly rate → price_period should be daily
+    expect(fields.price_period?.value).toBe("daily");
+  });
+
+  it("should map floor plan keys to floor_plans", () => {
+    const json = {
+      name: "Plan Tower",
+      floorPlans: [
+        { name: "Studio", sqft: 450 },
+        { name: "1BR", sqft: 650 },
+      ],
+    };
+    const fields = mapApiResponse(json);
+    expect(fields.building_name?.value).toBe("Plan Tower");
+    // floorPlans array → unit_types_summary via extractUnitTypes
+    expect(fields.unit_types_summary?.value).toContain("Studio");
+  });
 });

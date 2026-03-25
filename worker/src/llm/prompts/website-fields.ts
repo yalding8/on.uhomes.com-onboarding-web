@@ -34,6 +34,7 @@ Output a valid JSON object using the exact field keys listed below.
 - "furnished_options": Furnished options description
 - "price_min": Minimum rental price (number, no currency symbol). Look in [pricing page] section if available.
 - "price_max": Maximum rental price (number, no currency symbol). Look in [pricing page] section if available.
+- "price_period": "monthly", "weekly", or "daily" — indicates the billing cycle for price_min/price_max. Default to "monthly" if the page shows "/mo" or doesn't specify. Use "daily" for "/night", "/day". Use "weekly" for "/week".
 - "currency": Currency code (USD, CAD, GBP, EUR, AUD, JPY, CNY)
 
 ## PRIORITY 3 — Extract only if clearly stated:
@@ -63,7 +64,7 @@ Input page content:
 "Welcome to The Skyline — luxury apartments in downtown Manhattan. Studios from $3,415/mo, 1-bedrooms from $4,200/mo, 2-bedrooms from $6,800/mo. 42 floors, built in 2019. Amenities include rooftop lounge, fitness center, swimming pool, resident parking garage, bike storage, and pet spa. In-unit washer/dryer in all units. Apply online at theskyline.com/apply. Located at 500 W 45th St, New York, NY 10036."
 
 Expected output:
-{"building_name":"The Skyline","building_address":"500 W 45th St","city":"New York","country":"United States","postal_code":"10036","price_min":3415,"price_max":6800,"currency":"USD","key_amenities":["Gym","Pool","Parking","Rooftop","Pet Friendly","Bike Storage"],"unit_types_summary":"Studio, 1BR, 2BR","number_of_floors":42,"year_built":2019,"in_unit_washer_dryer":true,"application_link":"https://theskyline.com/apply","application_method":["Online"]}
+{"building_name":"The Skyline","building_address":"500 W 45th St","city":"New York","country":"United States","postal_code":"10036","price_min":3415,"price_max":6800,"price_period":"monthly","currency":"USD","key_amenities":["Gym","Pool","Parking","Rooftop","Pet Friendly","Bike Storage"],"unit_types_summary":"Studio, 1BR, 2BR","number_of_floors":42,"year_built":2019,"in_unit_washer_dryer":true,"application_link":"https://theskyline.com/apply","application_method":["Online"]}
 
 ## Rules:
 1. Return ONLY a valid JSON object — no explanations, no markdown
