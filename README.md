@@ -4,44 +4,46 @@
 
 ## 开发进度
 
-| 阶段            | 内容                                                                                                   | 状态      |
-| :-------------- | :----------------------------------------------------------------------------------------------------- | :-------- |
-| Task 1          | 基础设施：Next.js + Supabase + Vercel 初始化                                                           | ✅ 完成   |
-| Task 2          | AI 跨平台规则：AGENTS.md / CLAUDE.md / .kiro/rules.md                                                  | ✅ 完成   |
-| Task 3          | 双层文档机制：README + docs/                                                                           | ✅ 完成   |
-| Task 4          | GitHub Actions CI/CD 质量门禁                                                                          | ✅ 完成   |
-| Task 5          | 品牌设计令牌注入（globals.css @theme）                                                                 | ✅ 完成   |
-| Task 6          | Supabase 建表：applications / suppliers / contracts / buildings                                        | ✅ 完成   |
-| Task 7          | Auth 认证 + 路由中间件（三态重定向）                                                                   | ✅ 完成   |
-| Task 8          | P0 核心视图：Landing / Login / Dashboard                                                               | ✅ 完成   |
-| Task 9          | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                                                          | ✅ 完成   |
-| P1-BD           | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请                                            | ✅ 完成   |
-| P1-Core         | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页                                | ✅ 完成   |
-| P1-Sign         | Online Contract Signing：DocuSign eSignature 集成（替代 Mock OpenSign）                                | ✅ 完成   |
-| P1-i18n         | 全站 UI 英文化：组件文案、API 消息、验证错误、测试断言                                                 | ✅ 完成   |
-| P1-Q            | 供应商全流程 P0 质量加固：事务一致性、Webhook 原子性、字段校验、乐观锁                                 | ✅ 完成   |
-| P1-AI           | AI 多源提取管道 + 数据融合（纯函数 + API 已完成，待 Worker 联调）                                      | ✅ 完成   |
-| P1-UX           | UI/UX 全面审计：Persona 走查 + 设计规范对齐 + ESLint 零警告                                            | ✅ 完成   |
-| P2-AI           | 自适应提取管线：site-probe → 分层提取 → LLM fallback → 字段校验 + 基准测试                             | ✅ 完成   |
-| P1-i18n-modules | 国际化模块：GDPR 合规（账户删除/数据导出）、amenity catalog、楼宇图片、BD 领地、供应商徽章             | ✅ 完成   |
-| P2-AI-Bench     | Benchmark 增强：8 站点策略断言 + cheerio/stealth 路径验证 + 对比表格 + 爬取范围规则                    | ✅ 完成   |
-| P2-AI-Adaptive  | 自适应进化 Phase 1：LLM 自校验 + 域名经验复用 + 提取遥测 + 分析查询                                    | ✅ 完成   |
-| P2-Apps         | Applications 模块重设计：BD 工作台（KPI、搜索防抖、Drawer、认领、备注）                                | ✅ 完成   |
-| P2-Suppliers    | Suppliers 模块重设计：5 阶段 Pipeline 视图、Timeline 7 节点、Next Action、Building 评分卡              | ✅ 完成   |
-| P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                                  | ✅ 完成   |
-| P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                                          | ✅ 完成   |
-| P2-SupplierFlow | 供应商流程重设计（G2-G9）：提取时序、OTP 账户、数据源上传、预览、导出、BD 预填                         | ✅ 完成   |
-| P2-InviteUX     | Invite 页面重设计：双栏布局、流程步骤条、成功卡片、Tips 面板                                           | ✅ 完成   |
-| S1-Audit        | Sprint 1 安全审计：C-01/C-03 修复 + E2E 126 测试 + Playwright 认证体系                                 | ✅ 完成   |
-| P1-Pub          | 内部预览 + 发布到主站                                                                                  | 🚧 第二轮 |
-| P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                                        | 🚧 开发中 |
-| P3-CrawlQ       | 爬虫质量全面提升：四层提取（JSON-LD→OG→CSS→LLM）、扩展链接发现、智能截断、分层 Prompt                  | ✅ 完成   |
-| P3-CrawlQ2      | 爬虫提取率提升 Phase 2：多页内容聚合、超时重试、字段 Tier 重分级、field-mapper JSON 修复               | ✅ 完成   |
-| P3-CrawlQ3      | 爬虫提取率提升 Phase 3：Network API 拦截、文本密度 DOM 裁剪、请求屏蔽、Few-Shot Prompt、Zod 验证       | ✅ 完成   |
-| P3-CrawlBench   | 全球公寓爬虫训练：58 站点 Benchmark（NYC/JC 为主）、多 LLM Provider Fallback（火山引擎/Kimi/DeepSeek） | ✅ 完成   |
-| P3-CrawlQ4      | API 拦截器字段扩展 + 价格周期检测（daily/weekly/monthly）+ Guesty Booking SPA 适配                     | ✅ 完成   |
+| 阶段            | 内容                                                                                                              | 状态      |
+| :-------------- | :---------------------------------------------------------------------------------------------------------------- | :-------- |
+| Task 1          | 基础设施：Next.js + Supabase + Vercel 初始化                                                                      | ✅ 完成   |
+| Task 2          | AI 跨平台规则：AGENTS.md / CLAUDE.md / .kiro/rules.md                                                             | ✅ 完成   |
+| Task 3          | 双层文档机制：README + docs/                                                                                      | ✅ 完成   |
+| Task 4          | GitHub Actions CI/CD 质量门禁                                                                                     | ✅ 完成   |
+| Task 5          | 品牌设计令牌注入（globals.css @theme）                                                                            | ✅ 完成   |
+| Task 6          | Supabase 建表：applications / suppliers / contracts / buildings                                                   | ✅ 完成   |
+| Task 7          | Auth 认证 + 路由中间件（三态重定向）                                                                              | ✅ 完成   |
+| Task 8          | P0 核心视图：Landing / Login / Dashboard                                                                          | ✅ 完成   |
+| Task 9          | 重型微服务：PDF 解析 + Playwright 爬虫 Worker                                                                     | ✅ 完成   |
+| P1-BD           | BD Admin Dashboard：申请列表 / 审批 / 供应商管理 / 手动邀请                                                       | ✅ 完成   |
+| P1-Core         | Building Onboarding Portal：Schema / Scoring / API / Dashboard / 编辑页                                           | ✅ 完成   |
+| P1-Sign         | Online Contract Signing：DocuSign eSignature 集成（替代 Mock OpenSign）                                           | ✅ 完成   |
+| P1-i18n         | 全站 UI 英文化：组件文案、API 消息、验证错误、测试断言                                                            | ✅ 完成   |
+| P1-Q            | 供应商全流程 P0 质量加固：事务一致性、Webhook 原子性、字段校验、乐观锁                                            | ✅ 完成   |
+| P1-AI           | AI 多源提取管道 + 数据融合（纯函数 + API 已完成，待 Worker 联调）                                                 | ✅ 完成   |
+| P1-UX           | UI/UX 全面审计：Persona 走查 + 设计规范对齐 + ESLint 零警告                                                       | ✅ 完成   |
+| P2-AI           | 自适应提取管线：site-probe → 分层提取 → LLM fallback → 字段校验 + 基准测试                                        | ✅ 完成   |
+| P1-i18n-modules | 国际化模块：GDPR 合规（账户删除/数据导出）、amenity catalog、楼宇图片、BD 领地、供应商徽章                        | ✅ 完成   |
+| P2-AI-Bench     | Benchmark 增强：8 站点策略断言 + cheerio/stealth 路径验证 + 对比表格 + 爬取范围规则                               | ✅ 完成   |
+| P2-AI-Adaptive  | 自适应进化 Phase 1：LLM 自校验 + 域名经验复用 + 提取遥测 + 分析查询                                               | ✅ 完成   |
+| P2-Apps         | Applications 模块重设计：BD 工作台（KPI、搜索防抖、Drawer、认领、备注）                                           | ✅ 完成   |
+| P2-Suppliers    | Suppliers 模块重设计：5 阶段 Pipeline 视图、Timeline 7 节点、Next Action、Building 评分卡                         | ✅ 完成   |
+| P2-BuildDetail  | Building 详情页：字段级提取视图、来源标记、置信度、ExtractionJobsCard                                             | ✅ 完成   |
+| P2-Infra        | Turbopack root 修复 + ref_code 点击复制 + CONVERTING 状态修复                                                     | ✅ 完成   |
+| P2-SupplierFlow | 供应商流程重设计（G2-G9）：提取时序、OTP 账户、数据源上传、预览、导出、BD 预填                                    | ✅ 完成   |
+| P2-InviteUX     | Invite 页面重设计：双栏布局、流程步骤条、成功卡片、Tips 面板                                                      | ✅ 完成   |
+| S1-Audit        | Sprint 1 安全审计：C-01/C-03 修复 + E2E 126 测试 + Playwright 认证体系                                            | ✅ 完成   |
+| P1-Pub          | 内部预览 + 发布到主站                                                                                             | 🚧 第二轮 |
+| P2-OAuth        | Uhomes OAuth 集成（SSO 登录 + BD 角色自动分配）                                                                   | 🚧 开发中 |
+| P3-CrawlQ       | 爬虫质量全面提升：四层提取（JSON-LD→OG→CSS→LLM）、扩展链接发现、智能截断、分层 Prompt                             | ✅ 完成   |
+| P3-CrawlQ2      | 爬虫提取率提升 Phase 2：多页内容聚合、超时重试、字段 Tier 重分级、field-mapper JSON 修复                          | ✅ 完成   |
+| P3-CrawlQ3      | 爬虫提取率提升 Phase 3：Network API 拦截、文本密度 DOM 裁剪、请求屏蔽、Few-Shot Prompt、Zod 验证                  | ✅ 完成   |
+| P3-CrawlBench   | 全球公寓爬虫训练：58 站点 Benchmark（NYC/JC 为主）、多 LLM Provider Fallback（火山引擎/Kimi/DeepSeek）            | ✅ 完成   |
+| P3-ExtractQ     | 提取质量优化：JSON-LD @graph 展开、rawHTML CSS 提取、Platform 规则接通、Geo 推断、正则价格、Amenity 归一化        | ✅ 完成   |
+| P3-ExtractQ-P2  | 提取质量 Phase 2：Validator 白名单补全、@id 引用解析、Nav 链接修复、US 城市扩展、后处理管线、hasHighCoverage 修复 | ✅ 完成   |
+| P3-CrawlQ4      | API 拦截器字段扩展 + 价格周期检测（daily/weekly/monthly）+ Guesty Booking SPA 适配                                | ✅ 完成   |
 
-**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量四轮优化完成。新增 `price_period` 字段区分日/周/月租，API 拦截器扩展 30+ 字段映射（含 Guesty Booking SPA 适配），验证器增加价格-周期交叉校验。Guesty 预订站实测：23 字段 / Tier-A 75% / Tier-B 80%。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。207 Vitest 用例 + 126 E2E 用例。提取报告：`docs/extraction-results-2026-03-18.html`。
+**当前里程碑**：P0-P2 全部完成 + P3 爬虫质量六轮优化完成。新增 `price_period` 字段区分日/周/月租，API 拦截器扩展 30+ 字段映射（含 Guesty Booking SPA 适配），验证器增加价格-周期交叉校验。Guesty 预订站实测：23 字段 / Tier-A 75% / Tier-B 80%。55 站点 Benchmark 成功率 100%。LLM Fallback 链：火山引擎 DeepSeek V3 → Kimi K2.5 → DeepSeek 官方。
 
 ## 基础设施与选型
 
@@ -126,12 +128,15 @@ npm run dev
          - standard: SPA/WordPress → Playwright 爬取
          - stealth: CF 保护站 → 反检测浏览器 + 代理
          - skip: CF enterprise/business → 报错，需人工处理
-      ③ 五层提取（v3）：
-         a. JSON-LD / Schema.org 直接映射（35+ 规则，高置信度）
+      ③ 八层提取（v5）：
+         a. JSON-LD / Schema.org 直接映射（35+ 规则，@graph 展开 + @id 引用解析，高置信度）
          b. OpenGraph + Twitter Card 补充（12 字段）
-         c. API 响应拦截（XHR/fetch JSON 捕获，30+ 字段映射，含 Guesty Booking SPA 适配）
-         d. CSS 选择器提取（mailto:/tel:/microdata/平台模板专用规则）
-         e. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断 + price_period 日/周/月识别）
+         c. API 响应拦截（XHR/fetch JSON 捕获，30+ 字段映射，含 Guesty Booking SPA 适配 + price_period 推断）
+         d. CSS 选择器提取（原始 HTML，mailto:/tel:/microdata/Entrata/RentCafe/AppFolio 平台专用规则）
+         e. Geo 推断（TLD→国家、80+ US 城市→国家、.com 默认→US、国家→货币、价格符号→货币）
+         f. LLM 提取仅针对缺失字段（分层 Prompt + 智能截断 + price_period 日/周/月识别）
+         g. 字段后处理（building_name 清洗、相对 URL 解析、HTML 剥离、地址清洗）
+         h. LLM 自校验（交叉验证 + 置信度调整 + 价格-周期一致性检查）
       ④ 多页面爬取 → 扩展链接发现（8 选择器 + fallback）→ 按标签过滤 LLM 调用
       ⑤ 字段校验（规则引擎）→ 修复/降级/移除不合理字段 + 价格-周期交叉校验
       ⑥ LLM 自校验 → 交叉验证提取结果，调整置信度（correct↑/suspect↓/wrong✗）
@@ -151,48 +156,57 @@ npm run dev
 
 **仅抓取公寓商自有官网**，目标市场以 US/UK/AU/CA 为主。禁止抓取平台类聚合网站（Zillow、Apartments.com、AmberStudent、Student.com 等），这类平台与 uhomes.com 属于同类竞品，不是合作伙伴。
 
-### 管线基准测试（2026-03-09）
+### 管线基准测试（2026-03-24）
 
-使用 `verify-pipeline.ts` 对 8 个真实公寓商官网进行端到端策略路由 + 提取测试，结果自动保存至 `worker/tests/benchmarks/results/`：
+使用 `verify-pipeline.ts` 对 55 个真实公寓商官网进行端到端策略路由 + 七层提取测试，结果自动保存至 `worker/tests/benchmarks/results/`。
 
-#### 策略路由验证（Structured Only，不含 LLM）
+#### 最新 Benchmark 结果（Full Pipeline，含 LLM）
 
-| 站点                   | 分类      | 策略        | 匹配 | 耗时  | 字段 | 置信度 H/M/L |
-| :--------------------- | :-------- | :---------- | :--- | :---- | :--- | :----------- |
-| The Collective         | static    | lightweight | Y    | 3.1s  | 0    | 0/0/0        |
-| Campus Living Villages | static    | lightweight | Y    | 6.4s  | 4    | 0/3/1        |
-| iQ Student             | static    | lightweight | Y    | 2.3s  | 0    | 0/0/0        |
-| Unite Students         | static    | lightweight | Y    | 2.3s  | 0    | 0/0/0        |
-| Collegiate             | wordpress | standard    | Y    | 10.8s | 4    | 0/3/1        |
-| Estelle New Haven      | spa       | standard    | Y    | 9.6s  | 4    | 0/3/1        |
-| Housing4U              | spa       | standard    | Y    | 11.0s | 0    | 0/0/0        |
-| Casita Living          | cf-free   | stealth     | Y    | 21.6s | 4    | 0/3/1        |
+| 指标         | 数值                                            |
+| :----------- | :---------------------------------------------- |
+| 测试站点     | 55 个（55 成功，0 失败）                        |
+| 平均字段/站  | **12.7**（较上轮 11.9 提升 7%）                 |
+| TOP 站点     | sable-jc(24), the-max-606w57(21), haus25-jc(21) |
+| 策略准确率   | 100%                                            |
+| LLM Provider | 火山引擎 DeepSeek V3（主力）                    |
 
-**策略准确率：8/8 (100%)**
+#### 提取质量优化 Phase 1（P3-ExtractQ，7 项）
 
-#### 按策略性能对比
+| 优化项 | 内容                                   | 影响                       |
+| :----- | :------------------------------------- | :------------------------- |
+| OPT-1  | JSON-LD `@graph` 自动展开（Bug 修复）  | +3-5 字段/站（WordPress）  |
+| OPT-2  | CSS 提取器改用原始 HTML（Bug 修复）    | itemprop/href 选择器生效   |
+| OPT-3  | Platform 检测→CSS 规则接通（Bug 修复） | Entrata/RentCafe 高置信度  |
+| OPT-4  | Country/Currency 地理推断（新能力）    | country 53%→80%            |
+| OPT-5  | 正则价格提取（新能力）                 | price_min 12%→40%          |
+| OPT-6  | 扩展 CSS 规则 + Amenity 归一化         | application_link/elevator  |
+| OPT-7  | LLM 子页面上下文标签优化               | floor_plans/utilities 提升 |
 
-| 策略                  | 站点数 | 平均耗时  | 平均字段 | 说明                             |
-| :-------------------- | :----- | :-------- | :------- | :------------------------------- |
-| lightweight (cheerio) | 4      | **3.5s**  | 1.0      | HTTP + cheerio，无需浏览器，最快 |
-| standard (Playwright) | 3      | **10.5s** | 2.7      | SPA/WordPress 需 JS 渲染         |
-| stealth (反检测)      | 1      | **21.6s** | 4.0      | CF 保护站点，耗时最长            |
+#### 提取质量优化 Phase 2（P3-ExtractQ-P2，10 项）
 
-#### 结论与发现
+| 优化项 | 内容                                         | 类型     |
+| :----- | :------------------------------------------- | :------- |
+| OPT-A  | Nav 链接提取顺序修复（pruning 前提取导航）   | Bug 修复 |
+| OPT-B  | Validator 白名单补全（28 个字段被静默丢弃）  | Bug 修复 |
+| OPT-C  | 移除 LLM Prompt 联系信息提取限制             | Bug 修复 |
+| OPT-D  | JSON-LD floorSize/numberOfBedrooms 语义修复  | Bug 修复 |
+| OPT-E  | US 城市列表扩展至 80+ 城市 + .com 默认推断   | 增强     |
+| OPT-F  | JSON-LD @id 引用解析（WordPress Yoast 兼容） | 增强     |
+| OPT-G  | 子页面 contactText 聚合到 LLM 上下文         | 增强     |
+| OPT-H  | 字段后处理管线（名称/URL/HTML/地址清洗）     | 增强     |
+| OPT-I  | hasHighCoverage 分母修复（Tier A+B 字段数）  | Bug 修复 |
+| OPT-J  | Fixture 清理（移除下线站点，修正计数）       | 维护     |
 
-1. **cheerio 路径比 Playwright 快 3 倍**（3.5s vs 10.5s），静态站点跳过浏览器启动显著降低资源消耗
-2. **策略路由准确率 100%**：site-probe 的站点类型检测 + Cloudflare 分级在 8 个真实站点上全部命中预期策略
-3. **不启用 LLM 时字段覆盖有限**：大部分站点仅通过 OpenGraph 提取 4 个字段，LLM 对字段覆盖率仍然至关重要
-4. **stealth 路径可用**：CF Free 保护的 Casita Living 通过反检测浏览器成功爬取并提取 4 个字段
+#### 关键字段覆盖率变化（累计）
 
-#### 历史对比（2026-03-03 → 2026-03-09）
-
-| 指标         | 旧版（3 站点） | 新版（8 站点）                   | 变化       |
-| :----------- | :------------- | :------------------------------- | :--------- |
-| 测试站点数   | 3（含 1 超时） | 8（全部成功）                    | +167%      |
-| 策略路径覆盖 | 仅 standard    | lightweight + standard + stealth | 3 种全覆盖 |
-| 策略准确率   | 未验证         | 100%                             | 新增断言   |
-| 输出格式     | 逐站详情       | 对比表格 + 策略汇总 + 置信度分布 | 可读性提升 |
+| 字段             | P3-ExtractQ 前 | P3-ExtractQ 后 | P3-ExtractQ-P2 后 |
+| :--------------- | :------------- | :------------- | :---------------- |
+| country          | 53%            | 80%            | 95%+              |
+| city             | ~50%           | 85%            | 85%+              |
+| phone            | ~30%           | 75%            | 75%+              |
+| building_address | ~40%           | 73%            | 73%+              |
+| price_min        | 12%            | ~40%           | ~40%              |
+| currency         | —              | 29%            | 50%+              |
 
 ### 自适应提取进化（Phase 1）
 
@@ -468,7 +482,7 @@ curl -X POST http://localhost:3000/api/apply \
 │   └── lib/                 # 工具库（API、LLM、Supabase 等）
 ├── worker/                  # Extraction Worker 微服务
 │   ├── src/
-│   │   ├── extractors/      # 提取器（website-crawl、css-extractor、og-mapper、structured-data-mapper、sub-page-crawl）
+│   │   ├── extractors/      # 提取器（website-crawl、css-extractor、og-mapper、structured-data-mapper、sub-page-crawl、geo-inferrer、field-postprocessor）
 │   │   ├── llm/             # LLM 客户端 + Prompt + 字段映射
 │   │   ├── pdf/             # PDF 下载与解析
 │   │   ├── crawl/           # 爬虫引擎（Playwright + cheerio）+ site-probe + stealth + multi-page
@@ -539,19 +553,19 @@ curl -X POST http://localhost:3000/api/apply \
 
 ### 代码库健康度
 
-| 维度              | 指标                                        |
-| :---------------- | :------------------------------------------ |
-| 页面 + API 路由   | 46 个（17 页面 + 29 API）                   |
-| UI 组件           | 53 个（8 个功能模块）                       |
-| 核心库模块        | 8 个子目录、35+ 个模块文件                  |
-| 单元测试          | 51 个文件、697 个测试用例                   |
-| E2E 测试          | 15 个 spec 文件、126 个测试用例             |
-| 数据库表          | 18 个核心表、20 个迁移文件                  |
-| ESLint 警告       | 0（src/ + scripts/ + tests/）               |
-| TypeScript 错误   | 0                                           |
-| 文件行数超限      | 0（全部 ≤ 300 行）                          |
-| 硬编码色值        | 0（全部使用 CSS 变量）                      |
-| i18n 逻辑属性覆盖 | 100%（无残留 ml-/mr-/text-left/text-right） |
+| 维度              | 指标                                          |
+| :---------------- | :-------------------------------------------- |
+| 页面 + API 路由   | 46 个（17 页面 + 29 API）                     |
+| UI 组件           | 53 个（8 个功能模块）                         |
+| 核心库模块        | 8 个子目录、35+ 个模块文件                    |
+| 单元测试          | 936 个 Vitest 用例（主应用 703 + Worker 233） |
+| E2E 测试          | 15 个 spec 文件、126 个测试用例               |
+| 数据库表          | 18 个核心表、20 个迁移文件                    |
+| ESLint 警告       | 0（src/ + scripts/ + tests/）                 |
+| TypeScript 错误   | 0                                             |
+| 文件行数超限      | 0（全部 ≤ 300 行）                            |
+| 硬编码色值        | 0（全部使用 CSS 变量）                        |
+| i18n 逻辑属性覆盖 | 100%（无残留 ml-/mr-/text-left/text-right）   |
 
 ### P1-UX 审计完成内容
 
@@ -591,7 +605,7 @@ curl -X POST http://localhost:3000/api/apply \
 7. **多源 LLM 故障转移**：Claude Sonnet → Qwen → DeepSeek → Kimi → MiniMax 按优先级降级
 8. **Webhook 安全**：HMAC 签名验证 + 幂等处理
 9. **Sentry 全链路监控**：Server/Edge/Client 三端错误自动捕获 + `global-error.tsx` 友好降级 + Middleware 异常防护 + `/monitoring` tunnel 绕过广告拦截
-10. **自适应提取管线**：site-probe 预检 → 策略路由（lightweight/standard/stealth/skip）→ JSON-LD/OG 直接映射（覆盖率 ≥80% 跳过 LLM）→ LLM 补充 → 字段校验，8 站点策略准确率 100%
+10. **七层提取管线**：site-probe 预检 → 策略路由（lightweight/standard/stealth/skip）→ JSON-LD（@graph 展开 + @id 解析）→ OG → CSS（原始 HTML + 平台规则）→ Geo 推断（80+ US 城市）→ LLM 补充 → 后处理清洗 → 自校验，55 站点平均 12.7 字段
 11. **站点类型智能识别**：自动检测 SPA/WordPress/物管平台模板/静态站点，按类型选择最优爬取策略
 12. **cheerio 轻量提取**：静态站点跳过 Playwright，HTTP + cheerio 直接解析，资源占用降低 90%
 13. **BullMQ 任务队列**：Redis 持久化 + 优先级 + 指数退避重试 + 并发控制，无 Redis 时自动回退直接执行

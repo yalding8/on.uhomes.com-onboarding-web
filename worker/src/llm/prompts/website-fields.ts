@@ -47,7 +47,16 @@ Output a valid JSON object using the exact field keys listed below.
 - "bed_included": "Yes - Twin", "Yes - Full", "Yes - Queen", "Yes - Other", or "No"
 - "floor_plans": Floor plan descriptions
 
-NOTE: Contact info (name, email, phone) and commission details are extracted from contracts, NOT from websites. Do NOT attempt to extract them.
+## PRIORITY 3B — Fees & Contacts (extract if clearly visible):
+- "primary_contact_phone": Leasing office phone number
+- "primary_contact_email": Leasing office email
+- "application_fee": Application fee amount (number)
+- "parking_fee": Monthly parking fee description
+- "pet_fee": One-time pet deposit/fee description
+- "pet_rent": Monthly pet rent (number)
+- "guarantor_options": Array from: ["Personal guarantor", "Third-party guarantor", "No guarantor required"]
+- "renters_insurance": Renter's insurance requirement description
+- "utilities_not_included": Utilities NOT included in rent
 
 ## Example
 
@@ -90,15 +99,19 @@ export function buildWebsiteUserPrompt(
   }
 
   // 上下文注入: 告知 LLM 哪些字段已提取，仅要求补充缺失字段
+  // 排除 low confidence 推断字段，避免错误值误导 LLM（如 .com→US 对英国站点）
   if (existingFields && Object.keys(existingFields).length > 0) {
     const alreadyExtracted: Record<string, unknown> = {};
     for (const [key, fieldValue] of Object.entries(existingFields)) {
+      if (fieldValue.confidence === "low") continue;
       alreadyExtracted[key] = fieldValue.value;
     }
-    parts.push(
-      `\nALREADY EXTRACTED (skip these, focus on missing PRIORITY 1 & 2 fields):`,
-      JSON.stringify(alreadyExtracted, null, 2),
-    );
+    if (Object.keys(alreadyExtracted).length > 0) {
+      parts.push(
+        `\nALREADY EXTRACTED (skip these, focus on missing PRIORITY 1 & 2 fields):`,
+        JSON.stringify(alreadyExtracted, null, 2),
+      );
+    }
   }
 
   return parts.join("\n");

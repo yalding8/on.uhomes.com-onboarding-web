@@ -27,18 +27,22 @@ export interface SubPageResult {
   label: PageLabel;
   fields: ExtractedFields;
   markdown: string;
+  contactText?: string;
 }
 
 /** 子页面分层提取（JSON-LD → OG → CSS） */
-function extractSubPageLayered(scraped: ScrapedContent): ExtractedFields {
+function extractSubPageLayered(
+  scraped: ScrapedContent,
+  platform?: string,
+): ExtractedFields {
   let fields: ExtractedFields = {};
   if (scraped.jsonLd.length > 0) {
     fields = { ...fields, ...mapStructuredData(scraped.jsonLd).fields };
   }
   mergeFieldsInto(fields, mapOpenGraphData(scraped.openGraph));
-  const htmlSource = scraped.markdown || scraped.bodyText;
+  const htmlSource = scraped.rawHtml || scraped.markdown || scraped.bodyText;
   if (htmlSource) {
-    mergeFieldsInto(fields, extractWithCss(htmlSource));
+    mergeFieldsInto(fields, extractWithCss(htmlSource, platform));
   }
   return fields;
 }
@@ -77,10 +81,18 @@ export async function crawlSubPages(
         });
       }
 
-      const subFields = extractSubPageLayered(subScraped);
+      const subFields = extractSubPageLayered(
+        subScraped,
+        siteProfile.detectedPlatform,
+      );
       const markdown = subScraped.markdown || subScraped.bodyText;
 
-      results.push({ label: subPage.label, fields: subFields, markdown });
+      results.push({
+        label: subPage.label,
+        fields: subFields,
+        markdown,
+        contactText: subScraped.contactText || undefined,
+      });
     } catch (err) {
       captureError(err, { subPageUrl: subPage.url, label: subPage.label });
       console.error(

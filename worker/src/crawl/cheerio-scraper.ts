@@ -85,6 +85,7 @@ export function parseHtml(html: string): ScrapedContent {
     contactText,
     metaTags,
     apiFields: {},
+    rawHtml: html,
   };
 }
 

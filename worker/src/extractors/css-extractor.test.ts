@@ -119,4 +119,77 @@ describe("extractWithCss", () => {
     expect(amenities).toContain("Bike Storage");
     expect(amenities).toContain("Rooftop");
   });
+
+  // ── OPT-5: 正则价格提取 ──
+
+  it("should extract price range from body text ($X - $Y)", () => {
+    const html = makeHtml("<p>Studios from $1,200 - $3,500 per month</p>");
+    const fields = extractWithCss(html);
+    expect(fields.price_min?.value).toBe(1200);
+    expect(fields.price_max?.value).toBe(3500);
+    expect(fields.price_min?.confidence).toBe("low");
+  });
+
+  it("should extract price from 'Starting at' pattern", () => {
+    const html = makeHtml("<p>Starting at $1,500/mo</p>");
+    const fields = extractWithCss(html);
+    expect(fields.price_min?.value).toBe(1500);
+  });
+
+  it("should extract GBP price from body text", () => {
+    const html = makeHtml("<p>From £150 per week</p>");
+    const fields = extractWithCss(html);
+    expect(fields.price_min?.value).toBe(150);
+  });
+
+  it("should not override CSS-matched prices with regex", () => {
+    const html = makeHtml(`
+      <span itemprop="lowPrice">$900</span>
+      <p>Prices range from $800 - $2,000</p>
+    `);
+    const fields = extractWithCss(html);
+    expect(fields.price_min?.value).toBe(900);
+    expect(fields.price_min?.confidence).toBe("medium");
+  });
+
+  it("should ignore prices outside valid range", () => {
+    const html = makeHtml("<p>Call $5 or visit us at 10036</p>");
+    const fields = extractWithCss(html);
+    expect(fields.price_min).toBeUndefined();
+  });
+
+  // ── OPT-6: 新增规则 + Amenity 归一化 ──
+
+  it("should extract application link from apply href", () => {
+    const html = makeHtml('<a href="/apply-now">Apply</a>');
+    const fields = extractWithCss(html);
+    expect(fields.application_link?.value).toBe("/apply-now");
+  });
+
+  it("should normalize elevator amenity", () => {
+    const html = makeHtml(`
+      <ul class="amenities"><li>Elevator Access</li></ul>
+    `);
+    const fields = extractWithCss(html);
+    const amenities = fields.key_amenities?.value as string[];
+    expect(amenities).toContain("Elevator");
+  });
+
+  it("should normalize concierge to Security", () => {
+    const html = makeHtml(`
+      <ul class="features"><li>24-hour Concierge</li></ul>
+    `);
+    const fields = extractWithCss(html);
+    const amenities = fields.key_amenities?.value as string[];
+    expect(amenities).toContain("Security");
+  });
+
+  it("should normalize co-working to Study Room", () => {
+    const html = makeHtml(`
+      <ul class="amenity-list"><li>Co-Working Lounge</li></ul>
+    `);
+    const fields = extractWithCss(html);
+    const amenities = fields.key_amenities?.value as string[];
+    expect(amenities).toContain("Study Room");
+  });
 });

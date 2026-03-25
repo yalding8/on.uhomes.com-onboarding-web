@@ -14,6 +14,8 @@ import type { SubPageResult } from "./sub-page-crawl.js";
 import { validateFields } from "../validators/field-validator.js";
 import { validateWithLlm } from "../validators/llm-validator.js";
 import { mergeFieldsInto, mergeByConfidence } from "./field-merge.js";
+import { inferGeoFields } from "./geo-inferrer.js";
+import { postprocessFields } from "./field-postprocessor.js";
 import { buildResult } from "./result-builder.js";
 import type { ExtractionResult } from "./index.js";
 import type { ExtractedFields, DomainHints } from "../types.js";
@@ -76,7 +78,7 @@ export async function extractFromWebsite(
   );
 
   // 5. 分层提取（首页: JSON-LD → OG → API → CSS）
-  const mergedFields = extractLayered(scraped);
+  const mergedFields = extractLayered(scraped, siteProfile);
 
   // 5a. 合并 API 拦截字段（高置信度）
   if (scraped.apiFields && Object.keys(scraped.apiFields).length > 0) {
@@ -88,8 +90,11 @@ export async function extractFromWebsite(
     mergeByConfidence(mergedFields, sub.fields);
   }
 
+  // 5c. 从 URL/city 推断 country/currency
+  mergeFieldsInto(mergedFields, inferGeoFields(mergedFields, sourceUrl));
+
   // 6. LLM 提取 — 聚合首页 + 子页面内容，单次调用
-  const llmSkipped = hasHighCoverage(scraped);
+  const llmSkipped = hasHighCoverage(mergedFields);
   let llmProvider: string | null = null;
   if (!llmSkipped) {
     const llmStart = Date.now();
@@ -103,6 +108,9 @@ export async function extractFromWebsite(
     mergeFieldsInto(mergedFields, llmFields);
     llmProvider = "auto";
   }
+
+  // 7. 后处理：清洗字段数据
+  postprocessFields(mergedFields, sourceUrl);
 
   // 8. 校验 + LLM 交叉验证
   const validated = validateFields(mergedFields);
@@ -212,21 +220,32 @@ async function scrapeHomepage(
   }
 }
 
-function extractLayered(scraped: ScrapedContent): ExtractedFields {
+function extractLayered(
+  scraped: ScrapedContent,
+  profile?: SiteProfile,
+): ExtractedFields {
   let fields: ExtractedFields = {};
   if (scraped.jsonLd.length > 0) {
     fields = { ...mapStructuredData(scraped.jsonLd).fields };
   }
   mergeFieldsInto(fields, mapOpenGraphData(scraped.openGraph));
-  // CSS 选择器提取（用 markdown 作为 HTML 源）
-  const htmlSource = scraped.markdown || scraped.bodyText;
-  if (htmlSource) mergeFieldsInto(fields, extractWithCss(htmlSource));
+  // CSS 选择器提取（优先用原始 HTML 以保留 itemprop/href 属性）
+  const htmlSource = scraped.rawHtml || scraped.markdown || scraped.bodyText;
+  if (htmlSource) {
+    mergeFieldsInto(
+      fields,
+      extractWithCss(htmlSource, profile?.detectedPlatform),
+    );
+  }
   return fields;
 }
 
-function hasHighCoverage(scraped: ScrapedContent): boolean {
-  if (scraped.jsonLd.length === 0) return false;
-  return mapStructuredData(scraped.jsonLd).coverageRatio >= SKIP_LLM_COVERAGE;
+/** Tier A+B 字段总数 ≈ 32。仅当已提取字段数足够多时才跳过 LLM。 */
+const TIER_AB_FIELD_COUNT = 32;
+
+function hasHighCoverage(mergedFields: ExtractedFields): boolean {
+  const fieldCount = Object.keys(mergedFields).length;
+  return fieldCount >= TIER_AB_FIELD_COUNT * SKIP_LLM_COVERAGE;
 }
 
 async function tryLlmValidation(
@@ -275,9 +294,28 @@ function aggregateContent(
   const homeMd = homepage.markdown || homepage.bodyText;
   const parts: string[] = [`## [Homepage]\n\n${homeMd}`];
 
+  const LABEL_HEADER: Record<string, string> = {
+    pricing: "Pricing & Rates Page",
+    amenities: "Amenities & Features Page",
+    "floor-plans": "Floor Plans & Unit Types Page",
+    gallery: "Photo Gallery Page",
+    contact: "Contact Information Page",
+    apply: "Application / Booking Page",
+  };
+
   for (const sub of subPages) {
     if (sub.markdown.trim().length > 100) {
-      parts.push(`\n\n## [${sub.label} page]\n\n${sub.markdown}`);
+      const header = LABEL_HEADER[sub.label] ?? `${sub.label} page`;
+      parts.push(`\n\n## [${header}]\n\n${sub.markdown}`);
+    }
+  }
+
+  // 聚合首页 + 子页面的 contactText
+  const contactParts: string[] = [];
+  if (homepage.contactText) contactParts.push(homepage.contactText);
+  for (const sub of subPages) {
+    if (sub.contactText && !contactParts.includes(sub.contactText)) {
+      contactParts.push(sub.contactText);
     }
   }
 
@@ -287,7 +325,7 @@ function aggregateContent(
     markdown: parts.join(""),
     imageUrls: homepage.imageUrls,
     jsonLd: homepage.jsonLd,
-    contactText: homepage.contactText,
+    contactText: contactParts.join("\n") || undefined,
   };
 }
 
